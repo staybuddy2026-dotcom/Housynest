@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-teal: #0B4F48;
+  --color-brand-teal-hover: #083D37;
+  --color-brand-teal-light: #167A70;
+  --color-brand-yellow: #FDBA21;
+  --color-brand-yellow-hover: #E5A51B;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 8px;
+}
+
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0aa87d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #062F26;
+}
+
+/* Hide scrollbar completely only where explicitly requested */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Toast Progress Animation */
+@keyframes toastProgress {
+  0% {
+    width: 100%;
+  }
+
+  100% {
+    width: 0%;
+  }
+}
+
+.toast-with-progress {
+  position: relative;
+  overflow: hidden;
+}
+
+.toast-with-progress::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: var(--color-brand-yellow);
+  width: 100%;
+  animation: toastProgress 3s linear forwards;
+}
+
+/* Slow Smooth Bounce */
+@keyframes slowBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+.animate-slow-bounce {
+  animation: slowBounce 3s ease-in-out infinite;
+}
