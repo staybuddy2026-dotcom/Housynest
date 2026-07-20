@@ -101,7 +101,7 @@ const OwnerProfile = () => {
       {/* Top Profile Summary Card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-6 flex items-center gap-5">
         <div className="relative group">
-          <div className="w-16 h-16 bg-gradient-to-tr from-[#062F26] to-brand-teal rounded-full flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-inner overflow-hidden">
+          <div className="w-16 h-16 bg-linear-to-tr from-[#062F26] to-brand-teal rounded-full flex items-center justify-center text-white text-2xl font-bold shrink-0 shadow-inner overflow-hidden">
             {formData.profilePic ? (
               <img src={formData.profilePic} alt="Profile" className="w-full h-full object-cover" />
             ) : (

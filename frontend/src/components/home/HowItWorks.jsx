@@ -30,7 +30,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="max-w-[1360px] mx-auto w-full px-4 sm:px-6 xl:px-0">
+    <section className="max-w-340 3xl:max-w-420 mx-auto w-full px-4 sm:px-6 xl:px-0">
       <div className="bg-white rounded-xl border-2 border-gray-200/60 p-5 sm:p-8 md:px-12 md:py-8 relative overflow-hidden">
 
         {/* Decorative background blobs */}

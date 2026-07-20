@@ -66,11 +66,11 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white sticky top-0 z-50 px-4 sm:px-6 xl:px-0">
-      <div className="max-w-[1360px] mx-auto">
-        <div className="flex justify-between items-center h-16 sm:h-[76px]">
+      <div className="max-w-340 3xl:max-w-420 mx-auto">
+        <div className="flex justify-between items-center h-16 sm:h-19">
 
           {/* Logo Section */}
-          <div className="flex-shrink-0 flex items-center flex-1">
+          <div className="shrink-0 flex items-center flex-1">
             <Link to="/" className="flex items-center">
               <img src={logo} alt="HousyNest Logo" className="h-11 sm:h-12 w-auto object-contain" />
             </Link>
@@ -90,7 +90,7 @@ const Navbar = () => {
                 {({ isActive }) => (
                   <>
                     {link.title}
-                    <span className={`absolute -bottom-[6px] left-0 w-full h-[1.5px] bg-brand-teal origin-left transition-transform duration-300 ease-out ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
+                    <span className={`absolute -bottom-1.5 left-0 w-full h-[1.5px] bg-brand-teal origin-left transition-transform duration-300 ease-out ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
                   </>
                 )}
               </NavLink>
@@ -115,8 +115,8 @@ const Navbar = () => {
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                   className="flex items-center gap-2.5 py-1.5 px-3 rounded-md border border-slate-200 bg-white hover:border-brand-teal/30 hover:bg-[#EAF5F2]/50 hover:shadow-sm transition-all duration-300"
                 >
-                  <div className="relative flex-shrink-0">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#062F26] to-brand-teal text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white uppercase overflow-hidden">
+                  <div className="relative shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-linear-to-tr from-[#062F26] to-brand-teal text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white uppercase overflow-hidden">
                       {user?.profilePic ? (
                         <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
@@ -145,7 +145,7 @@ const Navbar = () => {
                 <div className={`absolute right-0 top-full pt-3 w-56 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top z-50 ${isProfileDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0'}`}>
                   <div className="bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden relative">
                     {/* Decorative Top Accent */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-teal to-[#062F26]"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-brand-teal to-[#062F26]"></div>
 
                     <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50">
                       <p className="text-[15px] font-bold text-slate-800">{user?.fullName || 'User'}</p>
@@ -218,7 +218,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden absolute w-full left-0 bg-white overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-[400px] border-t border-gray-100 shadow-md opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+        className={`lg:hidden absolute w-full left-0 bg-white overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-100 border-t border-gray-100 shadow-md opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
           }`}
       >
         <div className="px-4 py-5 flex flex-col space-y-5">

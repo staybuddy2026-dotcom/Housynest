@@ -59,7 +59,7 @@ const AuthOtpForm = ({ registrationData, onSuccess, onCancel }) => {
       }
       toast.success(result.message || 'Registered successfully!');
       onSuccess(result.user);
-    } catch (error) {
+    } catch {
       toast.error('An error occurred during verification');
     } finally {
       setIsLoading(false);

@@ -6,6 +6,7 @@
   --color-brand-teal-light: #167A70;
   --color-brand-yellow: #FDBA21;
   --color-brand-yellow-hover: #E5A51B;
+  --breakpoint-3xl: 1537px;
 }
 
 /* Custom Scrollbar */

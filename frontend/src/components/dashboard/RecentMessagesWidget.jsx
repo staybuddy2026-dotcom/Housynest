@@ -30,7 +30,7 @@ const RecentMessagesWidget = () => {
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
 
-            let timeStr = '';
+            let timeStr;
             if (date.toDateString() === today.toDateString()) {
               timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             } else if (date.toDateString() === yesterday.toDateString()) {
@@ -74,11 +74,11 @@ const RecentMessagesWidget = () => {
       </div>
       <div className="flex flex-col p-2 gap-1 flex-1">
         {loading ? (
-          <div className="flex-1 flex items-center justify-center min-h-[150px]">
+          <div className="flex-1 flex items-center justify-center min-h-37.5">
             <Icon icon="lucide:loader-2" className="w-6 h-6 animate-spin text-brand-teal" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center min-h-[150px] text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center min-h-37.5 text-slate-400">
             <Icon icon="lucide:message-square" className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm font-medium">No recent messages</p>
           </div>

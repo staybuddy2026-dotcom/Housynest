@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import SignatureCanvas from 'react-signature-canvas';
@@ -39,9 +39,25 @@ const TenantContracts = () => {
   };
 
   const token = localStorage.getItem('accessToken');
-  const headers = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+  const headers = useMemo(() => ({ "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }), [token]);
+
+  const fetchContracts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/contracts/tenant', { headers });
+      if (response.ok) {
+        const data = await response.json();
+        setContracts(data);
+      }
+    } catch {
+      toast.error('Failed to load contracts');
+    } finally {
+      setLoading(false);
+    }
+  }, [headers]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchContracts();
 
     // Mark as read
@@ -59,22 +75,7 @@ const TenantContracts = () => {
 
     window.addEventListener('newTenantContract', handleNewContract);
     return () => window.removeEventListener('newTenantContract', handleNewContract);
-  }, []);
-
-  const fetchContracts = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/contracts/tenant', { headers });
-      if (response.ok) {
-        const data = await response.json();
-        setContracts(data);
-      }
-    } catch (error) {
-      toast.error('Failed to load contracts');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchContracts, headers]);
 
   const openContract = (c) => {
     setSelected(c); setShowSignModal(false); setSignMode('draw'); setUploadedSignBase64(null);
@@ -86,7 +87,7 @@ const TenantContracts = () => {
   const handleSignConfirm = async () => {
     if (!selected) return;
 
-    let signatureUrl = null;
+    let signatureUrl;
     if (signMode === 'draw') {
       if (sigCanvas.current.isEmpty()) {
         toast.error("Please provide your signature.");
@@ -122,6 +123,7 @@ const TenantContracts = () => {
     } finally { setActing(false); }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleDownloadPdf = async () => {
     // PDF Generation Logic placeholder if needed. Since we are in tenant, we might want to let them download
     toast.error("Download will be available shortly.");
@@ -143,10 +145,10 @@ const TenantContracts = () => {
         </div>
 
         {/* Lawyer info */}
-        <div className="rounded-2xl border p-4 bg-white border-slate-200 shadow-sm">
+        <div className="rounded-xl border p-4 bg-white border-slate-200 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide mb-3 text-slate-400">Prepared by Lawyer</p>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-brand-teal flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-brand-teal flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
               {selected.lawyerId?.profilePic
                 ? <img src={selected.lawyerId.profilePic} alt={selected.lawyerId.fullName} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 : selected.lawyerId?.fullName?.charAt(0).toUpperCase()}
@@ -162,10 +164,10 @@ const TenantContracts = () => {
         </div>
 
         {/* Property Owner */}
-        <div className="rounded-2xl border p-4 bg-white border-slate-200 shadow-sm">
+        <div className="rounded-xl border p-4 bg-white border-slate-200 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide mb-3 text-slate-400">Property Owner</p>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#EAF5F2] flex items-center justify-center text-[#062F26] font-bold text-sm flex-shrink-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-[#EAF5F2] flex items-center justify-center text-[#062F26] font-bold text-sm shrink-0 overflow-hidden">
               {selected.ownerId?.profilePic
                 ? <img src={selected.ownerId.profilePic} alt={selected.ownerId.fullName} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 : selected.ownerId?.fullName?.charAt(0).toUpperCase()}
@@ -178,7 +180,7 @@ const TenantContracts = () => {
         </div>
 
         {/* Financials */}
-        <div className="rounded-2xl border p-5 space-y-4 bg-white border-slate-200 shadow-sm">
+        <div className="rounded-xl border p-5 space-y-4 bg-white border-slate-200 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Property & Financials</p>
           <p className="text-sm text-slate-700">{selected.propertyAddress || "—"}</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -207,7 +209,7 @@ const TenantContracts = () => {
         </div>
 
         {/* Terms */}
-        <div className="rounded-2xl border p-5 space-y-4 bg-white border-slate-200 shadow-sm">
+        <div className="rounded-xl border p-5 space-y-4 bg-white border-slate-200 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Terms & Conditions</p>
           <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">{selected.terms || "—"}</pre>
           <div className="border-t pt-4 border-slate-100">
@@ -218,7 +220,7 @@ const TenantContracts = () => {
 
         {/* Action area */}
         {canAct && (
-          <div className="rounded-2xl border p-5 space-y-4 bg-white border-slate-200 shadow-sm">
+          <div className="rounded-xl border p-5 space-y-4 bg-white border-slate-200 shadow-sm">
             <p className="text-sm font-semibold text-slate-900">Your Action Required</p>
             <p className="text-sm text-slate-500">
               Please review the rental agreement carefully. Clicking "Accept & Sign" will allow you to electronically sign the contract.
@@ -236,7 +238,7 @@ const TenantContracts = () => {
         {selected.status === "TENANT_SIGNED" && (
           <div className="rounded-2xl border p-5 space-y-4 bg-[#EAF5F2] border-[#062F26]/20">
             <div className="flex items-center gap-2">
-              <Icon icon="lucide:check-circle" className="w-5 h-5 text-[#062F26] flex-shrink-0" />
+              <Icon icon="lucide:check-circle" className="w-5 h-5 text-[#062F26] shrink-0" />
               <p className="text-sm font-bold text-[#062F26]">
                 Fully Executed on {selected.tenantSignedAt ? new Date(selected.tenantSignedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
               </p>
@@ -245,7 +247,7 @@ const TenantContracts = () => {
             {selected.tenantSignature && (
               <div className="mt-3">
                 <p className="text-sm font-medium text-brand-teal mb-2">Your Signature</p>
-                <div className="border border-brand-teal/30 bg-white rounded-xl overflow-hidden w-[200px] h-[80px]">
+                <div className="border border-brand-teal/30 bg-white rounded-xl overflow-hidden w-50 h-20">
                   <img src={selected.tenantSignature} alt="Tenant Signature" className="w-full h-full object-contain" />
                 </div>
               </div>
@@ -291,7 +293,7 @@ const TenantContracts = () => {
                     <p className="text-slate-500 text-sm mb-4">
                       Upload an image of your signature.
                     </p>
-                    <div className="border border-dashed border-slate-300 rounded-xl bg-slate-50 p-6 flex flex-col items-center justify-center relative min-h-[192px]">
+                    <div className="border border-dashed border-slate-300 rounded-xl bg-slate-50 p-6 flex flex-col items-center justify-center relative min-h-48">
                       {uploadedSignBase64 ? (
                         <div className="relative w-full h-full flex flex-col items-center">
                           <img src={uploadedSignBase64} alt="Uploaded Signature" className="max-h-32 object-contain mb-4" />
@@ -333,7 +335,7 @@ const TenantContracts = () => {
   }
 
   return (
-    <div className="animate-fadeIn max-w-6xl mx-auto pb-10 space-y-5">
+    <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10 space-y-5">
       <div className="pt-2">
         <h2 className="text-3xl font-bold text-[#062F26] tracking-tight mb-2">My Contracts</h2>
         <p className="text-sm text-slate-500 font-medium">Rental contracts waiting for your signature</p>
@@ -349,8 +351,8 @@ const TenantContracts = () => {
           <Icon icon="lucide:loader-2" className="w-8 h-8 animate-spin text-brand-teal" />
         </div>
       ) : contracts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-12 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
+        <div className="bg-white rounded-xl border border-dashed border-slate-200 p-12 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mb-4">
             <Icon icon="lucide:file-text" className="w-8 h-8 text-slate-400" />
           </div>
           <h3 className="text-lg font-bold text-slate-800 mb-2">No contracts yet</h3>
@@ -362,7 +364,7 @@ const TenantContracts = () => {
             const cfg = STATUS[c.status] ?? STATUS.PENDING_TENANT_REVIEW;
             const needsAction = c.status === "PENDING_TENANT_REVIEW";
             return (
-              <div key={c._id} onClick={() => openContract(c)} className={`bg-white border rounded-2xl p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:shadow-md transition-all group ${needsAction ? 'border-amber-300 bg-amber-50/30 hover:border-amber-400' : 'border-slate-200 hover:border-brand-teal/30'}`}>
+              <div key={c._id} onClick={() => openContract(c)} className={`bg-white border rounded-xl p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:shadow-md transition-all group ${needsAction ? 'border-amber-300 bg-amber-50/30 hover:border-amber-400' : 'border-slate-200 hover:border-brand-teal/30'}`}>
                 <div className="flex items-center gap-4 sm:gap-5">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-colors ${needsAction ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-brand-teal/5 group-hover:text-brand-teal'}`}>
                     <Icon icon="lucide:file-text" className="w-5 h-5" />

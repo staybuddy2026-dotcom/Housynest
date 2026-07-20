@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 const MyListingsWidget = () => {
   const [listings, setListings] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ const MyListingsWidget = () => {
               price,
               views: p.views || 0,
               inquiries: p.inquiries || 0,
+              bookings: p.bookings || 0,
               image
             };
           });
@@ -63,7 +65,7 @@ const MyListingsWidget = () => {
       <div className="flex flex-col p-2">
         {listings.map((listing) => (
           <div key={listing.id} className="flex items-center gap-4 p-3 hover:bg-[#F8F9FA] rounded-xl transition-colors group">
-            <div className="w-[100px] h-[70px] rounded-lg overflow-hidden shrink-0">
+            <div className="w-25 h-17.5 rounded-lg overflow-hidden shrink-0">
               <img src={listing.image} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             </div>
             <div className="flex-1 min-w-0">
@@ -90,6 +92,11 @@ const MyListingsWidget = () => {
                 <Icon icon="lucide:message-square" className="w-4 h-4 text-slate-400 mb-1" />
                 <span className="text-sm font-bold text-[#062F26] leading-none mb-0.5">{listing.inquiries}</span>
                 <span className="text-[10px] font-semibold text-slate-400">Inquiries</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <Icon icon="lucide:calendar-check" className="w-4 h-4 text-slate-400 mb-1" />
+                <span className="text-sm font-bold text-[#062F26] leading-none mb-0.5">{listing.bookings}</span>
+                <span className="text-[10px] font-semibold text-slate-400">Bookings</span>
               </div>
             </div>
             <button className="p-2 text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 rounded-lg transition-colors">

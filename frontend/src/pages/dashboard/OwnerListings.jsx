@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import EditPropertyForm from '../../components/dashboard/EditPropertyForm';
@@ -13,11 +13,7 @@ const OwnerListings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [editingPropertyId, setEditingPropertyId] = useState(null);
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
-
-  const fetchProperties = async () => {
+  const fetchProperties = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
@@ -40,7 +36,12 @@ const OwnerListings = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProperties();
+  }, [fetchProperties]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this property?")) return;
@@ -102,7 +103,7 @@ const OwnerListings = () => {
           to="/list-property"
           className="flex items-center justify-center gap-2 bg-[#062F26] text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-brand-teal transition-all duration-300 shadow-lg shadow-[#062F26]/20 hover:shadow-brand-teal/30 hover:-translate-y-0.5 shrink-0"
         >
-          <Icon icon="lucide:plus" className="w-[18px] h-[18px]" />
+          <Icon icon="lucide:plus" className="w-4.5 h-4.5" />
           Add New Property
         </Link>
       </div>
@@ -127,7 +128,7 @@ const OwnerListings = () => {
           <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-              className="flex items-center justify-between w-full sm:w-auto bg-white border border-slate-200 text-[#062F26] text-sm font-bold rounded-lg pl-4 pr-3 py-2.5 outline-none cursor-pointer hover:border-brand-teal transition-colors min-w-[130px]"
+              className="flex items-center justify-between w-full sm:w-auto bg-white border border-slate-200 text-[#062F26] text-sm font-bold rounded-lg pl-4 pr-3 py-2.5 outline-none cursor-pointer hover:border-brand-teal transition-colors min-w-32.5"
             >
               <span>{filterStatus === 'All' ? 'All Status' : filterStatus}</span>
               <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isFilterDropdownOpen ? 'rotate-180' : ''}`} />
@@ -182,9 +183,10 @@ const OwnerListings = () => {
             const location = rawListing.locality ? `${rawListing.locality}, ${rawListing.city || ''}` : (rawListing.address || 'Unknown Location');
             const price = rawListing.monthlyRent ? `₹${rawListing.monthlyRent}` : (rawListing.rooms && rawListing.rooms.length > 0 ? `₹${rawListing.rooms[0].rentPerBed}` : 'N/A');
             const image = (rawListing.images && rawListing.images.length > 0) ? rawListing.images[0].url : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800';
-            const addedOn = new Date(rawListing.createdAt || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            const addedOn = rawListing.createdAt ? new Date(rawListing.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Unknown';
             const views = rawListing.views || 0;
             const inquiries = rawListing.inquiries || 0;
+            const bookings = rawListing.bookings || 0;
             const status = rawListing.status || 'Pending';
 
             if (viewType === 'grid') {
@@ -194,13 +196,13 @@ const OwnerListings = () => {
                   className="bg-white rounded-xl border border-slate-100 overflow-hidden group hover:border-brand-teal/30 hover:shadow-[0_12px_40px_rgba(10,168,125,0.08)] transition-all duration-300 flex flex-col"
                 >
                   {/* Image Container */}
-                  <div className="relative h-[140px] w-full overflow-hidden shrink-0">
+                  <div className="relative h-35 w-full overflow-hidden shrink-0">
                     <img
                       src={image}
                       alt={title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute top-4 left-4">
                       <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider shadow-sm backdrop-blur-md ${status === 'Active' || status === 'Approved' ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/90 text-white'
                         }`}>
@@ -222,7 +224,7 @@ const OwnerListings = () => {
                       <p className="text-xs font-medium truncate">{location}</p>
                     </div>
 
-                    <div className="w-full h-[1px] bg-slate-100 mb-2.5" />
+                    <div className="w-full h-px bg-slate-100 mb-2.5" />
 
                     <div className="flex items-center justify-between mt-auto mb-3">
                       <div>
@@ -241,10 +243,15 @@ const OwnerListings = () => {
                         <span className="text-xs font-bold text-slate-700">{views}</span>
                         <span className="text-[9px] font-semibold text-slate-400 uppercase mt-0.5">Views</span>
                       </div>
-                      <div className="flex-1 flex items-center justify-center gap-1">
+                      <div className="flex-1 flex items-center justify-center gap-1 border-r border-slate-200">
                         <Icon icon="lucide:message-square" className="w-3.5 h-3.5 text-orange-500" />
                         <span className="text-xs font-bold text-slate-700">{inquiries}</span>
                         <span className="text-[9px] font-semibold text-slate-400 uppercase mt-0.5">Inquiries</span>
+                      </div>
+                      <div className="flex-1 flex items-center justify-center gap-1">
+                        <Icon icon="lucide:calendar-check" className="w-3.5 h-3.5 text-brand-teal" />
+                        <span className="text-xs font-bold text-slate-700">{bookings}</span>
+                        <span className="text-[9px] font-semibold text-slate-400 uppercase mt-0.5">Bookings</span>
                       </div>
                     </div>
 
@@ -279,13 +286,13 @@ const OwnerListings = () => {
                 className="bg-white rounded-xl border border-slate-100 overflow-hidden group hover:border-brand-teal/30 hover:shadow-[0_12px_40px_rgba(10,168,125,0.08)] transition-all duration-300 flex flex-col sm:flex-row"
               >
                 {/* Left: Image Container */}
-                <div className="relative h-[140px] sm:h-auto sm:w-[220px] shrink-0 overflow-hidden">
+                <div className="relative h-35 sm:h-auto sm:w-55 shrink-0 overflow-hidden">
                   <img
                     src={image}
                     alt={title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute top-3 left-3">
                     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md ${status === 'Active' || status === 'Approved' ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/90 text-white'
                       }`}>
@@ -325,7 +332,7 @@ const OwnerListings = () => {
                 </div>
 
                 {/* Right: Metrics & Actions Sidebar */}
-                <div className="sm:w-[220px] bg-slate-50 border-t sm:border-t-0 sm:border-l border-slate-100 p-4 sm:p-5 flex flex-col justify-center gap-3">
+                <div className="sm:w-55 bg-slate-50 border-t sm:border-t-0 sm:border-l border-slate-100 p-4 sm:p-5 flex flex-col justify-center gap-3">
                   {/* Metrics */}
                   <div className="flex items-center bg-white rounded-xl border border-slate-200 py-2 shadow-sm">
                     <div className="flex-1 flex flex-col items-center justify-center border-r border-slate-100">
@@ -335,12 +342,19 @@ const OwnerListings = () => {
                       </div>
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Views</span>
                     </div>
-                    <div className="flex-1 flex flex-col items-center justify-center">
+                    <div className="flex-1 flex flex-col items-center justify-center border-r border-slate-100">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <Icon icon="lucide:message-square" className="w-3.5 h-3.5 text-orange-500" />
                         <span className="text-sm font-bold text-slate-700">{inquiries}</span>
                       </div>
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Inquiries</span>
+                    </div>
+                    <div className="flex-1 flex flex-col items-center justify-center">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <Icon icon="lucide:calendar-check" className="w-3.5 h-3.5 text-brand-teal" />
+                        <span className="text-sm font-bold text-slate-700">{bookings}</span>
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bookings</span>
                     </div>
                   </div>
 

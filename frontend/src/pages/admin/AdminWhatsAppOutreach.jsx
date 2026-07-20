@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
 
@@ -21,7 +21,7 @@ const AdminWhatsAppOutreach = () => {
   const [leads, setLeads] = useState([]);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     setIsLoadingLeads(true);
     try {
       const token = localStorage.getItem('accessToken');
@@ -38,13 +38,14 @@ const AdminWhatsAppOutreach = () => {
     } finally {
       setIsLoadingLeads(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'Leads') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchLeads();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchLeads]);
 
   const handleAddRecipient = () => {
     setRecipients([
@@ -137,7 +138,7 @@ const AdminWhatsAppOutreach = () => {
   const listedLeads = leads.filter(l => l.status === 'Listed').length;
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-8">
+    <div className="max-w-350 mx-auto pb-8">
 
       {/* Premium Header Section */}
       <div className="bg-white rounded-xl border border-emerald-100 shadow-sm p-4 sm:p-6 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
@@ -152,15 +153,15 @@ const AdminWhatsAppOutreach = () => {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
-          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2 sm:px-5 sm:py-3 flex flex-col items-center justify-center min-w-[85px] sm:min-w-[100px]">
+          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2 sm:px-5 sm:py-3 flex flex-col items-center justify-center min-w-21.25 sm:min-w-25">
             <span className="text-2xl font-bold text-[#059669] leading-none">{totalLeads}</span>
             <span className="text-xs font-bold text-slate-500 mt-1">Leads</span>
           </div>
-          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2 sm:px-5 sm:py-3 flex flex-col items-center justify-center min-w-[85px] sm:min-w-[100px]">
+          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2 sm:px-5 sm:py-3 flex flex-col items-center justify-center min-w-21.25 sm:min-w-25">
             <span className="text-xl sm:text-2xl font-bold text-blue-500 leading-none">{interestedLeads}</span>
             <span className="text-xs sm:text-xs font-bold text-slate-500 mt-1">Interested</span>
           </div>
-          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2 sm:px-5 sm:py-3 flex flex-col items-center justify-center min-w-[85px] sm:min-w-[100px]">
+          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2 sm:px-5 sm:py-3 flex flex-col items-center justify-center min-w-21.25 sm:min-w-25">
             <span className="text-xl sm:text-2xl font-bold text-purple-500 leading-none">{listedLeads}</span>
             <span className="text-xs sm:text-xs font-bold text-slate-500 mt-1">Listed</span>
           </div>
@@ -204,7 +205,7 @@ const AdminWhatsAppOutreach = () => {
               <textarea
                 value={template}
                 onChange={(e) => setTemplate(e.target.value)}
-                className="w-full h-[320px] p-4 bg-brand-teal/5 border border-brand-teal/20 rounded-xl text-[#062F26] text-sm font-medium leading-relaxed focus:outline-none focus:ring-2 focus:ring-brand-teal/30 resize-none custom-scrollbar"
+                className="w-full h-80 p-4 bg-brand-teal/5 border border-brand-teal/20 rounded-xl text-[#062F26] text-sm font-medium leading-relaxed focus:outline-none focus:ring-2 focus:ring-brand-teal/30 resize-none custom-scrollbar"
               />
               <p className="text-xs text-slate-500 font-medium mt-4">
                 If owner name is provided, <span className="font-bold text-slate-700">{"{name}"}</span> is replaced with their name. Otherwise, it defaults to "Sir/Madam".
@@ -335,7 +336,7 @@ const AdminWhatsAppOutreach = () => {
           </div>
 
           <div className="w-full overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse table-auto min-w-[800px]">
+            <table className="w-full text-left border-collapse table-auto min-w-200">
               <thead className="bg-[#F8F9FA] border-b border-slate-100">
                 <tr>
                   <th className="py-3 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider">#</th>

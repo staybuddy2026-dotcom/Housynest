@@ -15,14 +15,14 @@ const PropertiesFilter = ({
       {/* Mobile Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[999] lg:hidden transition-opacity duration-300 ease-in-out"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-999 lg:hidden transition-opacity duration-300 ease-in-out"
           onClick={onClose}
         />
       )}
 
       {/* Drawer Container */}
-      <div className={`fixed inset-y-0 right-0 z-[1000] w-[85vw] sm:w-[320px] bg-white shadow-2xl lg:shadow-none lg:static lg:w-[300px] lg:flex-shrink-0 lg:z-auto lg:bg-transparent transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
-        <div className="bg-white lg:rounded-lg lg:shadow-[0_8px_30px_rgb(0,0,0,0.04)] lg:border lg:border-slate-100 lg:sticky lg:top-[10px] h-[100dvh] lg:h-[calc(100vh-100px)] flex flex-col overflow-hidden">
+      <div className={`fixed inset-y-0 right-0 z-1000 w-[85vw] sm:w-[320px] bg-white shadow-2xl lg:shadow-none lg:static lg:w-75 3xl:w-80! lg:shrink-0 lg:z-auto lg:bg-transparent transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+        <div className="bg-white lg:rounded-lg lg:shadow-[0_8px_30px_rgb(0,0,0,0.04)] lg:border lg:border-slate-100 lg:sticky lg:top-2.5 h-dvh lg:h-[calc(100vh-100px)] flex flex-col overflow-hidden">
 
           {/* Header (Fixed) */}
           <div className="flex-none flex items-center justify-between px-5 sm:px-6 lg:px-4 pt-6 lg:pt-4 pb-4 border-b border-slate-100 bg-white">

@@ -56,7 +56,7 @@ const Newsletter = () => {
 
   return (
     <section className="w-full relative z-20 -mb-24 px-4">
-      <div className="max-w-[1360px] mx-auto">
+      <div className="max-w-340 3xl:max-w-420 mx-auto">
         <div className="bg-gradient-to-r from-[#105E4C] to-[#1C8D7D] rounded-2xl px-6 py-1 md:px-8 lg:px-12 shadow-2xl relative flex flex-col md:flex-row items-center justify-between gap-0 md:gap-6 lg:gap-8 group">
 
           {/* Backgrounds Container (with overflow-hidden) */}

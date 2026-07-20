@@ -62,7 +62,7 @@ const VisitCard = ({ visit }) => {
           {/* Property Image */}
           <div className="relative w-full sm:w-32 h-24 rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-100 group-hover:shadow-md transition-shadow">
             <img src={propertyImage} alt={propertyName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 to-transparent"></div>
           </div>
 
           <div className="flex-1">
@@ -196,7 +196,7 @@ const TenantVisits = () => {
           const data = await res.json();
           setVisits(data);
         }
-      } catch (error) {
+      } catch {
         toast.error('Failed to load visits');
       } finally {
         setLoading(false);
@@ -215,7 +215,7 @@ const TenantVisits = () => {
   }
 
   return (
-    <div className="animate-fadeIn max-w-7xl mx-auto pb-10">
+    <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10">
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-2xl font-bold text-[#062F26] tracking-tight">My Property Visits</h1>
         <span className="bg-slate-100 text-slate-600 font-bold text-sm px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">

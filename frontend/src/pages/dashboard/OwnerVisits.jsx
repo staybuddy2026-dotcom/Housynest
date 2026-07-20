@@ -41,7 +41,7 @@ const VisitRequestCard = ({ visit, onUpdateStatus }) => {
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden mb-6 group relative">
       {/* Decorative top accent for pending requests */}
       {visit.status === 'Pending' && (
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-500"></div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-400 to-amber-500"></div>
       )}
 
       <div
@@ -49,7 +49,7 @@ const VisitRequestCard = ({ visit, onUpdateStatus }) => {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-start gap-5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center shrink-0 border border-slate-200 shadow-inner group-hover:scale-105 transition-transform overflow-hidden">
+          <div className="w-12 h-12 rounded-xl bg-linear-to-br from-slate-100 to-slate-200 flex items-center justify-center shrink-0 border border-slate-200 shadow-inner group-hover:scale-105 transition-transform overflow-hidden">
             {visit.tenant?.profilePic ? (
               <img src={visit.tenant.profilePic} alt={visit.name} className="w-full h-full object-cover" />
             ) : (
@@ -119,7 +119,7 @@ const VisitRequestCard = ({ visit, onUpdateStatus }) => {
             <button
               onClick={(e) => { e.stopPropagation(); handleUpdate('Completed'); }}
               disabled={isUpdating}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 px-6 py-2 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
+              className="bg-linear-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 px-6 py-2 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
             >
               <Icon icon="lucide:flag" className="w-4 h-4" /> Mark Completed
             </button>
@@ -138,7 +138,7 @@ const VisitRequestCard = ({ visit, onUpdateStatus }) => {
       {showReschedule && visit.status === 'Pending' && (
         <div className="px-6 pb-6 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-blue-50/50 border border-blue-200 rounded-xl p-5 shadow-sm">
-            <label className="block text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+            <label className="block text-sm font-bold text-blue-900 mb-3 items-center gap-2">
               <Icon icon="lucide:calendar-plus" className="w-5 h-5 text-blue-600" /> Suggest New Date/Time
             </label>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -217,7 +217,7 @@ const OwnerVisits = () => {
         const data = await res.json();
         setVisits(data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to load visit requests');
     } finally {
       setLoading(false);
@@ -225,6 +225,7 @@ const OwnerVisits = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchVisits();
   }, []);
 
@@ -246,7 +247,7 @@ const OwnerVisits = () => {
       } else {
         toast.error('Failed to update visit status');
       }
-    } catch (error) {
+    } catch {
       toast.error('Something went wrong');
     }
   };
@@ -263,8 +264,8 @@ const OwnerVisits = () => {
   const pendingCount = visits.filter(v => v.status === 'Pending').length;
 
   return (
-    <div className="animate-fadeIn max-w-7xl mx-auto pb-12">
-      <div className="bg-gradient-to-r from-[#062F26] to-[#0A4739] rounded-xl px-6 py-4 mb-4 text-white shadow-xl relative overflow-hidden">
+    <div className="animate-fadeIn max-w-7xl 3xl:max-w-[1600px] mx-auto pb-12">
+      <div className="bg-linear-to-r from-[#062F26] to-[#0A4739] rounded-xl px-6 py-4 mb-4 text-white shadow-xl relative overflow-hidden">
         {/* Abstract background shapes */}
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
         <div className="absolute bottom-0 right-32 -mb-16 w-48 h-48 rounded-full bg-[#25D366]/10 blur-2xl"></div>

@@ -5,6 +5,7 @@ import logo from '../../assets/logo.png';
 
 const LawyerSidebar = ({ onClose, isMobile }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const location = useLocation();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -25,7 +26,7 @@ const LawyerSidebar = ({ onClose, isMobile }) => {
 
   if (isMobile) {
     return (
-      <div className="bg-white border-t border-slate-200 h-[75px] flex items-center justify-around px-2 shadow-[0_-4px_15px_rgba(0,0,0,0.03)] rounded-t-2xl">
+      <div className="bg-white border-t border-slate-200 h-18.75 flex items-center justify-around px-2 shadow-[0_-4px_15px_rgba(0,0,0,0.03)] rounded-t-2xl">
         {navItems.map((item) => (
           <NavLink
             key={item.name}
@@ -57,9 +58,9 @@ const LawyerSidebar = ({ onClose, isMobile }) => {
   }
 
   return (
-    <div className="h-full bg-white border-r border-slate-100 flex flex-col w-full font-serif">
+    <div className="h-full bg-white border-r border-slate-100 flex flex-col w-full">
       {/* Logo */}
-      <div className="h-[65px] px-6 flex items-center shrink-0 border-b border-slate-100 mb-2">
+      <div className="h-16.25 px-6 flex items-center shrink-0 border-b border-slate-100 mb-2">
         <Link to="/" onClick={onClose}>
           <img src={logo} alt="Housynest" className="h-12 object-contain" />
         </Link>
@@ -74,8 +75,8 @@ const LawyerSidebar = ({ onClose, isMobile }) => {
             onClick={onClose}
             className={({ isActive }) =>
               `relative flex items-center justify-between px-4 py-3 transition-all duration-300 group mx-4 ${isActive
-                ? 'bg-[#062F26] border-l-[4px] border-[#25D366] text-white rounded-md shadow-md'
-                : 'border-l-[4px] border-transparent text-slate-500 hover:text-[#062F26] hover:bg-slate-50/50 rounded-md'
+                ? 'bg-[#062F26] border-l-4 border-[#25D366] text-white rounded-md shadow-md'
+                : 'border-l-4 border-transparent text-slate-500 hover:text-[#062F26] hover:bg-slate-50/50 rounded-md'
               }`
             }
           >
@@ -84,7 +85,7 @@ const LawyerSidebar = ({ onClose, isMobile }) => {
                 <div className="flex items-center gap-3">
                   <Icon
                     icon={item.icon}
-                    className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-[#062F26]'}`}
+                    className={`w-4.5 h-4.5 transition-colors ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-[#062F26]'}`}
                   />
                   <span className="text-sm font-bold tracking-wide">{item.name}</span>
                 </div>
@@ -106,7 +107,7 @@ const LawyerSidebar = ({ onClose, isMobile }) => {
         <div className="relative flex flex-col justify-end">
           {/* Collapsible Options (Opening Upwards) */}
           <div
-            className={`flex flex-col gap-1 transition-all duration-300 ease-in-out overflow-hidden ${isProfileOpen ? 'max-h-[100px] opacity-100 mb-2' : 'max-h-0 opacity-0 mb-0'
+            className={`flex flex-col gap-1 transition-all duration-300 ease-in-out overflow-hidden ${isProfileOpen ? 'max-h-25 opacity-100 mb-2' : 'max-h-0 opacity-0 mb-0'
               }`}
           >
             <Link to="/lawyer/profile" className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-[#062F26] rounded-lg transition-colors w-full">

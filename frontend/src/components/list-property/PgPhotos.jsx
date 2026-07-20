@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
 
@@ -14,7 +14,6 @@ const PgPhotos = ({ onNext, onPrev }) => {
 
   const usps = watch('usps') || [];
   const customUsps = watch('customUsps') || [];
-  const description = watch('description');
   const uploadedImages = watch('photos') || [];
 
   const handleUpdate = (field, value) => {
@@ -103,9 +102,9 @@ const PgPhotos = ({ onNext, onPrev }) => {
           <button
             type="button"
             onClick={onPrev}
-            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" strokeWidth="2.5" />
+            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth="2.5" />
           </button>
         )}
         <div>
@@ -244,7 +243,7 @@ const PgPhotos = ({ onNext, onPrev }) => {
           </div>
 
           <div className="bg-[#EAF5F2] rounded-xl p-3 sm:p-4 flex items-start gap-2 sm:gap-3 mb-6 sm:mb-8">
-            <Icon icon="lucide:lightbulb" className="text-brand-teal shrink-0 mt-0.5 w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            <Icon icon="lucide:lightbulb" className="text-brand-teal shrink-0 mt-0.5 w-4 h-4 sm:w-4.5 sm:h-4.5" />
             <p className="text-xs sm:text-sm font-semibold text-brand-teal">Tip: Use well-lit, clear and real images to get more visibility and trust.</p>
           </div>
 

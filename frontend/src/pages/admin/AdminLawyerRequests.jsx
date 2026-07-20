@@ -32,7 +32,7 @@ const AdminLawyerRequests = () => {
       } else {
         toast.error('Failed to fetch requests');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setIsLoading(false);
@@ -183,7 +183,7 @@ const AdminLawyerRequests = () => {
             </button>
 
             {isOpen && (
-              <div className="absolute top-full right-0 mt-1 w-auto min-w-[150px] bg-white border border-slate-100 rounded-xl shadow-lg py-1 z-[60] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute top-full right-0 mt-1 w-auto min-w-37.5 bg-white border border-slate-100 rounded-xl shadow-lg py-1 z-60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 <button
                   onClick={() => {
                     item.certificateUrl ? window.open(item.certificateUrl, '_blank') : null;
@@ -237,6 +237,7 @@ const AdminLawyerRequests = () => {
     return result;
   }, [data, statusFilter]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -262,7 +263,7 @@ const AdminLawyerRequests = () => {
           } else {
             toast.error('Failed to update status');
           }
-        } catch (error) {
+        } catch {
           toast.error('An error occurred');
         }
       }
@@ -280,7 +281,7 @@ const AdminLawyerRequests = () => {
   });
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-4">
+    <div className="max-w-350 mx-auto pb-4">
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-2">
@@ -332,7 +333,7 @@ const AdminLawyerRequests = () => {
             </button>
 
             {isFilterDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-full min-w-[140px] bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute top-full right-0 mt-2 w-full min-w-35 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 {['All', 'Pending', 'Approved', 'Rejected'].map(status => (
                   <button
                     key={status}
@@ -357,8 +358,8 @@ const AdminLawyerRequests = () => {
 
       {/* Data Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col w-full">
-        <div className="w-full overflow-x-auto custom-scrollbar min-h-[220px]">
-          <table className="w-full text-left border-collapse table-auto min-w-[800px]">
+        <div className="w-full overflow-x-auto custom-scrollbar min-h-55">
+          <table className="w-full text-left border-collapse table-auto min-w-200">
             <thead className="bg-[#F8F9FA] border-b border-slate-100">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>

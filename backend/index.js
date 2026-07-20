@@ -19,6 +19,7 @@ import lawyerRequestRoutes from './routes/lawyerRequestRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import leadRoutes from './routes/leadRoutes.js';
+import chatbotRoutes from './routes/chatbotRoutes.js';
 import cron from 'node-cron';
 import { sendVisitReminders } from './controllers/visitController.js';
 
@@ -52,6 +53,7 @@ app.use('/api/lawyer-requests', lawyerRequestRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/leads', leadRoutes);
+app.use('/api/v1/chat', chatbotRoutes);
 
 // Cron Job for Visit Reminders
 cron.schedule('0 8 * * *', () => {

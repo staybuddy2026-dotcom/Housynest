@@ -36,7 +36,7 @@ const AdminHeader = () => {
   };
 
   return (
-    <header className="h-[65px] bg-white px-4 md:px-6 flex items-center justify-between border-b border-slate-100 shrink-0 gap-2">
+    <header className="h-16.25 bg-white px-4 md:px-6 flex items-center justify-between border-b border-slate-100 shrink-0 gap-2">
       <div className="flex-1 min-w-0 flex items-center gap-3">
         {/* Mobile Logo */}
         <div className="lg:hidden shrink-0">

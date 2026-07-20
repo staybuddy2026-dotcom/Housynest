@@ -44,7 +44,7 @@ const CheckboxGrid = ({ label, options, selected, onChange, onAddCustom }) => {
                 const updated = selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt];
                 onChange(updated);
               }}
-              className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-[#0B4F48] cursor-pointer"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
             />
           </label>
         ))}
@@ -126,7 +126,6 @@ const TenantPricingPreferences = ({ onNext, onPrev }) => {
   const availableFromType = watch('availableFromType');
   const additionalRooms = watch('additionalRooms') || [];
   const overlooking = watch('overlooking') || [];
-  const facing = watch('facing');
   const societyAmenities = watch('societyAmenities') || [];
   const preferredTenants = watch('preferredTenants') || [];
 
@@ -151,9 +150,9 @@ const TenantPricingPreferences = ({ onNext, onPrev }) => {
           <button
             type="button"
             onClick={onPrev}
-            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" strokeWidth="2.5" />
+            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth="2.5" />
           </button>
         )}
         <div>
@@ -278,7 +277,7 @@ const TenantPricingPreferences = ({ onNext, onPrev }) => {
             <textarea
               {...register('localityDescription')}
               placeholder="Tell us what you like & dislike about this locality."
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border ${errors.localityDescription ? 'border-red-500' : 'border-slate-200'} rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300 placeholder:font-normal placeholder:text-slate-400 min-h-[120px] resize-y`}
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border ${errors.localityDescription ? 'border-red-500' : 'border-slate-200'} rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300 placeholder:font-normal placeholder:text-slate-400 min-h-30 resize-y`}
             ></textarea>
             {errors.localityDescription && <span className="text-red-500 text-[10px] sm:text-xs">{errors.localityDescription.message}</span>}
           </div>

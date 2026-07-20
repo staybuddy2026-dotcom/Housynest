@@ -1,11 +1,10 @@
-import React from 'react';
 import { Icon } from '@iconify/react';
 
 const AdminPropertyViewModal = ({ property, onClose }) => {
   if (!property) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -269,7 +268,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-slate-400">
                     <Icon icon="lucide:file-x-2" className="w-10 h-10 mb-2 opacity-50" />
-                    <p className="text-sm font-medium text-center max-w-[200px]">No verification documents were uploaded by the owner.</p>
+                    <p className="text-sm font-medium text-center max-w-50">No verification documents were uploaded by the owner.</p>
                   </div>
                 )}
               </div>

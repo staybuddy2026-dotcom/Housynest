@@ -22,7 +22,7 @@ const QuickActionsWidget = () => {
             className="flex items-center gap-3 p-3 border border-slate-100 rounded-xl hover:border-brand-teal/30 hover:shadow-sm transition-all duration-200 group bg-white"
           >
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${action.bg}`}>
-              <Icon icon={action.icon} className={`w-[18px] h-[18px] ${action.color}`} />
+              <Icon icon={action.icon} className={`w-4.5 h-4.5 ${action.color}`} />
             </div>
             <span className="flex-1 text-sm font-bold text-[#062F26]">{action.name}</span>
             <Icon icon="lucide:chevron-right" className="w-4 h-4 text-slate-400 group-hover:text-brand-teal transition-colors" />

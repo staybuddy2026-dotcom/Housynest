@@ -92,7 +92,7 @@ const Testimonials = () => {
   };
 
   return (
-    <section className="max-w-[1360px] mx-auto w-full py-12 px-4 sm:px-6 xl:px-0">
+    <section className="max-w-340 3xl:max-w-420 mx-auto w-full py-12 px-4 sm:px-6 xl:px-0">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-8">
 
         {/* Left Content (Testimonials) */}
@@ -106,8 +106,8 @@ const Testimonials = () => {
                 What Our Residents Say
               </h2>
               <div className="relative mt-3 w-28 flex items-center self-end mr-8 md:mr-12">
-                <div className="w-full h-[3px] bg-[#04473a] rounded-full"></div>
-                <div className="absolute left-0 w-[60%] h-[3px] bg-[#04473a] rounded-full"></div>
+                <div className="w-full h-0.75 bg-[#04473a] rounded-full"></div>
+                <div className="absolute left-0 w-[60%] h-0.75 bg-[#04473a] rounded-full"></div>
                 <div className="absolute left-[50%] w-2.5 h-2.5 rounded-full ring-[3px] ring-[#04473a] bg-brand-yellow shadow-sm"></div>
               </div>
             </div>
@@ -130,7 +130,7 @@ const Testimonials = () => {
               {testimonials.map((testimonial) => (
                 <div
                   key={testimonial.id}
-                  className="snap-center shrink-0 w-[280px] sm:w-[320px] md:w-[calc(60%-10px)] bg-white rounded-[20px] p-5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-100 flex gap-3 sm:gap-4 transition-transform hover:-translate-y-1 duration-300"
+                  className="snap-center shrink-0 w-70 sm:w-[320px] md:w-[calc(60%-10px)] bg-white rounded-[20px] p-5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-100 flex gap-3 sm:gap-4 transition-transform hover:-translate-y-1 duration-300"
                 >
                   {/* Avatar */}
                   <div className="shrink-0 pt-1">
@@ -146,7 +146,7 @@ const Testimonials = () => {
                     {/* Stars */}
                     <div className="flex text-amber-400 mb-2.5 gap-0.5">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Icon key={star} icon="ri:star-fill" className="w-4 h-4 md:w-[18px] md:h-[18px]" />
+                        <Icon key={star} icon="ri:star-fill" className="w-4 h-4 md:w-4.5 md:h-4.5" />
                       ))}
                     </div>
 
@@ -187,7 +187,7 @@ const Testimonials = () => {
             </div>
 
             {/* Curly Arrow pointing to phone */}
-            <div className="hidden lg:block relative -mr-12 xl:-mr-28 -mt-14 z-10 transition-transform duration-500 hover:scale-105">
+            <div className="hidden lg:block relative -mr-12 xl:-mr-28 3xl:-mr-44! -mt-14 z-10 transition-transform duration-500 hover:scale-105">
               <svg width="120" height="120" viewBox="0 0 120 120" fill="none" className="text-[#04473a] opacity-60 drop-shadow-md scale-x-[-1] -rotate-24">
                 {/* Dashed loop path */}
                 <path d="M 15,95 C 40,110 75,105 70,65 C 65,35 30,40 35,70 C 40,100 70,95 90,70 C 100,55 105,40 109,28" stroke="currentColor" strokeWidth="2.5" strokeDasharray="6 6" strokeLinecap="round" />
@@ -207,7 +207,7 @@ const Testimonials = () => {
           <img
             src={mobileIcon}
             alt="HousyNest Mobile App"
-            className="w-full max-w-[450px] md:max-w-[550px] lg:max-w-[600px] xl:max-w-[650px] h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-transform duration-500"
+            className="w-full max-w-112.5 md:max-w-137.5 lg:max-w-150 xl:max-w-162.5 h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-transform duration-500"
           />
         </div>
 

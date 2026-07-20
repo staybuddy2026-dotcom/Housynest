@@ -29,6 +29,30 @@ const PropertyDetails = () => {
   const [property, setProperty] = useState(null);
   const [similarProperties, setSimilarProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('Overview');
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isFavorite, setIsFavorite] = useState(() => {
+    return currentUser ? (currentUser.savedProperties || []).includes(String(id)) : false;
+  });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -112,7 +136,7 @@ const PropertyDetails = () => {
         } else {
           setProperty(MOCK_PROPERTIES.find(p => p.id === parseInt(id)) || MOCK_PROPERTIES[0]);
         }
-      } catch (err) {
+      } catch {
         setProperty(MOCK_PROPERTIES.find(p => p.id === parseInt(id)) || MOCK_PROPERTIES[0]);
       } finally {
         setLoading(false);
@@ -181,20 +205,6 @@ const PropertyDetails = () => {
     }
   }, [id, lenis]);
 
-  const [activeTab, setActiveTab] = useState('Overview');
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const userStr = localStorage.getItem('user');
-      return userStr ? JSON.parse(userStr) : null;
-    } catch (e) {
-      return null;
-    }
-  });
-
-  const [isFavorite, setIsFavorite] = useState(() => {
-    return currentUser ? (currentUser.savedProperties || []).includes(String(id)) : false;
-  });
-
   useEffect(() => {
     const handleUserUpdate = () => {
       try {
@@ -207,25 +217,14 @@ const PropertyDetails = () => {
           setCurrentUser(null);
           setIsFavorite(false);
         }
-      } catch (e) { }
+      } catch {
+        // ignore parsing error
+      }
     };
 
     window.addEventListener('user-updated', handleUserUpdate);
     return () => window.removeEventListener('user-updated', handleUserUpdate);
   }, [id]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [reviewComment, setReviewComment] = useState('');
-  const [reviews, setReviews] = useState([]);
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0]">
@@ -340,6 +339,7 @@ const PropertyDetails = () => {
     ? ['Overview', 'Property Details', 'Room Details', 'Amenities & Services', 'Food Details', 'Rules & Policies', 'Nearby Places']
     : ['Overview', 'Property Details', 'Amenities & Services', 'Nearby Places'];
 
+  // eslint-disable-next-line no-unused-vars
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -353,7 +353,7 @@ const PropertyDetails = () => {
 
   return (
     <div className="bg-[#FAF6F0] min-h-screen font-sans text-slate-800 relative">
-      <div className="max-w-[1360px] mx-auto pt-6 px-4 sm:px-6 xl:px-0">
+      <div className="max-w-340 3xl:max-w-420 mx-auto pt-6 px-4 sm:px-6 xl:px-0">
 
         {/* Breadcrumb */}
         <div className="flex items-center text-xs font-bold text-slate-500 mb-6 uppercase tracking-wider">
@@ -420,7 +420,7 @@ const PropertyDetails = () => {
       </div>
 
       {/* Related Properties */}
-      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 xl:px-0 mt-8 mb-16">
+      <div className="max-w-340 3xl:max-w-420 mx-auto px-4 sm:px-6 xl:px-0 mt-8 mb-16">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h3 className="text-xl sm:text-2xl font-bold text-[#062F26] mb-1">Similar Properties</h3>
@@ -443,7 +443,7 @@ const PropertyDetails = () => {
       {isReviewModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsReviewModalOpen(false)}></div>
-          <div className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl p-6 lg:p-8 animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 lg:p-8 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-[#062F26]">Write a Review</h3>
               <button onClick={() => setIsReviewModalOpen(false)} className="w-8 h-8 cursor-pointer flex items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors">
@@ -512,7 +512,7 @@ const PropertyDetails = () => {
                   } else {
                     toast.error(data.message || "Failed to submit review");
                   }
-                } catch (err) {
+                } catch {
                   toast.error("Something went wrong");
                 } finally {
                   setIsSubmittingReview(false);
@@ -552,43 +552,41 @@ const PropertyDetails = () => {
         property={property}
       />
 
-      {/* WhatsApp Sticky Button */}
+      {/* WhatsApp Fixed Button */}
       {currentUser?.role !== 'owner' && (
-        <div className="absolute inset-0 pointer-events-none z-40">
-          <div className="sticky top-[calc(100vh-145px)] w-full max-w-[1500px] mx-auto px-4 sm:px-6 xl:px-0 flex justify-end pb-6 pointer-events-none">
-            <div className="animate-slow-bounce pointer-events-auto">
-              <a
-                href={currentUser ? `https://wa.me/${property.owner?.phone?.replace(/\D/g, '') || ''}` : '#'}
-                onClick={(e) => {
-                  if (!currentUser) {
-                    e.preventDefault();
-                    toast.error('You are required to login to contact the owner');
-                    navigate('/login');
-                  }
-                }}
-                target={currentUser ? "_blank" : "_self"}
-                rel="noopener noreferrer"
-                className="relative group flex items-center justify-center w-14 h-14 bg-[#25D366] text-white rounded-full shadow-[0_8px_25px_rgba(37,211,102,0.35)] hover:bg-[#20bd5a] hover:scale-110 transition-all duration-300 cursor-pointer"
-              >
-                <Icon icon="mdi:whatsapp" className="w-8 h-8" />
+        <div className="fixed bottom-22.5 md:bottom-24 right-4 md:right-6 z-8900 pointer-events-none flex flex-col items-end">
+          <div className="animate-slow-bounce pointer-events-auto">
+            <a
+              href={currentUser ? `https://wa.me/${property.owner?.phone?.replace(/\D/g, '') || ''}` : '#'}
+              onClick={(e) => {
+                if (!currentUser) {
+                  e.preventDefault();
+                  toast.error('You are required to login to contact the owner');
+                  navigate('/login');
+                }
+              }}
+              target={currentUser ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+              className="relative group flex items-center justify-center w-14 h-14 bg-[#25D366] text-white rounded-full shadow-[0_8px_25px_rgba(37,211,102,0.35)] hover:bg-[#20bd5a] hover:scale-110 transition-all duration-300 cursor-pointer"
+            >
+              <Icon icon="mdi:whatsapp" className="w-8 h-8" />
 
-                {/* Tooltip */}
-                <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 invisible translate-x-2 group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 transition-all duration-500 ease-out pointer-events-none z-[100]">
-                  <div className="bg-[#062F26] border border-[#13463a] text-brand-yellow text-sm font-bold px-4 py-2.5 rounded-xl shadow-[0_10px_30px_rgba(6,47,38,0.25)] whitespace-nowrap flex items-center">
-                    Chat on WhatsApp with owner
-                    {/* Tooltip Arrow */}
-                    <div className="absolute top-1/2 -translate-y-1/2 -right-[5px] w-0 h-0 border-y-[5px] border-y-transparent border-l-[5px] border-l-[#13463a]"></div>
-                    <div className="absolute top-1/2 -translate-y-1/2 -right-[4px] w-0 h-0 border-y-[4px] border-y-transparent border-l-[4px] border-l-[#062F26]"></div>
-                  </div>
+              {/* Tooltip */}
+              <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 invisible translate-x-2 group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 transition-all duration-500 ease-out pointer-events-none z-100">
+                <div className="bg-[#062F26] border border-[#13463a] text-brand-yellow text-sm font-bold px-4 py-2.5 rounded-xl shadow-[0_10px_30px_rgba(6,47,38,0.25)] whitespace-nowrap flex items-center">
+                  Chat on WhatsApp with owner
+                  {/* Tooltip Arrow */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -right-1.25 w-0 h-0 border-y-[5px] border-y-transparent border-l-[5px] border-l-[#13463a]"></div>
+                  <div className="absolute top-1/2 -translate-y-1/2 -right-1 w-0 h-0 border-y-4 border-y-transparent border-l-4 border-l-[#062F26]"></div>
                 </div>
-              </a>
-            </div>
+              </div>
+            </a>
           </div>
         </div>
       )}
 
       {/* Fade Transition to Newsletter */}
-      <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-b from-transparent to-[#F9FAFB] pointer-events-none z-0"></div>
+      <div className="absolute bottom-0 left-0 w-full h-48 bg-linear-to-b from-transparent to-[#F9FAFB] pointer-events-none z-0"></div>
     </div>
   );
 };

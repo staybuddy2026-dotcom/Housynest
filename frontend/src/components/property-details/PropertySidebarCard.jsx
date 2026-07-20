@@ -83,7 +83,7 @@ const PropertySidebarCard = ({
                     } else {
                       toast.success('Removed from favorites');
                     }
-                  } catch (error) {
+                  } catch {
                     setIsFavorite(!newFavoriteState);
                     toast.error('Failed to update favorites');
                   }
@@ -104,7 +104,7 @@ const PropertySidebarCard = ({
         <div className="flex items-start gap-1.5 mb-3 text-slate-500 text-xs font-medium">
           <p className="leading-relaxed">{property.location}</p>
           <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`} target="_blank" rel="noopener noreferrer" className="text-brand-teal font-bold ml-1 hover:underline inline-flex items-center gap-1">
-            <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-brand-teal flex-shrink-0" />
+            <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-brand-teal shrink-0" />
             View on Map
           </a>
         </div>
@@ -122,7 +122,7 @@ const PropertySidebarCard = ({
                     }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex items-center justify-center w-[18px] h-[18px] rounded-full border-2 transition-colors ${selectedRoomIndex === idx ? 'border-brand-teal' : 'border-slate-300'
+                    <div className={`flex items-center justify-center w-4.5 h-4.5 rounded-full border-2 transition-colors ${selectedRoomIndex === idx ? 'border-brand-teal' : 'border-slate-300'
                       }`}>
                       {selectedRoomIndex === idx && <div className="w-2.5 h-2.5 rounded-full bg-brand-teal" />}
                     </div>

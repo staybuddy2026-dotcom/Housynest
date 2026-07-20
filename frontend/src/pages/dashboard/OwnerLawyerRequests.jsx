@@ -95,7 +95,7 @@ const LawyerRequestCard = ({ request, onUpdateStatus, onDeclineRequest }) => {
                 onClick={() => onUpdateStatus(request._id, 'accepted')}
                 className="flex items-center gap-1.5 text-sm font-bold text-white bg-[#062F26] hover:bg-[#062F26]/90 px-5 py-2 rounded-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#062F26]/20 w-fit relative overflow-hidden"
               >
-                <div className="absolute inset-0 bg-white/20 w-full translate-x-[-100%] hover:animate-[shimmer_1.5s_infinite]"></div>
+                <div className="absolute inset-0 bg-white/20 w-full -translate-x-full hover:animate-[shimmer_1.5s_infinite]"></div>
                 <Icon icon="lucide:check" className="w-4 h-4" />
                 Accept
               </button>
@@ -142,7 +142,7 @@ const LawyerRequestCard = ({ request, onUpdateStatus, onDeclineRequest }) => {
 
               {/* Right Column */}
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-[0.15em] mb-4 flex items-center gap-2 opacity-0 hidden md:flex">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-[0.15em] mb-4 flex items-center gap-2 opacity-0 md:flex">
                   <Icon icon="lucide:info" className="w-3.5 h-3.5" />
                   More Info
                 </h4>
@@ -202,6 +202,42 @@ const OwnerLawyerRequests = () => {
   const [selectedRequestId, setSelectedRequestId] = useState(null);
 
   useEffect(() => {
+    const markAsRead = async () => {
+      try {
+        await fetch('/api/lawyer-requests/mark-read', {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+        window.dispatchEvent(new CustomEvent('lawyerRequestsRead'));
+      } catch (error) {
+        console.error('Failed to mark as read', error);
+      }
+    };
+
+    const fetchRequests = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/lawyer-requests/owner', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setRequests(data);
+        } else {
+          toast.error('Failed to load requests');
+        }
+      } catch {
+        toast.error('An error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+     
     fetchRequests();
     markAsRead();
 
@@ -216,41 +252,6 @@ const OwnerLawyerRequests = () => {
       window.removeEventListener('globalNewLawyerRequest', handleNewRequest);
     };
   }, []);
-
-  const markAsRead = async () => {
-    try {
-      await fetch('/api/lawyer-requests/mark-read', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
-      window.dispatchEvent(new CustomEvent('lawyerRequestsRead'));
-    } catch (error) {
-      console.error('Failed to mark as read', error);
-    }
-  };
-
-  const fetchRequests = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/lawyer-requests/owner', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setRequests(data);
-      } else {
-        toast.error('Failed to load requests');
-      }
-    } catch (error) {
-      toast.error('An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleUpdateStatus = async (id, status, reason = '') => {
     try {
@@ -270,7 +271,7 @@ const OwnerLawyerRequests = () => {
       } else {
         toast.error(result.message || 'Failed to update status');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred while updating status');
     }
   };

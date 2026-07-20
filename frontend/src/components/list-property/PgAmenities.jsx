@@ -15,7 +15,7 @@ const CheckboxGroup = ({ options, selected, onChange }) => (
             const updated = selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt];
             onChange(updated);
           }}
-          className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-[#0B4F48] cursor-pointer"
+          className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
         />
       </label>
     ))}
@@ -70,14 +70,13 @@ const CustomTags = ({ items, onRemove }) => {
 };
 
 const PgAmenities = ({ onNext, onPrev }) => {
-  const { register, watch, setValue, formState: { errors } } = useFormContext();
+  const { register, watch, setValue } = useFormContext();
 
   const services = watch('services') || [];
   const extraServices = watch('extraServices') || [];
   const foodProvided = watch('foodProvided');
   const meals = watch('meals') || [];
   const vegNonVeg = watch('vegNonVeg');
-  const foodCharges = watch('foodCharges');
   const commonAmenities = watch('commonAmenities') || [];
   const extraCommonAmenities = watch('extraCommonAmenities') || [];
   const parkingAvailable = watch('parkingAvailable') || false;
@@ -102,9 +101,9 @@ const PgAmenities = ({ onNext, onPrev }) => {
           <button
             type="button"
             onClick={onPrev}
-            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" strokeWidth="2.5" />
+            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth="2.5" />
           </button>
         )}
         <div>
@@ -134,7 +133,7 @@ const PgAmenities = ({ onNext, onPrev }) => {
               type="checkbox"
               checked={foodProvided}
               onChange={(e) => handleUpdate('foodProvided', e.target.checked)}
-              className="w-5 h-5 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-[#0B4F48] cursor-pointer"
+              className="w-5 h-5 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
             />
             <span className="text-sm font-bold text-[#062F26]">Food Provided</span>
           </label>
@@ -221,7 +220,7 @@ const PgAmenities = ({ onNext, onPrev }) => {
                 handleUpdate('parkingAvailable', e.target.checked);
                 if (!e.target.checked) handleUpdate('parking', []);
               }}
-              className="w-5 h-5 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-[#0B4F48] cursor-pointer"
+              className="w-5 h-5 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
             />
             <span className="text-sm font-bold text-[#062F26]">Parking Available</span>
           </label>

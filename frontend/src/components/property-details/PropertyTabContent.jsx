@@ -9,7 +9,7 @@ const PropertyTabContent = ({
   setSelectedRoomIndex
 }) => {
   return (
-    <div className="flex-1 bg-white rounded-[24px] shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-4 sm:p-6 lg:p-8 min-h-[400px]">
+    <div className="flex-1 bg-white rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-4 sm:p-6 lg:p-8 min-h-100">
 
       {activeTab === 'Overview' && (
         <div className="animate-in fade-in duration-300">
@@ -25,8 +25,8 @@ const PropertyTabContent = ({
           </p>
 
           <div className="bg-[#F4F9F8] rounded-xl p-5 flex gap-4 group hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-brand-teal/20">
-            <div className="text-brand-teal flex-shrink-0 mt-0.5">
-              <Icon icon="lucide:award" className="w-[22px] h-[22px] group-hover:scale-110 transition-transform duration-300" />
+            <div className="text-brand-teal shrink-0 mt-0.5">
+              <Icon icon="lucide:award" className="w-5.5 h-5.5 group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div>
               <h4 className="font-bold text-[#062F26] text-sm mb-1">USP</h4>
@@ -127,7 +127,7 @@ const PropertyTabContent = ({
               { icon: 'lucide:eye', label: 'Overlooking', value: (property.overlooking && property.overlooking.length > 0) ? property.overlooking.join(', ') : null }
             ].filter(detail => detail.value)).map((detail, idx) => (
               <div key={idx} className="group flex items-start gap-3 p-2 -ml-2 border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                <div className="flex-shrink-0 mt-0.5 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300"><Icon icon={detail.icon} className="w-[18px] h-[18px] text-brand-teal stroke-[2]" /></div>
+                <div className="shrink-0 mt-0.5 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300"><Icon icon={detail.icon} className="w-4.5 h-4.5 text-brand-teal stroke-2" /></div>
                 <div className="flex-1 grid grid-cols-[140px_1fr] items-start">
                   <p className="text-sm font-medium text-slate-500">{detail.label}</p>
                   <p className="text-sm font-bold text-[#062F26] leading-snug">{detail.value}</p>
@@ -157,7 +157,7 @@ const PropertyTabContent = ({
           <h3 className="text-lg font-bold text-[#062F26] mb-8">Food Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-12">
             <div className="group flex gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
-              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center flex-shrink-0 transition-colors duration-300">
+              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center shrink-0 transition-colors duration-300">
                 <Icon icon="lucide:utensils-crossed" className="w-5 h-5 text-brand-teal group-hover:text-white stroke-[2.5] group-hover:scale-110 transition-all duration-300" />
               </div>
               <div>
@@ -166,7 +166,7 @@ const PropertyTabContent = ({
               </div>
             </div>
             <div className="group flex gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
-              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center flex-shrink-0 transition-colors duration-300">
+              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center shrink-0 transition-colors duration-300">
                 <Icon icon="lucide:coffee" className="w-5 h-5 text-brand-teal group-hover:text-white stroke-[2.5] group-hover:scale-110 transition-all duration-300" />
               </div>
               <div>
@@ -175,7 +175,7 @@ const PropertyTabContent = ({
               </div>
             </div>
             <div className="group flex gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
-              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center flex-shrink-0 transition-colors duration-300">
+              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center shrink-0 transition-colors duration-300">
                 <Icon icon="lucide:salad" className="w-5 h-5 text-brand-teal group-hover:text-white stroke-[2.5] group-hover:scale-110 transition-all duration-300" />
               </div>
               <div>
@@ -184,7 +184,7 @@ const PropertyTabContent = ({
               </div>
             </div>
             <div className="group flex gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
-              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center flex-shrink-0 transition-colors duration-300">
+              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center shrink-0 transition-colors duration-300">
                 <Icon icon="lucide:receipt" className="w-5 h-5 text-brand-teal group-hover:text-white stroke-[2.5] group-hover:scale-110 transition-all duration-300" />
               </div>
               <div>
@@ -262,7 +262,7 @@ const PropertyTabContent = ({
               { icon: 'lucide:map-pin', name: 'HSR Layout', dist: '3.5 km' },
             ]).map((place, idx) => (
               <div key={idx} className="group flex items-start gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center flex-shrink-0 transition-colors duration-300">
+                <div className="w-10 h-10 rounded-full bg-[#EAF5F2] group-hover:bg-brand-teal flex items-center justify-center shrink-0 transition-colors duration-300">
                   <Icon icon={place.icon} className="w-5 h-5 text-brand-teal group-hover:text-white stroke-[2.5] group-hover:scale-110 transition-all duration-300" />
                 </div>
                 <div>

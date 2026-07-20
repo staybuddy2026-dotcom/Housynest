@@ -35,7 +35,7 @@ const Properties = () => {
   const [amenitiesFilter, setAmenitiesFilter] = useState('');
   const [foodPreference, setFoodPreference] = useState('');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [viewMode, setViewMode] = useState('Grid');
+  const [viewMode] = useState('Grid');
   const [visibleCount, setVisibleCount] = useState(12);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState('');
@@ -185,11 +185,13 @@ const Properties = () => {
 
   // Reset visible count when filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleCount(12);
   }, [searchQuery, propertyFor, propertyType, roomType, budgetRange, amenitiesFilter, foodPreference, verifiedOnly, sortBy]);
 
   // Infinite Scroll Observer
   useEffect(() => {
+    const currentLoader = loaderRef.current;
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && visibleCount < filteredProperties.length) {
         // Add a slight artificial delay for a realistic "loading" feel (optional)
@@ -197,13 +199,13 @@ const Properties = () => {
       }
     }, { threshold: 0.1, rootMargin: '100px' });
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+    if (currentLoader) {
+      observer.observe(currentLoader);
     }
 
     return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current);
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
       }
     };
   }, [visibleCount, filteredProperties.length]);
@@ -212,12 +214,12 @@ const Properties = () => {
     <div className="min-h-screen bg-[#F8F9FA] font-sans pb-20">
 
       {/* Hero Section */}
-      <div className="relative w-full h-[240px] lg:h-[280px]">
+      <div className="relative w-full h-60 lg:h-70">
         <img src={loginImg} alt="Hero" className="w-full h-full object-cover brightness-[0.85] opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#F8F9FA]"></div>
+        <div className="absolute inset-0 bg-linear-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#F8F9FA]"></div>
 
         <div className="absolute inset-0 pt-10 px-4 sm:px-6 xl:px-0">
-          <div className="max-w-[1360px] mx-auto">
+          <div className="max-w-340 3xl:max-w-420 mx-auto">
             <div className="flex items-center text-xs font-semibold text-brand-teal mb-4">
               <span className="hover:underline cursor-pointer">Home</span>
               <Icon icon="lucide:chevron-right" className="mx-1 w-3 h-3 text-slate-400" />
@@ -229,7 +231,7 @@ const Properties = () => {
         </div>
       </div>
 
-      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 xl:px-0 -mt-8 sm:-mt-16 lg:-mt-24 relative flex flex-col lg:flex-row gap-6">
+      <div className="max-w-340 3xl:max-w-420 mx-auto px-4 sm:px-6 xl:px-0 -mt-8 sm:-mt-16 lg:-mt-24 relative flex flex-col lg:flex-row gap-6">
 
         {/* Left Sidebar - Filters */}
         <PropertiesFilter
@@ -283,8 +285,8 @@ const Properties = () => {
 
                   {isSortOpen && (
                     <>
-                      <div className="fixed inset-0 z-[40]" onClick={() => setIsSortOpen(false)}></div>
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-slate-100 z-[50] py-2 overflow-hidden transform origin-top transition-all duration-200">
+                      <div className="fixed inset-0 z-40" onClick={() => setIsSortOpen(false)}></div>
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-slate-100 z-50 py-2 overflow-hidden transform origin-top transition-all duration-200">
                         <div
                           onClick={() => { setSortBy(''); setIsSortOpen(false); }}
                           className={`px-4 py-2.5 text-sm font-bold cursor-pointer hover:bg-slate-50 transition-colors ${sortBy === '' ? 'text-brand-teal bg-teal-50/50' : 'text-slate-600'}`}
@@ -346,7 +348,7 @@ const Properties = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-teal"></div>
               </div>
             ) : filteredProperties.length === 0 ? (
-              <div className="flex flex-col items-center justify-center text-center p-12 bg-white rounded-[24px] border border-slate-100 h-[60vh]">
+              <div className="flex flex-col items-center justify-center text-center p-12 bg-white rounded-3xl border border-slate-100 h-[60vh]">
                 <div className="w-24 h-24 bg-[#EAF5F2] rounded-full flex items-center justify-center mb-6">
                   <Icon icon="lucide:search-x" className="w-12 h-12 text-brand-teal" />
                 </div>

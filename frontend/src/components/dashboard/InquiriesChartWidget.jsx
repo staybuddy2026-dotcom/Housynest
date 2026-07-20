@@ -155,7 +155,7 @@ const InquiriesChartWidget = () => {
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 relative group cursor-default hover:border-brand-teal/20 hover:shadow-[0_8px_30px_rgba(10,168,125,0.06)] transition-all duration-300">
       {/* Subtle hover gradient flair */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-brand-teal/5 to-transparent rounded-full -mr-20 -mt-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-40 h-40 bg-linear-to-bl from-brand-teal/5 to-transparent rounded-full -mr-20 -mt-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       <div className="flex items-center justify-between mb-6 relative z-10">
         <h3 className="text-lg font-bold text-[#062F26]">Inquiries Overview</h3>
@@ -169,7 +169,7 @@ const InquiriesChartWidget = () => {
         </div>
       </div>
 
-      <div className="h-[160px] flex items-center justify-center relative z-10 group-hover:scale-[1.02] transition-transform duration-500 ease-out">
+      <div className="h-40 flex items-center justify-center relative z-10 group-hover:scale-[1.02] transition-transform duration-500 ease-out">
         {loading ? (
           <Icon icon="lucide:loader-2" className="w-6 h-6 animate-spin text-brand-teal" />
         ) : series.every(v => v === 0) ? (

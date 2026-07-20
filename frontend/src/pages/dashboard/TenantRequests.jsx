@@ -53,7 +53,7 @@ const RequestCard = ({ request }) => {
           {/* Property Image */}
           <div className="relative w-full sm:w-32 h-24 rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-100 group-hover:shadow-md transition-shadow">
             <img src={request.propertyImage} alt={request.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 to-transparent"></div>
           </div>
 
           <div className="flex-1">
@@ -137,7 +137,7 @@ const RequestCard = ({ request }) => {
                       { label: 'Occupants', value: request.occupants, icon: 'lucide:users' },
                       { label: 'Gender', value: request.gender, icon: 'lucide:user' },
                     ].map((tag, idx) => (
-                      <div key={idx} className="bg-slate-50 px-3 py-2 rounded-xl text-xs flex flex-col gap-0.5 border border-slate-100 shadow-sm min-w-[100px]">
+                      <div key={idx} className="bg-slate-50 px-3 py-2 rounded-xl text-xs flex flex-col gap-0.5 border border-slate-100 shadow-sm min-w-25">
                         <span className="text-slate-400 font-bold flex items-center gap-1.5 uppercase text-[9px] tracking-wider">
                           <Icon icon={tag.icon} className="w-3 h-3" />
                           {tag.label}
@@ -216,7 +216,7 @@ const TenantRequests = () => {
   }, []);
 
   return (
-    <div className="animate-fadeIn max-w-7xl mx-auto pb-10">
+    <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10">
       {/* Page Header */}
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-2xl font-bold text-[#062F26] tracking-tight">My Requests</h1>

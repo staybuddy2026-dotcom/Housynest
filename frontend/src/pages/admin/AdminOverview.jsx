@@ -1,7 +1,7 @@
 import { Icon } from '@iconify/react';
 import ReactApexChart from 'react-apexcharts';
 import StatCards from '../../components/dashboard/StatCards';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const AdminOverview = () => {
   const [adminStats, setAdminStats] = useState([
@@ -67,6 +67,7 @@ const AdminOverview = () => {
       d.setMonth(d.getMonth() + 1);
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setChartCategories(months);
     setChartSeries([
       { name: 'Properties', data: propData },
@@ -75,11 +76,7 @@ const AdminOverview = () => {
     ]);
   }, [chartRange, allProperties, allUsers]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
@@ -177,7 +174,13 @@ const AdminOverview = () => {
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchData();
+  }, [fetchData]);
+
   const chartOptions = {
     chart: {
       type: 'area',
@@ -284,7 +287,7 @@ const AdminOverview = () => {
   ];
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+    <div className="space-y-6 max-w-350 mx-auto pb-10">
 
       {/* Mobile Welcome Header */}
       <div className="lg:hidden mb-2 px-1">

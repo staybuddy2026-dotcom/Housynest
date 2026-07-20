@@ -61,9 +61,18 @@ const AuthLoginForm = () => {
 
           toast.success(result.message || 'Logged in successfully!', { duration: 3000 });
           window.dispatchEvent(new Event('auth-change'));
-          navigate('/');
+          
+          if (result.user.role === 'owner') {
+            navigate('/owner/dashboard');
+          } else if (result.user.role === 'tenant') {
+            navigate('/tenant/dashboard');
+          } else if (result.user.role === 'lawyer') {
+            navigate('/lawyer/dashboard');
+          } else {
+            navigate('/');
+          }
         }
-      } catch (error) {
+      } catch {
         toast.error('An error occurred during Google login', { duration: 3000 });
       } finally {
         setIsLoading(false);
@@ -92,7 +101,16 @@ const AuthLoginForm = () => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
 
     window.dispatchEvent(new Event('auth-change'));
-    navigate('/');
+    
+    if (updatedUser.role === 'owner') {
+      navigate('/owner/dashboard');
+    } else if (updatedUser.role === 'tenant') {
+      navigate('/tenant/dashboard');
+    } else if (updatedUser.role === 'lawyer') {
+      navigate('/lawyer/dashboard');
+    } else {
+      navigate('/');
+    }
   };
 
   const onSubmit = async (data) => {
@@ -117,8 +135,17 @@ const AuthLoginForm = () => {
 
       toast.success(result.message || 'Logged in successfully!', { duration: 3000 });
       window.dispatchEvent(new Event('auth-change'));
-      navigate('/');
-    } catch (error) {
+      
+      if (result.user.role === 'owner') {
+        navigate('/owner/dashboard');
+      } else if (result.user.role === 'tenant') {
+        navigate('/tenant/dashboard');
+      } else if (result.user.role === 'lawyer') {
+        navigate('/lawyer/dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch {
       toast.error('An error occurred during login', { duration: 3000 });
     } finally {
       setIsLoading(false);

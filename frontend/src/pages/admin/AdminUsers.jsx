@@ -156,7 +156,7 @@ const AdminUsers = () => {
           <div className="flex flex-col gap-1 text-sm font-medium text-slate-500 whitespace-nowrap overflow-hidden">
             <div className="flex items-center gap-1.5 w-full">
               <Icon icon="lucide:mail" className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span className="truncate max-w-[150px] block" title={item.email}>{item.email}</span>
+              <span className="truncate max-w-37.5 block" title={item.email}>{item.email}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Icon icon="lucide:phone" className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -244,6 +244,7 @@ const AdminUsers = () => {
         );
       },
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   ], []);
 
   useEffect(() => {
@@ -300,6 +301,7 @@ const AdminUsers = () => {
     return data.filter(item => item.role === roleFilter);
   }, [data, roleFilter]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -315,7 +317,7 @@ const AdminUsers = () => {
   });
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-4">
+    <div className="max-w-350 mx-auto pb-4">
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-2">
@@ -371,7 +373,7 @@ const AdminUsers = () => {
       {/* Data Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col w-full overflow-hidden">
         <div className="w-full overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse table-auto min-w-[800px]">
+          <table className="w-full text-left border-collapse table-auto min-w-200">
             <thead className="bg-[#F8F9FA] border-b border-slate-100">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>

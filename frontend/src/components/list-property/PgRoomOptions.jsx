@@ -122,7 +122,7 @@ const RoomForm = ({ index, remove }) => {
                   type="checkbox"
                   checked={(room?.facilities || []).includes(fac)}
                   onChange={() => toggleFacility(fac)}
-                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-[#0B4F48] cursor-pointer"
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
                 />
               </label>
             ))}
@@ -190,9 +190,9 @@ const PgRoomOptions = ({ onNext, onPrev }) => {
           <button
             type="button"
             onClick={onPrev}
-            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" strokeWidth="2.5" />
+            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth="2.5" />
           </button>
         )}
         <div>

@@ -31,7 +31,7 @@ const RadioGroup = ({ label, name, options, value, onChange, error }) => (
             value={opt}
             checked={value === opt}
             onChange={onChange}
-            className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal border-slate-300 focus:ring-brand-teal accent-[#0B4F48] cursor-pointer"
+            className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
           />
           <span className={`text-sm sm:text-sm font-semibold ${value === opt ? 'text-[#062F26]' : 'text-slate-600'}`}>
             {opt}
@@ -111,7 +111,7 @@ const PgBasicDetails = ({ onNext }) => {
                     value={cat}
                     checked={propertyCategory === cat}
                     onChange={(e) => setValue('propertyCategory', e.target.value, { shouldValidate: true })}
-                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal border-slate-300 focus:ring-brand-teal accent-[#0B4F48] cursor-pointer"
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
                   />
                   <span className={`text-xs sm:text-sm font-semibold ${propertyCategory === cat ? 'text-[#062F26]' : 'text-slate-600'}`}>
                     {cat}

@@ -64,7 +64,7 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="relative max-w-[1360px] mx-auto px-4 sm:px-6 xl:px-0">
+      <div className="relative max-w-340 3xl:max-w-420 mx-auto px-4 sm:px-6 xl:px-0">
         <div className="w-full">
           {/* Left Content */}
           <div className="space-y-5 sm:space-y-4 z-10 relative">

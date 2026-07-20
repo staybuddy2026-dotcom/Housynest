@@ -52,7 +52,7 @@ const AdminLogin = () => {
         alert(data.message || 'Invalid credentials or not an admin');
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch {
       alert('Login failed');
       setIsLoading(false);
     }
@@ -84,10 +84,10 @@ const AdminLogin = () => {
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-[1360px] pl-26 mx-auto flex flex-col lg:flex-row h-full">
+      <div className="relative z-10 w-full max-w-340 3xl:max-w-420 pl-26 mx-auto flex flex-col lg:flex-row h-full">
 
         {/* LEFT SIDE - Info Panel - Matching AuthSidebar sizing */}
-        <div className="w-full lg:w-1/2 h-full py-6  flex flex-col justify-between relative z-10 hidden lg:flex">
+        <div className="w-full lg:w-1/2 h-full py-6  flex flex-col justify-between relative z-10 lg:flex">
 
           <div className={`transform transition-all duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             {/* Logo */}
@@ -95,7 +95,7 @@ const AdminLogin = () => {
               <img src={logo} alt="HousyNest Logo" className="h-14 mb-10" />
             </Link>
 
-            <div className="relative max-w-[420px]">
+            <div className="relative max-w-105">
               <h1 className="text-3xl lg:text-[36px] font-serif font-bold text-slate-900 leading-[1.15] mb-3">
                 Administrator <br />
                 <span className="text-[#0aa87d]">Portal</span>
@@ -132,11 +132,11 @@ const AdminLogin = () => {
         </div>
 
         {/* RIGHT SIDE - Form Area - Matching Auth.jsx perfectly */}
-        <div className="w-full lg:w-1/2 h-full p-4 lg:p-6 flex items-center justify-center relative z-10 [perspective:1500px]">
+        <div className="w-full lg:w-1/2 h-full p-4 lg:p-6 flex items-center justify-center relative z-10 perspective-[1500px]">
 
-          <div className={`relative w-full max-w-[540px] transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`}>
+          <div className={`relative w-full max-w-135 transition-transform duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`}>
 
-            <div className="w-full bg-white rounded-xl p-8 lg:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)] border-2 border-[#062F26]/20 flex flex-col justify-center min-h-[480px]">
+            <div className="w-full bg-white rounded-xl p-8 lg:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)] border-2 border-[#062F26]/20 flex flex-col justify-center min-h-120">
 
               {/* Form Header */}
               <div className="flex flex-col items-center text-center mb-8">

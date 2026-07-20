@@ -57,9 +57,9 @@ const PgVerifyProperty = ({ onNext, onPrev, isSubmitting }) => {
           <button
             type="button"
             onClick={onPrev}
-            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" strokeWidth="2.5" />
+            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth="2.5" />
           </button>
         )}
         <div>
@@ -76,7 +76,7 @@ const PgVerifyProperty = ({ onNext, onPrev, isSubmitting }) => {
         {/* Info Box */}
         <div className="bg-[#EAF5F2] border border-brand-teal/20 rounded-xl p-3 sm:p-4 flex gap-2.5 sm:gap-3 items-start transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
           <div className="mt-0.5 text-brand-teal">
-            <Icon icon="lucide:shield-check" className="w-[18px] h-[18px] sm:w-5 sm:h-5" strokeWidth="2.5" />
+            <Icon icon="lucide:shield-check" className="w-4.5 h-4.5 sm:w-5 sm:h-5" strokeWidth="2.5" />
           </div>
           <div>
             <h4 className="text-sm sm:text-sm font-bold text-[#062F26] mb-0.5 sm:mb-1">Why verify?</h4>

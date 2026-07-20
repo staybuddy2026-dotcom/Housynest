@@ -22,10 +22,10 @@ const defaultStats = [
     action: true
   },
   {
-    title: 'Unread Messages',
-    value: '8',
-    subtitle: 'From tenants',
-    icon: 'lucide:message-square',
+    title: 'Total Bookings',
+    value: '0',
+    subtitle: 'Across all listings',
+    icon: 'lucide:calendar-check',
     color: 'bg-purple-500/10',
     iconColor: 'text-purple-500',
   },
@@ -122,11 +122,12 @@ const StatCards = ({ data: initialData }) => {
             subtitle: 'Active unread requests'
           };
 
-          // Unread Messages
+          // Total Bookings
+          const totalBookings = properties.reduce((acc, p) => acc + (p.bookings || 0), 0);
           newStats[2] = {
             ...newStats[2],
-            value: counts.unreadMessages?.toString() || '0',
-            subtitle: 'From tenants'
+            value: totalBookings.toString(),
+            subtitle: 'Across all listings'
           };
 
           return newStats;
@@ -139,8 +140,10 @@ const StatCards = ({ data: initialData }) => {
 
   useEffect(() => {
     if (initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStats(initialData);
     } else {
+       
       fetchOwnerStats();
     }
 
@@ -158,14 +161,7 @@ const StatCards = ({ data: initialData }) => {
     const socket = io('http://localhost:5000');
     socket.emit('joinUserRoom', user.id || user._id);
 
-    socket.on('newNotification', () => {
-      setStats(prev => {
-        const newStats = [...prev];
-        const currentVal = parseInt(newStats[2].value) || 0;
-        newStats[2] = { ...newStats[2], value: (currentVal + 1).toString() };
-        return newStats;
-      });
-    });
+    // Removed newNotification socket listener since Unread Messages card is gone
 
     socket.on('newInquiry', () => {
       setStats(prev => {
@@ -177,7 +173,7 @@ const StatCards = ({ data: initialData }) => {
     });
 
     return () => socket.disconnect();
-  }, [user?.id, initialData]);
+  }, [user, initialData]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
@@ -187,10 +183,10 @@ const StatCards = ({ data: initialData }) => {
           className="bg-white rounded-xl p-5 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col relative group cursor-pointer hover:border-brand-teal/30 hover:shadow-[0_8px_30px_rgba(10,168,125,0.08)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
         >
           {/* Subtle hover background gradient flare */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-teal/5 to-transparent rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-brand-teal/5 to-transparent rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
           {/* Background Sparkline Chart */}
-          <div className="absolute bottom-0 left-0 right-0 h-[90px] pointer-events-none z-0">
+          <div className="absolute bottom-0 left-0 right-0 h-22.5 pointer-events-none z-0">
             <ReactApexChart
               options={{ ...sparklineOptions, colors: [getColorHex(stat.iconColor)] }}
               series={[sparklineData[idx % 4]]}

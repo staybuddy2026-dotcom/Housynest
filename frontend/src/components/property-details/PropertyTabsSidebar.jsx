@@ -2,8 +2,8 @@ import { Icon } from '@iconify/react';
 
 const PropertyTabsSidebar = ({ tabs, activeTab, setActiveTab }) => {
   return (
-    <div className="w-full lg:w-[280px] flex-shrink-0 lg:sticky lg:top-24">
-      <div className="bg-white rounded-[24px] shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-2 sm:p-4 flex flex-row overflow-x-auto hide-scrollbar lg:flex-col gap-2">
+    <div className="w-full lg:w-70 shrink-0 lg:sticky lg:top-24">
+      <div className="bg-white rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-2 sm:p-4 flex flex-row overflow-x-auto hide-scrollbar lg:flex-col gap-2">
         {tabs.map((tab) => (
           <button
             key={tab}

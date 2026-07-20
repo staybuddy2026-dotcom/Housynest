@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import Sidebar from '../components/dashboard/Sidebar';
 import { Icon } from '@iconify/react';
 import { ReactLenis } from 'lenis/react';
 
 const DashboardLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
   // The Messages tab requires a fixed-height layout to allow its internal panels to scroll independently.
@@ -14,14 +12,14 @@ const DashboardLayout = () => {
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-[#F8F9FA] font-sans overflow-hidden">
       {/* Sidebar - hidden on mobile, visible on large screens */}
-      <div className="hidden lg:block h-full w-[260px] shrink-0">
+      <div className="hidden lg:block h-full w-65 shrink-0">
         <Sidebar onClose={() => { }} />
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Header (Fixed Height) */}
-        <header className="h-[65px] bg-white border-b border-slate-100 flex items-center justify-between px-6 shrink-0 z-30">
+        <header className="h-16.25 bg-white border-b border-slate-100 flex items-center justify-between px-6 shrink-0 z-30">
           <div className="flex items-center gap-4 lg:hidden">
             {/* Logo in Header for Mobile */}
             <Link to="/">

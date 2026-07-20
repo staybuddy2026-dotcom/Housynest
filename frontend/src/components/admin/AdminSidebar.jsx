@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
@@ -31,14 +31,16 @@ const AdminSidebar = ({ isMobile }) => {
     let lastViewed = parseInt(localStorage.getItem('lastViewedReportCount') || '0', 10);
 
     if (location.pathname === '/admin/reports') {
-      lastViewed = pendingReportCount;
       localStorage.setItem('lastViewedReportCount', pendingReportCount.toString());
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnreadReportCount(0);
     } else {
       if (pendingReportCount > lastViewed) {
+         
         setUnreadReportCount(pendingReportCount - lastViewed);
       } else {
         localStorage.setItem('lastViewedReportCount', pendingReportCount.toString());
+         
         setUnreadReportCount(0);
       }
     }
@@ -59,7 +61,7 @@ const AdminSidebar = ({ isMobile }) => {
     { name: 'Settings', path: '/admin/settings', icon: 'lucide:settings' },
   ];
 
-  const fetchPendingCount = async () => {
+  const fetchPendingCount = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
@@ -73,9 +75,9 @@ const AdminSidebar = ({ isMobile }) => {
     } catch (err) {
       console.error('Failed to fetch pending property count', err);
     }
-  };
+  }, []);
 
-  const fetchPendingReportCount = async () => {
+  const fetchPendingReportCount = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
@@ -89,10 +91,12 @@ const AdminSidebar = ({ isMobile }) => {
     } catch (err) {
       console.error('Failed to fetch pending report count', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPendingCount();
+     
     fetchPendingReportCount();
 
     // Establish WebSocket Connection
@@ -111,7 +115,7 @@ const AdminSidebar = ({ isMobile }) => {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [fetchPendingCount, fetchPendingReportCount]);
 
 
 
@@ -143,7 +147,7 @@ const AdminSidebar = ({ isMobile }) => {
 
         {/* More Menu Popup */}
         {isMoreMenuOpen && (
-          <div className="absolute bottom-[85px] right-2 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-slate-100 p-2 z-50 min-w-[180px] animate-in fade-in slide-in-from-bottom-4">
+          <div className="absolute bottom-21.25 right-2 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-slate-100 p-2 z-50 min-w-45 animate-in fade-in slide-in-from-bottom-4">
             {hiddenItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
@@ -154,7 +158,7 @@ const AdminSidebar = ({ isMobile }) => {
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive ? 'bg-emerald-50 text-[#062F26] font-bold' : 'text-slate-600 hover:bg-slate-50'
                     }`}
                 >
-                  <Icon icon={item.icon} className={`w-[18px] h-[18px] ${isActive ? 'text-[#25D366]' : 'text-slate-400'}`} />
+                  <Icon icon={item.icon} className={`w-4.5 h-4.5 ${isActive ? 'text-[#25D366]' : 'text-slate-400'}`} />
                   <span className="text-sm">{item.name}</span>
                   {item.badge && (
                     <span className="ml-auto w-4 h-4 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
@@ -171,13 +175,13 @@ const AdminSidebar = ({ isMobile }) => {
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-red-500 hover:bg-red-50 font-bold w-full text-left"
             >
-              <Icon icon="lucide:power" className="w-[18px] h-[18px]" />
+              <Icon icon="lucide:power" className="w-4.5 h-4.5" />
               <span className="text-sm">Logout</span>
             </button>
           </div>
         )}
 
-        <div className="bg-white border-t border-slate-200 h-[75px] flex items-center justify-around px-2 shadow-[0_-4px_15px_rgba(0,0,0,0.03)] rounded-t-2xl relative z-50">
+        <div className="bg-white border-t border-slate-200 h-18.75 flex items-center justify-around px-2 shadow-[0_-4px_15px_rgba(0,0,0,0.03)] rounded-t-2xl relative z-50">
           {visibleItems.map((item) => {
             const isActive = location.pathname === item.path || (item.name === 'Analytics' && location.pathname.includes('/admin/dashboard'));
             return (
@@ -225,9 +229,9 @@ const AdminSidebar = ({ isMobile }) => {
   }
 
   return (
-    <aside className="w-68 bg-white border-r border-slate-100 flex flex-col h-full font-serif">
+    <aside className="w-68 bg-white border-r border-slate-100 flex flex-col h-full">
       {/* Logo */}
-      <div className="h-[65px] px-6 flex items-center shrink-0 border-b border-slate-100  ">
+      <div className="h-16.25 px-6 flex items-center shrink-0 border-b border-slate-100  ">
         <Link to="/">
           <img src={logo} alt="Housynest" className="h-12 object-contain" />
         </Link>
@@ -243,14 +247,14 @@ const AdminSidebar = ({ isMobile }) => {
                 key={item.name}
                 to={item.path}
                 className={`relative flex items-center justify-between px-4 py-3 transition-all duration-300 group mx-4 ${isActive
-                  ? 'bg-[#062F26] border-l-[4px] border-[#25D366] text-white rounded-md shadow-md'
-                  : 'border-l-[4px] border-transparent text-slate-500 hover:text-[#062F26] hover:bg-slate-50/50 rounded-md'
+                  ? 'bg-[#062F26] border-l-4 border-[#25D366] text-white rounded-md shadow-md'
+                  : 'border-l-4 border-transparent text-slate-500 hover:text-[#062F26] hover:bg-slate-50/50 rounded-md'
                   }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon
                     icon={item.icon}
-                    className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-[#062F26]'}`}
+                    className={`w-4.5 h-4.5 transition-colors ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-[#062F26]'}`}
                   />
                   <span className={`text-sm font-bold tracking-wide`}>
                     {item.name}
@@ -274,14 +278,14 @@ const AdminSidebar = ({ isMobile }) => {
 
           {/* Collapsible Options */}
           <div
-            className={`flex flex-col gap-1 transition-all duration-300 ease-in-out overflow-hidden ${isProfileOpen ? 'max-h-[50px] opacity-100 mb-2' : 'max-h-0 opacity-0 mb-0'
+            className={`flex flex-col gap-1 transition-all duration-300 ease-in-out overflow-hidden ${isProfileOpen ? 'max-h-12.5 opacity-100 mb-2' : 'max-h-0 opacity-0 mb-0'
               }`}
           >
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors w-full text-left"
             >
-              <Icon icon="lucide:power" className="w-[18px] h-[18px] text-red-400" />
+              <Icon icon="lucide:power" className="w-4.5 h-4.5 text-red-400" />
               Logout
             </button>
           </div>

@@ -86,7 +86,7 @@ const TenantMessages = () => {
     return () => {
       if (socketRef.current) socketRef.current.disconnect();
     };
-  }, [user?._id]);
+  }, [user]);
 
   useEffect(() => {
     const fetchInquiriesAsConversations = async () => {
@@ -139,6 +139,7 @@ const TenantMessages = () => {
   useEffect(() => {
     if (!activeChatId) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, unread: 0 } : c));
 
     const fetchHistory = async () => {
@@ -242,7 +243,7 @@ const TenantMessages = () => {
         }
       };
     }
-  }, [activeChatId]);
+  }, [activeChatId, user?._id, user?.id, user?.profilePic]);
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !activeChatId) return;
@@ -286,7 +287,7 @@ const TenantMessages = () => {
       <div className="flex flex-1 overflow-hidden gap-4">
 
         {/* LEFT COLUMN: Conversation List */}
-        <div className="w-[340px] bg-white border border-slate-200 rounded-xl flex flex-col shrink-0 overflow-hidden shadow-sm">
+        <div className="w-85 bg-white border border-slate-200 rounded-xl flex flex-col shrink-0 overflow-hidden shadow-sm">
           {/* Search Header */}
           <div className="p-4 border-b border-slate-100 flex items-center gap-2">
             <div className="relative flex-1 group">
@@ -297,7 +298,7 @@ const TenantMessages = () => {
                 className="w-full border border-slate-200 rounded-lg py-2 pl-9 pr-4 text-sm font-medium outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/10 transition-all placeholder:text-slate-400 text-slate-700 bg-slate-50 focus:bg-white"
               />
             </div>
-            <button className="w-[38px] h-[38px] flex items-center justify-center border border-slate-200 rounded-lg text-slate-600 hover:border-brand-teal hover:text-brand-teal transition-all bg-white shrink-0 shadow-sm">
+            <button className="w-9.5 h-9.5 flex items-center justify-center border border-slate-200 rounded-lg text-slate-600 hover:border-brand-teal hover:text-brand-teal transition-all bg-white shrink-0 shadow-sm">
               <Icon icon="lucide:filter" className="w-4 h-4" />
             </button>
           </div>
@@ -368,10 +369,10 @@ const TenantMessages = () => {
 
         {/* RIGHT COLUMN: Active Chat */}
         {activeChat ? (
-          <div className="flex-1 bg-white border border-slate-200 rounded-lg flex flex-col shadow-sm overflow-hidden min-w-[500px]">
+          <div className="flex-1 bg-white border border-slate-200 rounded-lg flex flex-col shadow-sm overflow-hidden min-w-125">
 
             {/* Chat Header */}
-            <div className="h-[72px] lg:h-[80px] px-4 lg:px-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div className="h-18 lg:h-20 px-4 lg:px-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3 lg:gap-4">
 
                 <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-sm lg:text-[15px] font-bold shrink-0 overflow-hidden ${activeChat?.avatarColor}`}>
@@ -383,7 +384,7 @@ const TenantMessages = () => {
                 </div>
                 <div>
                   <h2 className="font-bold text-[15px] lg:text-base text-slate-800">{activeChat?.name}</h2>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5 truncate max-w-[250px] lg:max-w-[350px]">
+                  <p className="text-xs font-medium text-slate-500 mt-0.5 truncate max-w-62.5 lg:max-w-87.5">
                     {activeChat?.property}
                   </p>
                 </div>
@@ -422,7 +423,7 @@ const TenantMessages = () => {
               </div>
 
               {/* Privacy/Auto-delete Banner */}
-              <div className="flex justify-center mb-2 mt-[-10px]">
+              <div className="flex justify-center mb-2 -mt-2.5">
                 <div className="bg-[#FFF8E7] border border-[#FFE8A1]/60 rounded-xl px-4 py-2.5 flex items-start sm:items-center gap-2.5 max-w-[90%] shadow-sm">
                   <Icon icon="lucide:shield-alert" className="w-4 h-4 text-[#A67C00] shrink-0 mt-0.5 sm:mt-0" />
                   <p className="text-[11.5px] font-semibold text-[#A67C00] leading-snug">

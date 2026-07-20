@@ -7,7 +7,7 @@ const CityCard = ({ name, properties, image }) => {
   const CardContent = (
     <>
       <img src={image} alt={name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#062F26] via-[#062F26]/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
+      <div className="absolute inset-0 bg-linear-to-t from-[#062F26] via-[#062F26]/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
 
       {isComingSoon && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#04473a]/20">

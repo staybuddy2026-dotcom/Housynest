@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Icon } from '@iconify/react';
 
 const RoleSelectionModal = ({ isOpen, onClose, onSelectRole }) => {
-  if (!isOpen) return null;
-
   const [selectedRole, setSelectedRole] = useState('tenant');
+
+  if (!isOpen) return null;
 
   const roles = [
     { id: 'owner', title: 'Owner', subtitle: 'List & Manage', icon: 'lucide:home' },
@@ -17,7 +17,7 @@ const RoleSelectionModal = ({ isOpen, onClose, onSelectRole }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
         <div className="p-6">
           <div className="flex justify-between items-center mb-5">

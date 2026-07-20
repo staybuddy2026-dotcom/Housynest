@@ -30,7 +30,7 @@ const features = [
 
 const FeaturesBanner = () => {
   return (
-    <section className="max-w-[1360px] mx-auto w-full pb-6 px-4 sm:px-6 xl:px-0">
+    <section className="max-w-340 3xl:max-w-420 mx-auto w-full pb-6 px-4 sm:px-6 xl:px-0">
       <div className="bg-[#04473a] rounded-xl lg:rounded-b-md lg:rounded-t-2xl py-5 sm:py-6 px-5 sm:px-6 md:px-8 shadow-xl relative overflow-hidden">
         {/* Decorative background glow */}
         <div className="absolute top-[-50px] right-[-100px] w-64 h-64 bg-brand-yellow/10 rounded-full blur-3xl pointer-events-none transition-all duration-700 hover:bg-brand-yellow/20"></div>

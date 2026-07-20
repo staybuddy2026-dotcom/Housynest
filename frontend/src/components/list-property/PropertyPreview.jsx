@@ -37,13 +37,13 @@ const PropertyPreview = () => {
         {/* Preview Card */}
         <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm relative group cursor-pointer hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 hover:border-brand-teal/20 transition-all duration-300">
           {/* Image */}
-          <div className="relative h-[200px] overflow-hidden bg-slate-200">
+          <div className="relative h-50 overflow-hidden bg-slate-200">
             <img
               src={heroImg}
               alt="Preview"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-slate-900/60 to-transparent"></div>
 
             {/* Badges */}
             <div className="absolute top-3 left-3 flex gap-1.5 z-10">

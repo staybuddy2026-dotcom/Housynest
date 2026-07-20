@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 
-const CompleteProfileModal = ({ isOpen, user, token, onComplete }) => {
+const CompleteProfileModal = ({ isOpen, token, onComplete }) => {
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,7 +35,7 @@ const CompleteProfileModal = ({ isOpen, user, token, onComplete }) => {
 
       toast.success('Profile completed successfully!');
       onComplete(result); // Pass updated user back
-    } catch (error) {
+    } catch {
       toast.error('An error occurred while updating profile');
     } finally {
       setIsLoading(false);
@@ -43,14 +43,14 @@ const CompleteProfileModal = ({ isOpen, user, token, onComplete }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
 
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-scaleIn">
         {/* Decorative Top Accent */}
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-teal to-[#062F26]"></div>
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-brand-teal to-[#062F26]"></div>
 
         <div className="p-6 sm:p-8">
           <div className="text-center mb-6">

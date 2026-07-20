@@ -27,7 +27,7 @@ const ButtonGroup = ({ label, required, options, value, onChange, error }) => (
           key={opt}
           type="button"
           onClick={() => onChange(opt)}
-          className={`px-4 sm:px-7 py-2 sm:py-3 rounded-[12px] border text-xs sm:text-sm font-bold transition-all duration-200 active:scale-95 flex items-center justify-center min-w-[70px] sm:min-w-[80px] ${value === opt
+          className={`px-4 sm:px-7 py-2 sm:py-3 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-200 active:scale-95 flex items-center justify-center min-w-17.5 sm:min-w-20 ${value === opt
             ? 'bg-[#EAF5F2] border-brand-teal text-[#062F26] shadow-sm'
             : 'bg-white border-slate-200 text-[#062F26] hover:border-brand-teal/30 hover:bg-slate-50'
             }`}
@@ -80,9 +80,9 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
           <button
             type="button"
             onClick={onPrev}
-            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" strokeWidth="2.5" />
+            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth="2.5" />
           </button>
         )}
         <div>
@@ -137,7 +137,7 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
                   className="w-full px-3 sm:px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300"
                 />
               </div>
-              <div className="w-[100px] sm:w-[120px]">
+              <div className="w-25 sm:w-30">
                 <input
                   type="text"
                   value={newDistance}

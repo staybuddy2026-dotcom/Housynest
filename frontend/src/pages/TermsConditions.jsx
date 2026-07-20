@@ -173,12 +173,12 @@ const TermsConditions = () => {
   return (
     <div className="min-h-screen bg-[#FAF6F0] font-sans pb-24">
       {/* Hero Section */}
-      <div className="relative w-full h-[240px] lg:h-[280px]">
+      <div className="relative w-full h-60 lg:h-70">
         <img src={aboutmain} alt="Hero" className="w-full h-full object-cover brightness-[0.85] opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#FAF6F0]"></div>
+        <div className="absolute inset-0 bg-linear-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#FAF6F0]"></div>
 
         <div className="absolute inset-0 pt-10 px-4 xl:px-20">
-          <div className="max-w-[1360px] mx-auto ml-1 xl:ml-3">
+          <div className="max-w-340 3xl:max-w-420 mx-auto ml-1 xl:ml-3">
             <div className="flex items-center text-xs font-semibold text-brand-teal mb-4">
               <Link to="/" className="hover:underline cursor-pointer">Home</Link>
               <Icon icon="lucide:chevron-right" className="mx-1 w-3 h-3 text-slate-400" />
@@ -190,7 +190,7 @@ const TermsConditions = () => {
         </div>
       </div>
 
-      <div className="max-w-[1300px] mx-auto px-4 -mt-10 lg:-mt-16 relative z-10">
+      <div className="max-w-340 3xl:max-w-420 mx-auto px-4 -mt-10 lg:-mt-16 relative z-10">
 
         {/* Table of Contents */}
         <div className="bg-white rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-100 p-8 mb-8">
@@ -231,7 +231,7 @@ const TermsConditions = () => {
         </div>
 
         {/* Contact Banner */}
-        <div className="mt-8 bg-gradient-to-r from-[#062F26] to-[#0A4A3C] rounded-2xl p-8 lg:p-12 text-center text-white shadow-xl relative overflow-hidden">
+        <div className="mt-8 bg-linear-to-r from-[#062F26] to-[#0A4A3C] rounded-2xl p-8 lg:p-12 text-center text-white shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
           <div className="relative z-10">
             <h3 className="text-2xl font-bold mb-3">Have questions?</h3>

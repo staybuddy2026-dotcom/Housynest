@@ -305,7 +305,7 @@ const ListProperty = () => {
   };
 
   const renderSuccessScreen = () => (
-    <div className="bg-white rounded-[20px] p-8 lg:p-12 border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] flex flex-col items-center text-center h-[500px] justify-center animate-in fade-in zoom-in-95 duration-500">
+    <div className="bg-white rounded-xl p-8 lg:p-12 border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] flex flex-col items-center text-center h-125 justify-center animate-in fade-in zoom-in-95 duration-500">
       <div className="w-24 h-24 rounded-full bg-[#EAF5F2] text-brand-teal flex items-center justify-center mb-6 shadow-inner">
         <Icon icon="lucide:check" width="48" strokeWidth="3" />
       </div>
@@ -344,11 +344,11 @@ const ListProperty = () => {
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans pb-24">
       {/* Hero Section */}
-      <div className="relative w-full h-[240px] lg:h-[280px]">
+      <div className="relative w-full h-60 lg:h-70">
         <img src={aboutmain} alt="Hero" className="w-full h-full object-cover brightness-[0.85] opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#F8F9FA]"></div>
+        <div className="absolute inset-0 bg-linear-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#F8F9FA]"></div>
         <div className="absolute inset-0 pt-10 px-4 sm:px-6 lg:px-8 xl:px-20">
-          <div className="max-w-[1360px] mx-auto ml-1 lg:ml-0 xl:ml-3">
+          <div className="max-w-340 3xl:max-w-420 mx-auto ml-1 lg:ml-0 xl:ml-3">
             <div className="flex items-center text-xs font-semibold text-brand-teal mb-4">
               <Link to="/" className="hover:underline cursor-pointer">Home</Link>
               <Icon icon="lucide:chevron-right" className="mx-1 w-3 h-3 text-slate-400" />
@@ -360,12 +360,12 @@ const ListProperty = () => {
         </div>
       </div>
 
-      <div id="form-container" className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-0 -mt-6 sm:-mt-10 lg:-mt-16 relative z-10 scroll-mt-24 sm:scroll-mt-28">
+      <div id="form-container" className="max-w-340 3xl:max-w-420 mx-auto px-4 sm:px-6 lg:px-8 xl:px-0 -mt-6 sm:-mt-10 lg:-mt-16 relative z-10 scroll-mt-24 sm:scroll-mt-28">
         <FormProvider {...methods}>
           <form onSubmit={(e) => e.preventDefault()} className="flex flex-col lg:flex-row gap-4 items-start">
 
             {/* Left Column - Stepper */}
-            <div className="w-full lg:w-[300px] flex-shrink-0 lg:sticky lg:top-[100px]">
+            <div className="w-full lg:w-75 shrink-0 lg:sticky lg:top-25">
               <StepperSidebar activeStep={activeStep} propertyType={propertyType} />
             </div>
 
@@ -375,7 +375,7 @@ const ListProperty = () => {
             </div>
 
             {/* Right Column - Live Preview */}
-            <div className="w-full lg:w-[320px] xl:w-[360px] flex-shrink-0 hidden lg:block">
+            <div className="w-full lg:w-[320px] xl:w-90 shrink-0 hidden lg:block">
               <PropertyPreview />
             </div>
           </form>

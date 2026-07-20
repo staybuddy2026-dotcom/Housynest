@@ -86,7 +86,7 @@ const Contact = () => {
       } else {
         setStatus({ loading: false, success: false, error: data.message || 'Something went wrong' });
       }
-    } catch (error) {
+    } catch {
       setStatus({ loading: false, success: false, error: 'Failed to send message. Please try again later.' });
     }
   };
@@ -110,7 +110,7 @@ const Contact = () => {
           />
         </div>
 
-        <div className="relative z-10 max-w-[1360px] mx-auto flex flex-col lg:flex-row gap-8 items-center justify-between">
+        <div className="relative z-10 max-w-340 3xl:max-w-420 mx-auto flex flex-col lg:flex-row gap-8 items-center justify-between">
 
           {/* Left Content Area */}
           <div className={`w-full px-4 sm:px-8 lg:px-0 lg:pl-12 xl:pl-24 flex flex-col items-center lg:items-start text-center lg:text-left transform transition-all duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
@@ -124,9 +124,9 @@ const Contact = () => {
             </p>
 
             {/* Features list */}
-            <div className="space-y-4 sm:space-y-5 bg-white/80 p-4 rounded-xl border border-slate-200 w-full max-w-[280px] sm:max-w-xs text-left mx-auto lg:mx-0">
+            <div className="space-y-4 sm:space-y-5 bg-white/80 p-4 rounded-xl border border-slate-200 w-full max-w-70 sm:max-w-xs text-left mx-auto lg:mx-0">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 shadow-sm border border-teal-100">
+                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
                   <Icon icon="lucide:clock" className="text-brand-teal w-5 h-5" />
                 </div>
                 <div className="pt-0.5">
@@ -136,7 +136,7 @@ const Contact = () => {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 shadow-sm border border-teal-100">
+                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
                   <Icon icon="lucide:shield-check" className="text-brand-teal w-5 h-5" />
                 </div>
                 <div className="pt-0.5">
@@ -146,7 +146,7 @@ const Contact = () => {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 shadow-sm border border-teal-100">
+                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
                   <Icon icon="lucide:map-pin" className="text-brand-teal w-5 h-5" />
                 </div>
                 <div className="pt-0.5">
@@ -159,10 +159,10 @@ const Contact = () => {
 
           {/* Right Form Area */}
           <div className="w-full relative z-10 flex justify-center lg:justify-end px-4 sm:px-8 lg:px-0 lg:pr-12 xl:pr-24 mt-0">
-            <div className={`w-full max-w-[580px] bg-white rounded-2xl p-5 sm:p-8 lg:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.08)] border-2 border-[#062F26]/10 flex flex-col justify-center transform transition-all duration-[1200ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'translate-x-0 opacity-100' : 'translate-x-12 opacity-0'}`}>
+            <div className={`w-full max-w-145 bg-white rounded-2xl p-5 sm:p-8 lg:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.08)] border-2 border-[#062F26]/10 flex flex-col justify-center transform transition-all duration-1200 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'translate-x-0 opacity-100' : 'translate-x-12 opacity-0'}`}>
 
               <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 border border-teal-100">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-teal-50 flex items-center justify-center shrink-0 border border-teal-100">
                   <Icon icon="lucide:send" className="text-brand-teal w-4 h-4 sm:w-5 sm:h-5 transform -translate-y-0.5 translate-x-0.5" />
                 </div>
                 <div>
@@ -249,11 +249,11 @@ const Contact = () => {
       </div>
 
       {/* Info Bar overlapping the map and hero */}
-      <div className="relative z-20 max-w-[1360px] mx-auto w-full -mt-12 sm:-mt-16 lg:-mt-24 mb-6 px-4 sm:px-6 xl:px-8">
+      <div className="relative z-20 max-w-340 3xl:max-w-420 mx-auto w-full -mt-12 sm:-mt-16 lg:-mt-24 mb-6 px-4 sm:px-6 xl:px-8">
         <div className="bg-white rounded-xl shadow-[0_15px_50px_rgba(0,0,0,0.06)] border border-slate-100 p-5 sm:p-6 lg:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 lg:gap-8">
           {contactInfoData.map((info) => (
             <div key={info.id} className="flex gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#062F26]/5 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#062F26]/5 flex items-center justify-center shrink-0">
                 <Icon icon={info.icon} className="text-[#062F26] w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div>
@@ -267,7 +267,7 @@ const Contact = () => {
 
       {/* Map Section */}
       <div className="w-full px-4 sm:px-6 xl:px-8 mb-8 lg:mb-12">
-        <div className="relative w-full h-[300px] sm:h-[400px] bg-slate-200 max-w-[1360px] mx-auto rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] overflow-hidden">
+        <div className="relative w-full h-75 sm:h-100 bg-slate-200 max-w-340 3xl:max-w-420 mx-auto rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] overflow-hidden">
           <iframe
             src="https://maps.google.com/maps?q=Koramangala,%20Bengaluru&t=&z=13&ie=UTF8&iwloc=&output=embed"
             width="100%"
@@ -282,7 +282,7 @@ const Contact = () => {
           <div className="absolute bottom-4 sm:bottom-8 lg:bottom-12 left-4 right-4 sm:right-auto sm:left-8 lg:left-[calc(50%-680px)] z-10">
             <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-xl border border-slate-100 w-full sm:max-w-[320px] ml-0 lg:ml-10">
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-10 h-10 rounded-full bg-[#062F26] flex items-center justify-center flex-shrink-0 shadow-md">
+                <div className="w-10 h-10 rounded-full bg-[#062F26] flex items-center justify-center shrink-0 shadow-md">
                   <Icon icon="lucide:map-pin" className="text-white w-4 h-4" />
                 </div>
                 <div>

@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 
 const signupSchema = z.object({
   role: z.string(),
@@ -57,6 +56,7 @@ const AuthSignupForm = ({ onOtpSent }) => {
   useEffect(() => {
     setValue('role', role);
     if (role !== 'lawyer') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep(1);
     }
   }, [role, setValue]);
@@ -104,7 +104,7 @@ const AuthSignupForm = ({ onOtpSent }) => {
       {step === 1 && (
         <div className="grid grid-cols-3 gap-2 mb-4 lg:mb-6">
           {roles.map((r) => (
-            <button key={r.id} onClick={() => setRole(r.id)} type="button" className={`group relative flex flex-col cursor-pointer items-center justify-center gap-1.5 p-2 rounded-lg border-[1.5px] transition-all duration-300 ${role === r.id ? 'border-[#062F26] bg-[#062F26]/[0.03] shadow-sm transform -translate-y-0.5 ring-1 ring-[#062F26]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm hover:-translate-y-0.5'}`}>
+            <button key={r.id} onClick={() => setRole(r.id)} type="button" className={`group relative flex flex-col cursor-pointer items-center justify-center gap-1.5 p-2 rounded-lg border-[1.5px] transition-all duration-300 ${role === r.id ? 'border-[#062F26] bg-[#062F26]/3 shadow-sm transform -translate-y-0.5 ring-1 ring-[#062F26]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm hover:-translate-y-0.5'}`}>
               <Icon icon={r.icon} className={`w-5.5 h-5.5 transition-colors duration-300 ${role === r.id ? 'text-[#062F26]' : 'text-slate-400 group-hover:text-slate-600'}`} />
               <div className="text-center">
                 <div className={`text-sm font-semibold transition-colors duration-300 ${role === r.id ? 'text-[#062F26]' : 'text-slate-700 group-hover:text-slate-900'}`}>{r.title}</div>
@@ -174,7 +174,7 @@ const AuthSignupForm = ({ onOtpSent }) => {
           <div>
             <div className="pt-1.5 pb-2.5 flex items-start gap-2.5">
               <div className="flex items-center h-4 mt-0.5 relative">
-                <input id="terms" type="checkbox" {...register('terms')} className={`w-3.5 h-3.5 rounded border-slate-300 text-[#062F26] cursor-pointer ${errors.terms ? 'outline outline-1 outline-red-500' : ''}`} />
+                <input id="terms" type="checkbox" {...register('terms')} className={`w-3.5 h-3.5 rounded border-slate-300 text-[#062F26] cursor-pointer ${errors.terms ? 'outline-1 outline-red-500' : ''}`} />
               </div>
               <label htmlFor="terms" className="text-xs text-slate-500 leading-snug cursor-pointer group">
                 I agree to the <a href="#" className="font-semibold text-[#062F26] hover:underline">Terms & Conditions</a> and <a href="#" className="font-semibold text-[#062F26] hover:underline">Privacy Policy</a>

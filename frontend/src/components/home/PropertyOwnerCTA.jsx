@@ -4,7 +4,7 @@ import home2 from '../../assets/home2.png';
 
 const PropertyOwnerCTA = () => {
   return (
-    <section className="max-w-[1360px] mx-auto w-full py-10 px-4 sm:px-6 xl:px-0">
+    <section className="max-w-340 3xl:max-w-420 mx-auto w-full py-10 px-4 sm:px-6 xl:px-0">
       <div className="bg-[#fafafa] sm:bg-white p-6 sm:p-8 border-2 border-gray-200/60 rounded-xl overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-2 lg:gap-6">
 
         <div className='relative flex flex-col md:flex-row items-center w-full lg:w-auto justify-center gap-8 md:gap-6 min-h-[350px] md:min-h-0'>

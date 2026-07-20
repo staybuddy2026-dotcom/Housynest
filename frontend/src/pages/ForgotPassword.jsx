@@ -39,7 +39,7 @@ const ForgotPassword = () => {
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-[1360px] pl-10 mx-auto flex flex-col lg:flex-row h-full">
+      <div className="relative z-10 w-full max-w-340 3xl:max-w-420 pl-10 mx-auto flex flex-col lg:flex-row h-full">
 
         {/* Left Content Area */}
         <div className="w-full h-full py-6 pl-16 flex flex-col justify-between">
@@ -51,7 +51,7 @@ const ForgotPassword = () => {
             </Link>
 
             {/* Headline */}
-            <div className="max-w-[380px] mt-10">
+            <div className="max-w-95 mt-10">
               <h1 className="text-3xl lg:text-[36px] font-serif font-bold text-slate-900 leading-[1.15] mb-3">
                 Forgot Your <br />
                 <span className="text-brand-teal">Password?</span>
@@ -63,7 +63,7 @@ const ForgotPassword = () => {
               {/* Features Card - Glassmorphism */}
               <div className="bg-white/60 backdrop-blur-xl rounded-lg p-4 lg:p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white max-w-[320px] space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center shrink-0">
                     <Icon icon="lucide:shield-check" className="text-brand-teal w-5 h-5" />
                   </div>
                   <div className="pt-0.5">
@@ -73,7 +73,7 @@ const ForgotPassword = () => {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center shrink-0">
                     <Icon icon="lucide:mail" className="text-brand-teal w-4.5 h-4.5" />
                   </div>
                   <div className="pt-0.5">
@@ -86,9 +86,9 @@ const ForgotPassword = () => {
           </div>
 
           {/* Bottom Back to Login CTA */}
-          <div className={`mt-auto bg-[#062F26] rounded-lg p-4 flex items-center justify-between gap-4 shadow-xl max-w-[420px] border border-white/5 relative z-10 transform transition-all duration-1000 delay-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <div className={`mt-auto bg-[#062F26] rounded-lg p-4 flex items-center justify-between gap-4 shadow-xl max-w-105 border border-white/5 relative z-10 transform transition-all duration-1000 delay-150 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/10">
+              <div className="w-10 h-10 rounded-md bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
                 <Icon icon="lucide:arrow-left" className="text-brand-yellow w-5 h-5" />
               </div>
               <div>
@@ -99,7 +99,7 @@ const ForgotPassword = () => {
             <Link to="/login" className="group relative overflow-hidden whitespace-nowrap px-5 py-2 rounded-md border border-white/20 text-white text-sm font-semibold cursor-pointer hover:bg-white/10 transition-all flex items-center justify-center">
               <Icon
                 icon="lucide:arrow-right"
-                className="absolute left-3.5 -translate-x-[150%] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500 ease-out w-4 h-4"
+                className="absolute left-3.5 translate-x-[-150%] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500 ease-out w-4 h-4"
               />
               <span className="transform group-hover:translate-x-5 transition-transform duration-500 ease-out">
                 Back to Login
@@ -116,7 +116,7 @@ const ForgotPassword = () => {
         {/* Right Form Area */}
         <div className="w-full h-full p-4 lg:p-6 flex items-center justify-center relative z-10">
 
-          <div className={`w-full max-w-[540px] bg-white rounded-xl p-8 lg:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)] border-2 border-[#062F26]/20 flex flex-col justify-center h-auto min-h-[480px] origin-top-right transform transition-all duration-[1200ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'scale-100 opacity-100' : 'scale-0 opacity-0 -rotate-12'}`}>
+          <div className={`w-full max-w-135 bg-white rounded-xl p-8 lg:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)] border-2 border-[#062F26]/20 flex flex-col justify-center h-auto min-h-120 origin-top-right transform transition-all duration-1200 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'scale-100 opacity-100' : 'scale-0 opacity-0 -rotate-12'}`}>
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm">
                 <Icon icon="lucide:key-round" className="text-brand-teal w-7 h-7" />

@@ -51,6 +51,7 @@ import AdminLogin from './pages/admin/AdminLogin';
 import NotFound from './pages/NotFound';
 import { Toaster, toast } from 'react-hot-toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import ChatbotWidget from './components/chatbot/ChatbotWidget';
 
 function App() {
   useEffect(() => {
@@ -237,6 +238,7 @@ function App() {
 
         </Routes>
       </Router>
+      <ChatbotWidget />
     </>
   );
 }

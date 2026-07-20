@@ -152,7 +152,7 @@ const AdminReports = () => {
       accessorKey: 'reason',
       header: 'Reason',
       cell: info => (
-        <div className="max-w-[250px] min-w-[200px]">
+        <div className="max-w-62.5 min-w-50">
           <p className="text-xs font-medium text-slate-600 leading-relaxed line-clamp-2" title={info.getValue()}>
             {info.getValue()}
           </p>
@@ -231,6 +231,7 @@ const AdminReports = () => {
         );
       },
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   ], []);
 
   // Filter logic
@@ -242,6 +243,7 @@ const AdminReports = () => {
     return result;
   }, [data, statusFilter]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -268,7 +270,7 @@ const AdminReports = () => {
   }, [data]);
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-4">
+    <div className="max-w-350 mx-auto pb-4">
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-2">
@@ -320,7 +322,7 @@ const AdminReports = () => {
             </button>
 
             {isFilterDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-full min-w-[140px] bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute top-full right-0 mt-2 w-full min-w-35 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 {['All', 'Open', 'Investigating', 'Resolved', 'Dismissed'].map(status => (
                   <button
                     key={status}
@@ -387,7 +389,7 @@ const AdminReports = () => {
             key={index}
             className={`bg-white rounded-xl p-5 flex items-center justify-between shadow-sm relative overflow-hidden group transition-all duration-300 border border-slate-200 ${card.hoverBorder}`}
           >
-            <div className={`absolute right-0 top-0 w-24 h-24 bg-gradient-to-bl ${card.gradientFrom} to-transparent rounded-bl-full opacity-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-100`} />
+            <div className={`absolute right-0 top-0 w-24 h-24 bg-linear-to-bl ${card.gradientFrom} to-transparent rounded-bl-full opacity-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-100`} />
             <div className="flex flex-col relative z-10">
               <span className="text-sm font-bold mb-1 transition-colors text-slate-500">{card.label}</span>
               <span className="text-3xl font-bold text-[#062F26] leading-none">{card.value}</span>
@@ -402,7 +404,7 @@ const AdminReports = () => {
       {/* Data Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col w-full overflow-hidden">
         <div className="w-full overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse table-auto min-w-[800px]">
+          <table className="w-full text-left border-collapse table-auto min-w-200">
             <thead className="bg-[#F8F9FA] border-b border-slate-100">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>

@@ -20,7 +20,7 @@ const MainLayout = () => {
         options={{ smoothTouch: true, orientation: 'vertical', gestureOrientation: 'vertical' }}
       >
         <ScrollToTop />
-        <main className="flex-grow flex flex-col min-h-max">
+        <main className="grow flex flex-col min-h-max">
           <Outlet />
         </main>
         

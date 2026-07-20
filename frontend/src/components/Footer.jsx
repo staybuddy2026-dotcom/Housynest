@@ -66,7 +66,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-[#062F26] text-white mt-auto">
-      <div className="max-w-[1360px] mx-auto pt-32 pb-6 px-4 sm:px-6 xl:px-0">
+      <div className="max-w-340 3xl:max-w-420 mx-auto pt-32 pb-6 px-4 sm:px-6 xl:px-0">
 
         <div className="flex flex-col lg:flex-row gap-16 lg:gap-12 justify-between">
 
@@ -83,7 +83,7 @@ const Footer = () => {
                 <a key={idx} href={social.url} className="group relative w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-yellow hover:border-brand-yellow cursor-pointer transition-all duration-300">
                   <Icon icon={social.icon} className="text-[#cce2dc] group-hover:text-slate-900 w-5 h-5 transition-colors" />
                   <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 flex flex-col items-center pointer-events-none">
-                    <div className="w-0 h-0 border-x-[5px] border-x-transparent border-b-[5px] border-b-slate-800 -mb-[1px]"></div>
+                    <div className="w-0 h-0 border-x-[5px] border-x-transparent border-b-[5px] border-b-slate-800 -mb-px"></div>
                     <span className="bg-slate-800 text-white text-xs font-medium px-2 py-0.5 rounded shadow-sm whitespace-nowrap">
                       {social.name}
                     </span>
@@ -109,7 +109,7 @@ const Footer = () => {
                     const linkContent = (
                       <>
                         {link.icon ? (
-                          <Icon icon={link.icon} className="text-brand-yellow mt-0.5 w-[14px] h-[14px] flex-shrink-0" />
+                          <Icon icon={link.icon} className="text-brand-yellow mt-0.5 w-3.5 h-3.5 shrink-0" />
                         ) : (
                           <span className="w-0 overflow-hidden group-hover/link:w-2 transition-all duration-300">
                             <Icon icon="lucide:chevron-right" className="text-brand-yellow" width="12" />

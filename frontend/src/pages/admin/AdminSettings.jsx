@@ -16,6 +16,7 @@ const AdminSettings = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProfileForm({
         name: parsedUser.fullName || parsedUser.name || 'Admin User',
         email: parsedUser.email || 'admin@housynest.com',
@@ -127,7 +128,7 @@ const AdminSettings = () => {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-8">
+    <div className="max-w-350 mx-auto pb-8">
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8 pt-2">

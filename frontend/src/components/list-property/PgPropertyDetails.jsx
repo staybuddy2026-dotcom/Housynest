@@ -16,7 +16,7 @@ const InputField = ({ label, required, error, ...props }) => (
 );
 
 const PgPropertyDetails = ({ onNext, onPrev }) => {
-  const { register, watch, setValue, getValues, formState: { errors } } = useFormContext();
+  const { register, watch, setValue, formState: { errors } } = useFormContext();
   const [newPlace, setNewPlace] = useState('');
   const [newDistance, setNewDistance] = useState('');
 
@@ -43,9 +43,9 @@ const PgPropertyDetails = ({ onNext, onPrev }) => {
           <button
             type="button"
             onClick={onPrev}
-            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" strokeWidth="2.5" />
+            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth="2.5" />
           </button>
         )}
         <div>
@@ -109,7 +109,7 @@ const PgPropertyDetails = ({ onNext, onPrev }) => {
                   className="w-full px-3 sm:px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300"
                 />
               </div>
-              <div className="w-[100px] sm:w-[120px]">
+              <div className="w-25 sm:w-30">
                 <input
                   type="text"
                   value={newDistance}

@@ -58,7 +58,12 @@ const FilterSection = () => {
               setIsTypeDropdownOpen(willOpen);
               if (willOpen) {
                 setIsPriceDropdownOpen(false);
-                setTimeout(() => window.scrollBy({ top: 250, behavior: 'smooth' }), 50);
+                setTimeout(() => {
+                  const bottomEl = document.getElementById('type-dropdown-bottom');
+                  if (bottomEl) {
+                    bottomEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }
+                }, 50);
               }
             }}
           >
@@ -88,6 +93,7 @@ const FilterSection = () => {
                   <Icon icon="lucide:user-check" className="text-brand-yellow" width="18" />
                   Tenant
                 </button>
+                <div id="type-dropdown-bottom" className="h-1" />
               </div>
             )}
           </div>
@@ -117,7 +123,12 @@ const FilterSection = () => {
               setIsPriceDropdownOpen(willOpen);
               if (willOpen) {
                 setIsTypeDropdownOpen(false);
-                setTimeout(() => window.scrollBy({ top: 350, behavior: 'smooth' }), 50);
+                setTimeout(() => {
+                  const bottomEl = document.getElementById('price-dropdown-bottom');
+                  if (bottomEl) {
+                    bottomEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }
+                }, 50);
               }
             }}
           >
@@ -148,6 +159,7 @@ const FilterSection = () => {
                     {price}
                   </button>
                 ))}
+                <div id="price-dropdown-bottom" className="h-1" />
               </div>
             )}
           </div>

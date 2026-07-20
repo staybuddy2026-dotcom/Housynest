@@ -2,7 +2,7 @@ import { Icon } from '@iconify/react';
 
 const PropertyQuickStats = ({ property, propertyType }) => {
   return (
-    <div className="w-full grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-start sm:justify-between gap-6 sm:gap-4 bg-white rounded-[24px] shadow-[0_4px_30px_rgba(0,0,0,0.03)] p-6 lg:p-8 mb-8 border border-slate-50">
+    <div className="w-full grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-start sm:justify-between gap-6 sm:gap-4 bg-white rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] p-6 lg:p-8 mb-8 border border-slate-50">
       {propertyType !== 'PG' && (
         <>
           <div className="flex items-center gap-3 lg:gap-4">

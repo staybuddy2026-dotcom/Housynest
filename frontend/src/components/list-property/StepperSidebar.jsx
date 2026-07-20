@@ -42,22 +42,22 @@ const StepperSidebar = ({ activeStep, propertyType = 'PG' }) => {
       <div className="bg-[#F8FBFA] rounded-xl lg:rounded-xl p-4 lg:pb-8 border border-slate-100">
         <h2 className="hidden lg:block text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 ml-2">List Property</h2>
 
-        <div ref={containerRef} className="overflow-x-auto lg:overflow-visible pt-2 pb-4 lg:pt-0 lg:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] -mx-4 px-4 lg:mx-0 lg:px-0 scroll-smooth">
+        <div ref={containerRef} className="overflow-x-auto lg:overflow-visible pt-2 pb-4 lg:pt-0 lg:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none -mx-4 px-4 lg:mx-0 lg:px-0 scroll-smooth">
           <div className="flex flex-row lg:flex-col gap-4 lg:gap-6 relative w-max lg:w-auto snap-x">
             {/* Vertical Track Line (Desktop) */}
             <div className="hidden lg:block absolute left-4 top-2 bottom-6 w-0.5 bg-slate-200 z-0"></div>
             {/* Horizontal Track Line (Mobile) */}
-            <div className="block lg:hidden absolute top-4 left-[60px] right-[60px] h-0.5 bg-slate-200 z-0"></div>
+            <div className="block lg:hidden absolute top-4 left-15 right-15 h-0.5 bg-slate-200 z-0"></div>
 
             {steps.map((step) => {
               const isActive = step.id === activeStep;
               const isCompleted = step.id < activeStep;
 
               return (
-                <div ref={isActive ? activeStepRef : null} key={step.id} className="relative z-10 flex flex-col lg:flex-row gap-2 lg:gap-4 group cursor-pointer shrink-0 snap-start w-[120px] lg:w-auto items-center lg:items-start text-center lg:text-left">
+                <div ref={isActive ? activeStepRef : null} key={step.id} className="relative z-10 flex flex-col lg:flex-row gap-2 lg:gap-4 group cursor-pointer shrink-0 snap-start w-30 lg:w-auto items-center lg:items-start text-center lg:text-left">
                   {/* Step Circle */}
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 transition-all duration-300
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 transition-all duration-300
                       ${isActive
                         ? 'bg-[#062F26] text-white shadow-[0_0_0_4px_#EAF5F2] scale-110'
                         : isCompleted
@@ -87,7 +87,7 @@ const StepperSidebar = ({ activeStep, propertyType = 'PG' }) => {
       {/* Need Help Card */}
       <div className="hidden lg:flex bg-white rounded-[20px] p-6 border border-slate-100 flex-col items-center text-center shadow-sm">
         <div className="w-12 h-12 rounded-full bg-[#EAF5F2] flex items-center justify-center text-brand-teal mb-3">
-          <Icon icon="lucide:headphones" className="w-6 h-6 stroke-[2]" />
+          <Icon icon="lucide:headphones" className="w-6 h-6 stroke-2" />
         </div>
         <h4 className="text-[15px] font-bold text-[#062F26] mb-1">Need Help?</h4>
         <p className="text-xs font-medium text-slate-500 mb-4 px-2">Our team is here to help you</p>

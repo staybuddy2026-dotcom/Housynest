@@ -24,15 +24,15 @@ const About = () => {
     <div className="bg-[#F8F9FA] font-sans min-h-screen pb-10 lg:pb-20">
 
       {/* Hero Section */}
-      <div className="relative w-full overflow-hidden bg-[#FAF6F0] lg:h-[350px] pt-2">
+      <div className="relative w-full overflow-hidden bg-[#FAF6F0] lg:h-87.5 pt-2">
 
         {/* The Image and Gradient Overlay that you liked */}
         <div className="absolute inset-y-0 right-0 w-full z-0">
           <img src={aboutmain} alt="Living Room" className="w-full h-full object-cover object-left opacity-95" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FAF6F0] via-[#FAF6F0] lg:via-[#FAF6F0]/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-[#FAF6F0] via-[#FAF6F0] lg:via-[#FAF6F0]/80 to-transparent"></div>
         </div>
 
-        <div className="max-w-[1360px] mx-auto h-full relative z-10 flex flex-col justify-center pb-20 px-4 sm:px-6 xl:px-0">
+        <div className="max-w-340 3xl:max-w-420 mx-auto h-full relative z-10 flex flex-col justify-center pb-20 px-4 sm:px-6 xl:px-0">
           <div className="max-w-lg">
             <div className="flex items-center text-xs font-semibold text-[#062F26] mb-5 capitalize tracking-wide">
               <Link to="/" className="hover:underline">Home</Link>
@@ -54,11 +54,11 @@ const About = () => {
       </div>
 
       {/* Floating Benefits Strip */}
-      <div className="max-w-[1360px] mx-auto -mt-12 lg:-mt-16 relative z-20 px-4 sm:px-6 xl:px-0">
+      <div className="max-w-340 3xl:max-w-420 mx-auto -mt-12 lg:-mt-16 relative z-20 px-4 sm:px-6 xl:px-0">
         <div className="bg-white rounded-xl shadow-[0_15px_40px_rgba(0,0,0,0.06)] p-5 lg:p-7 flex flex-wrap md:flex-nowrap items-start md:items-center justify-between border-2 border-gray-100 gap-y-6 md:gap-y-0">
           {benefits.map((b, i) => (
             <div key={i} className={`flex items-center gap-3 w-full sm:w-[calc(50%-12px)] md:w-auto md:flex-1 ${i !== benefits.length - 1 ? 'md:border-r border-slate-100 md:pr-4' : ''} ${i !== 0 ? 'md:pl-4' : ''}`}>
-              <div className="w-13 h-13 rounded-full bg-[#EAF5F2] flex items-center justify-center flex-shrink-0">
+              <div className="w-13 h-13 rounded-full bg-[#EAF5F2] flex items-center justify-center shrink-0">
                 <Icon icon={b.icon} className="w-6 h-6 text-[#062F26]" />
               </div>
               <div>
@@ -71,7 +71,7 @@ const About = () => {
       </div>
 
       {/* Our Story */}
-      <div className="max-w-[1360px] mx-auto py-10 px-4 sm:px-6 xl:px-0">
+      <div className="max-w-340 3xl:max-w-420 mx-auto py-10 px-4 sm:px-6 xl:px-0">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-6 items-start">
 
           <div className="w-full lg:w-[52%]">
@@ -103,7 +103,7 @@ const About = () => {
                   { icon: 'lucide:star', value: '4.9/5', label: 'Average Rating' },
                 ].map((stat, index) => (
                   <div key={index} className={`p-3 sm:p-5 lg:p-7 flex flex-col xl:flex-row items-center justify-center text-center xl:text-left gap-2 xl:gap-4 ${index < 2 ? 'border-b border-slate-100' : ''} ${index % 2 === 0 ? 'border-r border-slate-100' : ''}`}>
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#EAF5F2] flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#EAF5F2] flex items-center justify-center shrink-0">
                       <Icon icon={stat.icon} className="w-5 h-5 sm:w-6 sm:h-6 text-[#062F26]" />
                     </div>
                     <div>
@@ -119,7 +119,7 @@ const About = () => {
       </div>
 
       {/* Meet The Team */}
-      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 xl:px-0 mt-0">
+      <div className="max-w-340 3xl:max-w-420 mx-auto px-4 sm:px-6 xl:px-0 mt-0">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-6 items-start">
 
           <div className="w-full lg:w-[35%] lg:sticky top-24 lg:pt-2 pr-4">
@@ -141,7 +141,7 @@ const About = () => {
               <div key={idx} className="group relative bg-white rounded-lg p-5 flex flex-col items-center text-center shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-50 hover:border-slate-100 hover:shadow-[0_15px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300">
 
                 {/* Subtle top background highlight */}
-                <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-teal-50/50 to-transparent rounded-t-2xl opacity-50 z-0"></div>
+                <div className="absolute top-0 inset-x-0 h-24 bg-linear-to-b from-teal-50/50 to-transparent rounded-t-2xl opacity-50 z-0"></div>
 
                 <div className="relative w-24 h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden mb-4 border-4 border-gray-200 shadow-sm z-10">
                   <img src={t.img} alt={t.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -169,11 +169,11 @@ const About = () => {
             ].map((item, index) => (
               <React.Fragment key={index}>
                 <div className="flex items-start gap-5">
-                  <div className="w-10 h-10 rounded-full bg-[#EAF5F2] flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-10 h-10 rounded-full bg-[#EAF5F2] flex items-center justify-center shrink-0 mt-0.5">
                     <Icon icon={item.icon} className="w-5 h-5 text-[#062F26]" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-[#062F26] tracking-[0.1em] uppercase mb-2.5">{item.title}</h4>
+                    <h4 className="text-xs font-bold text-[#062F26] tracking-widest uppercase mb-2.5">{item.title}</h4>
                     <p className="text-sm font-medium text-slate-600 leading-relaxed pr-2">{item.desc}</p>
                   </div>
                 </div>

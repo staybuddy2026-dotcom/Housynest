@@ -13,7 +13,7 @@ const OwnerDashboard = () => {
   const userName = user?.fullName || 'Owner';
 
   return (
-    <div className="flex flex-col max-w-[1400px] mx-auto w-full pb-10">
+    <div className="flex flex-col max-w-350 3xl:max-w-[1600px] mx-auto w-full pb-10">
 
       {/* Header Area */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -29,7 +29,7 @@ const OwnerDashboard = () => {
           to="/list-property"
           className="flex items-center gap-2 bg-[#062F26] text-white px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-brand-teal transition-colors shrink-0 shadow-sm"
         >
-          <Icon icon="lucide:plus" className="w-[18px] h-[18px]" />
+          <Icon icon="lucide:plus" className="w-4.5 h-4.5" />
           Add New Property
         </Link>
       </div>

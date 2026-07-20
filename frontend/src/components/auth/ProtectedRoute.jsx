@@ -8,16 +8,19 @@ const ProtectedRoute = ({ children, allowedRoles, redirectPath = '/login' }) => 
     return <Navigate to={redirectPath} replace />;
   }
   
+  let user;
   try {
-    const user = JSON.parse(userStr);
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-      // Redirect to their respective dashboard or home if unauthorized role
-      return <Navigate to={`/${user.role}/dashboard`} replace />;
-    }
-    return children;
-  } catch (error) {
+    user = JSON.parse(userStr);
+  } catch {
     return <Navigate to="/login" replace />;
   }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Redirect to their respective dashboard or home if unauthorized role
+    return <Navigate to={`/${user.role}/dashboard`} replace />;
+  }
+  
+  return children;
 };
 
 export default ProtectedRoute;

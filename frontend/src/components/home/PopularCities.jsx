@@ -69,7 +69,7 @@ const PopularCities = () => {
   }, []);
 
   return (
-    <section className="max-w-[1360px] mx-auto w-full px-4 sm:px-6 xl:px-0">
+    <section className="max-w-340 3xl:max-w-420 mx-auto w-full px-4 sm:px-6 xl:px-0">
       <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div className="flex flex-col">
           <h2 className="text-[22px] sm:text-2xl font-serif md:text-3xl font-bold text-[#04473a] flex items-center gap-2 sm:gap-3">

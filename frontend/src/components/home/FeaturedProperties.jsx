@@ -71,7 +71,7 @@ const FeaturedProperties = () => {
   };
 
   return (
-    <section className="max-w-[1360px] mx-auto w-full pt-12 sm:pt-16 px-4 sm:px-6 xl:px-0">
+    <section className="max-w-340 3xl:max-w-420 mx-auto w-full pt-12 sm:pt-16 px-4 sm:px-6 xl:px-0">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div className="flex flex-col">

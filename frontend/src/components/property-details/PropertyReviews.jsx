@@ -17,7 +17,7 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
   return (
     <>
       {/* Reviews & Ratings */}
-      <div className="w-full bg-white rounded-[24px] shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-6 lg:p-8 mb-8">
+      <div className="w-full bg-white rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-6 lg:p-8 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
           <div>
             <h3 className="text-xl font-bold text-[#062F26] mb-1">Guest Reviews</h3>
@@ -33,7 +33,7 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
 
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Left: Rating Summary */}
-          <div className="w-full lg:w-[35%] flex-shrink-0">
+          <div className="w-full lg:w-[35%] shrink-0">
             <div className="bg-[#FAF6F0] rounded-2xl p-6 border border-slate-100/50">
               <div className="flex items-end gap-4 mb-6">
                 <h4 className="text-[48px] font-bold text-[#062F26] leading-none tracking-tight">
@@ -119,16 +119,16 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
       </div>
 
       {/* Owner Profile & CTA */}
-      <div id="contact" className="w-full bg-white rounded-[24px] shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-6 lg:p-8 flex flex-col lg:flex-row items-center justify-between mb-8 scroll-mt-24">
+      <div id="contact" className="w-full bg-white rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-6 lg:p-8 flex flex-col lg:flex-row items-center justify-between mb-8 scroll-mt-24">
 
         {/* Avatar & Details */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center w-full lg:w-auto flex-1 justify-between pr-0 lg:pr-8">
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             {ownerAvatar ? (
-              <img src={ownerAvatar} alt="Owner Avatar" className="w-[84px] h-[84px] rounded-full bg-[#EAF5F2] object-cover border border-brand-teal/20" />
+              <img src={ownerAvatar} alt="Owner Avatar" className="w-21 h-21 rounded-full bg-[#EAF5F2] object-cover border border-brand-teal/20" />
             ) : (
-              <div className="w-[84px] h-[84px] rounded-full bg-gradient-to-tr from-[#062F26] to-brand-teal text-white flex items-center justify-center font-bold text-3xl border border-brand-teal/20">
+              <div className="w-21 h-21 rounded-full bg-linear-to-tr from-[#062F26] to-brand-teal text-white flex items-center justify-center font-bold text-3xl border border-brand-teal/20">
                 {owner.fullName ? owner.fullName.charAt(0).toUpperCase() : 'O'}
               </div>
             )}
@@ -147,7 +147,7 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
                 </div>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#EAF5F2] text-brand-teal text-xs font-bold mt-1 w-max">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAF5F2] text-brand-teal text-xs font-bold mt-1 w-max">
                 <Icon icon="lucide:shield-check" className="w-3.5 h-3.5 stroke-[2.5]" />
                 Verified Owner
               </div>
@@ -158,13 +158,13 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
           <div className="hidden lg:flex flex-col gap-6 border-l border-slate-100 pl-12 py-4">
             <div>
               <p className="text-xs flex items-center gap-2 font-medium text-slate-600 mb-1.5">
-                <Icon icon="lucide:history" className="w-[18px] h-[18px] text-brand-teal stroke-[2.5]" /> Response Time
+                <Icon icon="lucide:history" className="w-4.5 h-4.5 text-brand-teal stroke-[2.5]" /> Response Time
               </p>
               <p className="text-sm font-bold text-[#062F26] pl-6 leading-relaxed">Usually replies within<br />30 minutes</p>
             </div>
             <div>
               <p className="text-xs flex items-center gap-2 font-medium text-slate-600 mb-1.5">
-                <Icon icon="lucide:languages" className="w-[18px] h-[18px] text-brand-teal stroke-[2.5]" /> Languages Known
+                <Icon icon="lucide:languages" className="w-4.5 h-4.5 text-brand-teal stroke-[2.5]" /> Languages Known
               </p>
               <p className="text-sm font-bold text-[#062F26] pl-6">English, Hindi, Kannada</p>
             </div>
@@ -172,11 +172,11 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
 
         </div>
 
-        <div className="hidden lg:block w-px h-[140px] bg-slate-100 mx-8"></div>
+        <div className="hidden lg:block w-px h-35 bg-slate-100 mx-8"></div>
 
         {/* CTA Box */}
         {isTenantOrGuest && (
-          <div className="bg-[#F4F9F8] rounded-2xl p-6 lg:p-7 w-full lg:w-[420px] flex-shrink-0 mt-8 lg:mt-0">
+          <div className="bg-[#F4F9F8] rounded-2xl p-6 lg:p-7 w-full lg:w-105 shrink-0 mt-8 lg:mt-0">
             <h4 className="font-bold text-[#062F26] text-base mb-2">Interested in this property?</h4>
             <p className="text-sm font-medium text-slate-600 mb-6">Contact the owner now or schedule a visit.</p>
             <div className="group flex flex-col sm:flex-row gap-3 sm:gap-4 p-0 sm:p-3 sm:-ml-3 rounded-xl hover:bg-slate-50 transition-colors">

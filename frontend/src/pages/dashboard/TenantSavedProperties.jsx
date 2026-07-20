@@ -97,7 +97,7 @@ const TenantSavedProperties = () => {
     : savedPropertiesList.filter(p => p.type === (activeFilter === 'Tenant' ? 'Home' : activeFilter));
 
   return (
-    <div className="animate-fadeIn max-w-7xl mx-auto pb-10">
+    <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-100 pb-4">
         <div className="flex items-center gap-4">
@@ -163,7 +163,7 @@ const TenantSavedProperties = () => {
               }`}
           >
             {filter.name}
-            <span className={`px-2 py-0.5 rounded-md text-xs flex items-center justify-center min-w-[24px] ${activeFilter === filter.name ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+            <span className={`px-2 py-0.5 rounded-md text-xs flex items-center justify-center min-w-6 ${activeFilter === filter.name ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
               }`}>
               {filter.count}
             </span>

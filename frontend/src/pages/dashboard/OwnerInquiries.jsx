@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment, useRef } from 'react';
+import { useState, useEffect, Fragment, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 
@@ -214,7 +214,7 @@ const OwnerInquiries = () => {
               placeholder="Search by name, phone or property..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-[280px] border border-slate-200 rounded-lg py-2 pl-9 pr-4 text-sm font-medium outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/10 transition-all placeholder:text-slate-400 text-slate-700 bg-slate-50 focus:bg-white"
+              className="w-70 border border-slate-200 rounded-lg py-2 pl-9 pr-4 text-sm font-medium outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/10 transition-all placeholder:text-slate-400 text-slate-700 bg-slate-50 focus:bg-white"
             />
           </div>
           <button className="flex items-center gap-2 border border-slate-200 rounded-lg px-4 py-2 text-sm font-bold text-slate-700 hover:border-brand-teal hover:text-brand-teal transition-all bg-white shadow-sm">
@@ -226,7 +226,7 @@ const OwnerInquiries = () => {
 
       {/* Table Content */}
       <div className="flex-1 overflow-x-auto overflow-y-auto pb-32">
-        <table className="w-full min-w-[1000px] text-left">
+        <table className="w-full min-w-250 text-left">
           <thead className="bg-white sticky top-0 z-20">
             <tr>
               <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Inquirer</th>
@@ -299,7 +299,7 @@ const OwnerInquiries = () => {
                       </td>
 
                       {/* Last Message */}
-                      <td className="py-4 px-6 align-middle max-w-[200px]">
+                      <td className="py-4 px-6 align-middle max-w-50">
                         <p className="text-xs font-bold text-brand-teal truncate mb-1" title={inq.subject}>
                           Sub: {inq.subject}
                         </p>

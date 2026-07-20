@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import SignatureCanvas from 'react-signature-canvas';
@@ -45,9 +45,25 @@ const OwnerContracts = () => {
   };
 
   const token = localStorage.getItem('accessToken');
-  const headers = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+  const headers = useMemo(() => ({ "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }), [token]);
+
+  const fetchContracts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/contracts/owner', { headers });
+      if (response.ok) {
+        const data = await response.json();
+        setContracts(data);
+      }
+    } catch {
+      toast.error('Failed to load contracts');
+    } finally {
+      setLoading(false);
+    }
+  }, [headers]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchContracts();
 
     // Mark as read
@@ -74,22 +90,7 @@ const OwnerContracts = () => {
       window.removeEventListener('newOwnerContract', handleNewContract);
       window.removeEventListener('globalTenantSignedContract', handleTenantSigned);
     };
-  }, []);
-
-  const fetchContracts = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/contracts/owner', { headers });
-      if (response.ok) {
-        const data = await response.json();
-        setContracts(data);
-      }
-    } catch (error) {
-      toast.error('Failed to load contracts');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchContracts, headers]);
 
   const openContract = (c) => {
     setSelected(c); setRevisionNote(""); setShowRevisionInput(false); setShowSignModal(false); setSignMode('draw'); setUploadedSignBase64(null);
@@ -122,7 +123,7 @@ const OwnerContracts = () => {
   const handleSignConfirm = async () => {
     if (!selected) return;
 
-    let signatureUrl = null;
+    let signatureUrl;
     if (signMode === 'draw') {
       if (sigCanvas.current.isEmpty()) {
         toast.error("Please provide your signature.");
@@ -179,7 +180,7 @@ const OwnerContracts = () => {
         <div className="rounded-2xl border p-4 bg-white border-slate-200 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide mb-3 text-slate-400">Prepared by Lawyer</p>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-brand-teal flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-brand-teal flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
               {selected.lawyerId?.profilePic
                 ? <img src={selected.lawyerId.profilePic} alt={selected.lawyerId.fullName} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 : selected.lawyerId?.fullName?.charAt(0).toUpperCase()}
@@ -284,7 +285,7 @@ const OwnerContracts = () => {
         {(selected.status === "OWNER_SIGNED" || selected.status === "PENDING_TENANT_REVIEW" || selected.status === "TENANT_SIGNED") && (
           <div className="rounded-2xl border p-5 space-y-3 bg-[#EAF5F2] border-[#062F26]/20">
             <div className="flex items-center gap-2">
-              <Icon icon="lucide:check-circle" className="w-5 h-5 text-[#062F26] flex-shrink-0" />
+              <Icon icon="lucide:check-circle" className="w-5 h-5 text-[#062F26] shrink-0" />
               <p className="text-sm font-bold text-[#062F26]">
                 Contract signed on {selected.ownerSignedAt ? new Date(selected.ownerSignedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
               </p>
@@ -292,7 +293,7 @@ const OwnerContracts = () => {
             {selected.ownerSignature && (
               <div className="mt-3">
                 <p className="text-sm font-medium text-brand-teal mb-2">Your Signature</p>
-                <div className="border border-brand-teal/30 bg-white rounded-xl overflow-hidden w-[200px] h-[80px]">
+                <div className="border border-brand-teal/30 bg-white rounded-xl overflow-hidden w-50 h-20">
                   <img src={selected.ownerSignature} alt="Owner Signature" className="w-full h-full object-contain" />
                 </div>
               </div>
@@ -303,7 +304,7 @@ const OwnerContracts = () => {
         {/* Revision sent */}
         {selected.status === "REVISION_REQUIRED" && selected.revisionNote && (
           <div className="flex items-start gap-3 p-4 rounded-xl border bg-orange-50 border-orange-200 text-orange-800">
-            <Icon icon="lucide:alert-circle" className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <Icon icon="lucide:alert-circle" className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-sm">Revision request sent to lawyer</p>
               <p className="text-sm mt-0.5 font-medium">{selected.revisionNote}</p>
@@ -349,7 +350,7 @@ const OwnerContracts = () => {
                     <p className="text-slate-500 text-sm mb-4">
                       Upload an image of your signature.
                     </p>
-                    <div className="border border-dashed border-slate-300 rounded-xl bg-slate-50 p-6 flex flex-col items-center justify-center relative min-h-[192px]">
+                    <div className="border border-dashed border-slate-300 rounded-xl bg-slate-50 p-6 flex flex-col items-center justify-center relative min-h-48">
                       {uploadedSignBase64 ? (
                         <div className="relative w-full h-full flex flex-col items-center">
                           <img src={uploadedSignBase64} alt="Uploaded Signature" className="max-h-32 object-contain mb-4" />
@@ -391,7 +392,7 @@ const OwnerContracts = () => {
   }
 
   return (
-    <div className="animate-fadeIn max-w-7xl mx-auto pb-10 space-y-5">
+    <div className="animate-fadeIn max-w-7xl 3xl:max-w-[1600px] mx-auto pb-10 space-y-5">
       <div className="pt-0">
         <h2 className="text-3xl font-bold text-[#062F26] tracking-tight mb-2">Contracts</h2>
         <p className="text-sm text-slate-500 font-medium">Rental contracts prepared by your lawyers</p>

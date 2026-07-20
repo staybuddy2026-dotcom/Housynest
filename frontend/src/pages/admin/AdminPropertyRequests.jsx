@@ -13,6 +13,7 @@ const AdminPropertyRequests = () => {
   const [data, setData] = useState([]);
   const [rawProperties, setRawProperties] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('All');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -82,7 +83,7 @@ const AdminPropertyRequests = () => {
         toast.success(`Property ${newStatus}`);
         fetchProperties();
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update status');
     }
   };
@@ -102,7 +103,7 @@ const AdminPropertyRequests = () => {
         toast.success('Property verification updated');
         fetchProperties();
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update verification');
     }
   };
@@ -228,6 +229,7 @@ const AdminPropertyRequests = () => {
         );
       },
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [rawProperties]);
 
   const filteredData = useMemo(() => {
@@ -243,6 +245,7 @@ const AdminPropertyRequests = () => {
     };
   }, [data]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -256,7 +259,7 @@ const AdminPropertyRequests = () => {
   });
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-4">
+    <div className="max-w-350 mx-auto pb-4">
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -294,7 +297,7 @@ const AdminPropertyRequests = () => {
             </button>
 
             {isFilterDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-full min-w-[140px] bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute top-full right-0 mt-2 w-full min-w-35 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 {['All', 'Pending', 'Approved', 'Rejected'].map(status => (
                   <button
                     key={status}
@@ -361,7 +364,7 @@ const AdminPropertyRequests = () => {
             key={index}
             className={`bg-white rounded-xl p-5 flex items-center justify-between shadow-sm relative overflow-hidden group transition-all duration-300 border border-slate-200 ${card.hoverBorder}`}
           >
-            <div className={`absolute right-0 top-0 w-24 h-24 bg-gradient-to-bl ${card.gradientFrom} to-transparent rounded-bl-full opacity-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-100`} />
+            <div className={`absolute right-0 top-0 w-24 h-24 bg-linear-to-bl ${card.gradientFrom} to-transparent rounded-bl-full opacity-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-100`} />
             <div className="flex flex-col relative z-10">
               <span className="text-sm font-bold mb-1 transition-colors text-slate-500">{card.label}</span>
               <span className="text-3xl font-bold text-[#062F26] leading-none">{card.value}</span>
@@ -376,7 +379,7 @@ const AdminPropertyRequests = () => {
       {/* Data Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col w-full overflow-hidden">
         <div className="w-full overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse table-auto min-w-[800px]">
+          <table className="w-full text-left border-collapse table-auto min-w-200">
             <thead className="bg-[#F8F9FA] border-b border-slate-100">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>

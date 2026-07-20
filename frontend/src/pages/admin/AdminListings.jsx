@@ -15,6 +15,7 @@ const AdminListings = () => {
   const [data, setData] = useState([]);
   const [rawProperties, setRawProperties] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Listings');
@@ -98,7 +99,7 @@ const AdminListings = () => {
         const item = row.original;
         return (
           <div className="flex items-center gap-3 py-2">
-            <div className="w-[60px] h-[40px] rounded-md bg-slate-100 overflow-hidden shrink-0">
+            <div className="w-15 h-10 rounded-md bg-slate-100 overflow-hidden shrink-0">
               <img src={item.propertyImage} alt={item.propertyName} className="w-full h-full object-cover" />
             </div>
             <div>
@@ -219,7 +220,7 @@ const AdminListings = () => {
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 top-10 w-44 bg-white border border-slate-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] py-2 z-[60] flex flex-col">
+              <div className="absolute right-0 top-10 w-44 bg-white border border-slate-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] py-2 z-60 flex flex-col">
                 <button
                   onClick={() => handleOpenDeleteModal(item)}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors text-left"
@@ -288,6 +289,7 @@ const AdminListings = () => {
     return data.filter(item => item.status === statusFilter);
   }, [data, statusFilter]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -307,7 +309,7 @@ const AdminListings = () => {
   });
 
   return (
-    <div className="max-w-[1400px] mx-auto pb-10">
+    <div className="max-w-350 mx-auto pb-10">
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -343,7 +345,7 @@ const AdminListings = () => {
             </button>
 
             {isFilterDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-full min-w-[140px] bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute top-full right-0 mt-2 w-full min-w-35 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 {['All Listings', 'Verified', 'Pending', 'Rejected'].map(status => (
                   <button
                     key={status}
@@ -387,7 +389,7 @@ const AdminListings = () => {
       {/* Data Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col w-full overflow-hidden">
         <div className="w-full overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse table-auto min-w-[900px]">
+          <table className="w-full text-left border-collapse table-auto min-w-225">
             <thead className="bg-slate-50/80 border-b border-slate-100">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
@@ -483,7 +485,7 @@ const AdminListings = () => {
 
       {/* Delete Listing Modal */}
       {isDeleteModalOpen && selectedListingForDelete && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all">
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between">

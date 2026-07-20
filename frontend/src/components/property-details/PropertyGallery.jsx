@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 const PropertyGallery = ({ property, galleryImages, currentImageIndex, setCurrentImageIndex }) => {
   return (
     <div id="gallery" className="w-full lg:w-[68%] scroll-mt-24">
-      <div className="relative w-full h-[400px] lg:h-[480px] rounded-[24px] overflow-hidden mb-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+      <div className="relative w-full h-100 lg:h-120 rounded-3xl overflow-hidden mb-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
         <div
           className="flex w-full h-full transition-transform duration-500 ease-in-out"
           style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
@@ -13,7 +13,7 @@ const PropertyGallery = ({ property, galleryImages, currentImageIndex, setCurren
               key={idx}
               src={image.img}
               alt={`${property.title} - ${image.name}`}
-              className="w-full h-full object-cover flex-shrink-0"
+              className="w-full h-full object-cover shrink-0"
             />
           ))}
         </div>
@@ -66,7 +66,7 @@ const PropertyGallery = ({ property, galleryImages, currentImageIndex, setCurren
             <div
               key={idx}
               onClick={() => setCurrentImageIndex(idx)}
-              className={`cursor-pointer group relative aspect-[4/3] sm:aspect-[4/3] rounded-xl overflow-hidden transition-all duration-300 ${currentImageIndex === idx && !hasMore
+              className={`cursor-pointer group relative aspect-4/3 sm:aspect-4/3 rounded-xl overflow-hidden transition-all duration-300 ${currentImageIndex === idx && !hasMore
                   ? 'ring-2 ring-[#04473a] ring-offset-2 ring-offset-[#FAF6F0]'
                   : 'hover:opacity-90'
                 }`}
