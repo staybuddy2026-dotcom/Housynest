@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot } from 'lucide-react';
 import ChatWindow from './ChatWindow';
@@ -6,6 +7,14 @@ import ChatWindow from './ChatWindow';
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const location = useLocation();
+
+  const isDashboardRoute = location.pathname.startsWith('/owner') || 
+                           location.pathname.startsWith('/tenant') || 
+                           location.pathname.startsWith('/admin') ||
+                           location.pathname.startsWith('/lawyer');
+
+  if (isDashboardRoute) return null;
 
   return (
     <>

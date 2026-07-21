@@ -138,7 +138,7 @@ const AdminWhatsAppOutreach = () => {
   const listedLeads = leads.filter(l => l.status === 'Listed').length;
 
   return (
-    <div className="max-w-350 mx-auto pb-8">
+    <div className="max-w-350 3xl:max-w-420 mx-auto pb-8">
 
       {/* Premium Header Section */}
       <div className="bg-white rounded-xl border border-emerald-100 shadow-sm p-4 sm:p-6 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">

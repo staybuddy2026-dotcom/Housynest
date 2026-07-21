@@ -128,7 +128,7 @@ const AdminSettings = () => {
   };
 
   return (
-    <div className="max-w-350 mx-auto pb-8">
+    <div className="max-w-350 3xl:max-w-420 mx-auto pb-8">
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8 pt-2">

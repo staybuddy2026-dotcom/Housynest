@@ -1,10 +1,12 @@
 import { useState, useEffect, Fragment, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 
 const TABS = ['All Inquiries', 'New', 'Contacted', 'In Discussion', 'Closed'];
 
 const OwnerInquiries = () => {
+  const navigate = useNavigate();
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All Inquiries');
@@ -436,7 +438,10 @@ const OwnerInquiries = () => {
 
                               {/* Action Buttons for the Inquiry */}
                               <div className="mt-6 flex flex-wrap items-center gap-3">
-                                <button className="flex items-center gap-2 px-4 py-2 bg-brand-teal text-white text-sm font-bold rounded-lg hover:bg-[#062F26] transition-colors shadow-sm">
+                                <button 
+                                  onClick={() => navigate('/owner/messages', { state: { activeInquiryId: inq.id } })}
+                                  className="flex items-center gap-2 px-4 py-2 bg-brand-teal text-white text-sm font-bold rounded-lg hover:bg-[#062F26] transition-colors shadow-sm"
+                                >
                                   <Icon icon="lucide:message-circle" className="w-4 h-4" />
                                   Reply to Inquiry
                                 </button>

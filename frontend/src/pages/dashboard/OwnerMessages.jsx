@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import EmojiPicker from 'emoji-picker-react';
 import { io } from 'socket.io-client';
 
 const OwnerMessages = () => {
+  const location = useLocation();
+  const preSelectedChatId = location.state?.activeInquiryId || null;
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeChatId, setActiveChatId] = useState(null);
@@ -119,7 +122,11 @@ const OwnerMessages = () => {
           });
           setConversations(mappedConversations);
           if (mappedConversations.length > 0) {
-            setActiveChatId(mappedConversations[0].id);
+            if (preSelectedChatId && mappedConversations.some(c => c.id === preSelectedChatId)) {
+              setActiveChatId(preSelectedChatId);
+            } else {
+              setActiveChatId(mappedConversations[0].id);
+            }
           }
         } else {
           toast.error('Failed to load conversations');

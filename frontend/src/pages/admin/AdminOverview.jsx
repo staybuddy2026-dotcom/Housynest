@@ -287,7 +287,7 @@ const AdminOverview = () => {
   ];
 
   return (
-    <div className="space-y-6 max-w-350 mx-auto pb-10">
+    <div className="space-y-6 max-w-350 3xl:max-w-420 mx-auto pb-10">
 
       {/* Mobile Welcome Header */}
       <div className="lg:hidden mb-2 px-1">

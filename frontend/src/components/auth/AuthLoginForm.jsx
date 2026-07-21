@@ -65,7 +65,7 @@ const AuthLoginForm = () => {
           if (result.user.role === 'owner') {
             navigate('/owner/dashboard');
           } else if (result.user.role === 'tenant') {
-            navigate('/tenant/dashboard');
+            navigate('/');
           } else if (result.user.role === 'lawyer') {
             navigate('/lawyer/dashboard');
           } else {
@@ -105,7 +105,7 @@ const AuthLoginForm = () => {
     if (updatedUser.role === 'owner') {
       navigate('/owner/dashboard');
     } else if (updatedUser.role === 'tenant') {
-      navigate('/tenant/dashboard');
+      navigate('/');
     } else if (updatedUser.role === 'lawyer') {
       navigate('/lawyer/dashboard');
     } else {
@@ -139,7 +139,7 @@ const AuthLoginForm = () => {
       if (result.user.role === 'owner') {
         navigate('/owner/dashboard');
       } else if (result.user.role === 'tenant') {
-        navigate('/tenant/dashboard');
+        navigate('/');
       } else if (result.user.role === 'lawyer') {
         navigate('/lawyer/dashboard');
       } else {

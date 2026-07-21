@@ -281,7 +281,7 @@ const AdminLawyerRequests = () => {
   });
 
   return (
-    <div className="max-w-350 mx-auto pb-4">
+    <div className="max-w-350 3xl:max-w-420 mx-auto pb-4">
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-2">

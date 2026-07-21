@@ -23,6 +23,9 @@ import OwnerMessages from './pages/dashboard/OwnerMessages';
 import OwnerLawyerRequests from './pages/dashboard/OwnerLawyerRequests';
 import OwnerContracts from './pages/dashboard/OwnerContracts';
 import OwnerProfile from './pages/dashboard/OwnerProfile';
+import OwnerReports from './pages/dashboard/OwnerReports';
+import OwnerPayments from './pages/dashboard/OwnerPayments';
+import OwnerBookings from './pages/dashboard/OwnerBookings';
 import TenantDashboardLayout from './layouts/TenantDashboardLayout';
 import TenantSavedProperties from './pages/dashboard/TenantSavedProperties';
 import TenantRequests from './pages/dashboard/TenantRequests';
@@ -181,7 +184,10 @@ function App() {
             <Route path="messages" element={<OwnerMessages />} />
             <Route path="lawyer-requests" element={<OwnerLawyerRequests />} />
             <Route path="contracts" element={<OwnerContracts />} />
+            <Route path="bookings" element={<OwnerBookings />} />
             <Route path="profile" element={<OwnerProfile />} />
+            <Route path="reports" element={<OwnerReports />} />
+            <Route path="payments" element={<OwnerPayments />} />
             {/* Additional owner routes can go here */}
           </Route>
 
@@ -237,8 +243,8 @@ function App() {
           <Route path="/control/login" element={<AdminLogin />} />
 
         </Routes>
+        <ChatbotWidget />
       </Router>
-      <ChatbotWidget />
     </>
   );
 }

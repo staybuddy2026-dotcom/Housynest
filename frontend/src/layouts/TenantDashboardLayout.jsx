@@ -47,7 +47,7 @@ const TenantDashboardLayout = () => {
 
         {/* Scrollable Main Area OR Fixed Area for Messages */}
         {isMessagesRoute ? (
-          <main className="flex-1 flex flex-col overflow-hidden p-0 sm:p-6 lg:p-8">
+          <main className="flex-1 flex flex-col overflow-hidden p-4">
             <Outlet />
           </main>
         ) : (

@@ -88,13 +88,13 @@ const TenantSavedProperties = () => {
 
   const filters = [
     { name: 'All Properties', count: savedPropertiesList.length },
-    { name: 'PG', count: savedPropertiesList.filter(p => p.type === 'PG').length },
-    { name: 'Tenant', count: savedPropertiesList.filter(p => p.type === 'Home').length },
+    { name: 'PG', count: savedPropertiesList.filter(p => p.type?.toLowerCase() === 'pg').length },
+    { name: 'Tenant', count: savedPropertiesList.filter(p => p.type?.toLowerCase() !== 'pg').length },
   ];
 
   const displayedProperties = activeFilter === 'All Properties'
     ? savedPropertiesList
-    : savedPropertiesList.filter(p => p.type === (activeFilter === 'Tenant' ? 'Home' : activeFilter));
+    : savedPropertiesList.filter(p => activeFilter === 'PG' ? p.type?.toLowerCase() === 'pg' : p.type?.toLowerCase() !== 'pg');
 
   return (
     <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10">
@@ -172,7 +172,7 @@ const TenantSavedProperties = () => {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 xl:gap-8 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4! gap-6 xl:gap-8 mb-8">
         {loading ? (
           <div className="col-span-full py-16 text-center text-slate-500 font-medium">
             <Icon icon="lucide:loader-2" className="w-8 h-8 animate-spin mx-auto text-brand-teal mb-4" />

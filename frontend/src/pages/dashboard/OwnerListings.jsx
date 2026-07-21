@@ -176,7 +176,7 @@ const OwnerListings = () => {
 
       {/* Property Display */}
       {filteredListings.length > 0 ? (
-        <div className={viewType === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col gap-4"}>
+        <div className={viewType === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4! gap-4" : "flex flex-col gap-4"}>
           {filteredListings.map((rawListing) => {
             const title = rawListing.pgName || rawListing.propertyCategory || 'Property';
             const type = rawListing.propertyType === 'PG' ? 'PG / Co-living' : 'Flat / Apartment';
@@ -278,101 +278,83 @@ const OwnerListings = () => {
             }
 
             // ==========================================
-            // HIGHLY OPTIMIZED LIST VIEW LAYOUT
+            // COMPACT LIST VIEW LAYOUT
             // ==========================================
             return (
               <div
                 key={rawListing._id}
-                className="bg-white rounded-xl border border-slate-100 overflow-hidden group hover:border-brand-teal/30 hover:shadow-[0_12px_40px_rgba(10,168,125,0.08)] transition-all duration-300 flex flex-col sm:flex-row"
+                className="bg-white rounded-xl border border-slate-100 p-3 group hover:border-brand-teal/30 hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row sm:items-center gap-4"
               >
-                {/* Left: Image Container */}
-                <div className="relative h-35 sm:h-auto sm:w-55 shrink-0 overflow-hidden">
-                  <img
-                    src={image}
-                    alt={title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute top-3 left-3">
-                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md ${status === 'Active' || status === 'Approved' ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/90 text-white'
-                      }`}>
-                      {status}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Middle: Core Details */}
-                <div className="flex-1 p-4 sm:p-5 flex flex-col justify-center">
-                  <span className="text-[10px] font-bold text-brand-teal uppercase tracking-wider mb-1.5">{type}</span>
-
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                    {/* Title & Location */}
-                    <div>
-                      <h3 className="text-lg font-bold text-[#062F26] mb-1.5 group-hover:text-brand-teal transition-colors">
-                        {title}
-                      </h3>
-                      <div className="flex items-center gap-1.5 text-slate-500">
-                        <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0" />
-                        <p className="text-sm font-medium">{location}</p>
-                      </div>
+                {/* Thumbnail & Core Info */}
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="relative w-24 h-24 sm:w-28 sm:h-20 shrink-0 rounded-lg overflow-hidden border border-slate-100 shadow-sm">
+                    <img
+                      src={image}
+                      alt={title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-1 left-1">
+                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md ${status === 'Active' || status === 'Approved' ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/90 text-white'
+                        }`}>
+                        {status}
+                      </span>
                     </div>
+                  </div>
 
-                    {/* Rent & Date (Row Aligned) */}
-                    <div className="flex items-center sm:items-start justify-between sm:justify-end gap-6 sm:gap-8">
-                      <div className="text-left sm:text-right">
-                        <p className="text-xs font-semibold text-slate-400 mb-0.5">Rent / Month</p>
-                        <p className="text-base font-bold text-[#062F26]">{price}</p>
-                      </div>
-                      <div className="text-left sm:text-right">
-                        <p className="text-xs font-semibold text-slate-400 mb-0.5">Added On</p>
-                        <p className="text-sm font-bold text-slate-700 mt-0.5">{addedOn}</p>
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[9px] font-bold text-brand-teal uppercase tracking-wider mb-0.5 block">{type}</span>
+                    <h3 className="text-[15px] font-bold text-[#062F26] mb-1 truncate group-hover:text-brand-teal transition-colors">
+                      {title}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-slate-500">
+                      <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0" />
+                      <p className="text-xs font-medium truncate">{location}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Right: Metrics & Actions Sidebar */}
-                <div className="sm:w-55 bg-slate-50 border-t sm:border-t-0 sm:border-l border-slate-100 p-4 sm:p-5 flex flex-col justify-center gap-3">
+                {/* Info Columns */}
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 px-2 sm:px-0">
+                  {/* Price */}
+                  <div className="w-24 shrink-0">
+                    <p className="text-[10px] font-semibold text-slate-400 mb-0.5">Rent / Month</p>
+                    <p className="text-sm font-bold text-[#062F26]">{price}</p>
+                  </div>
+                  
+                  {/* Date */}
+                  <div className="w-24 shrink-0">
+                    <p className="text-[10px] font-semibold text-slate-400 mb-0.5">Added On</p>
+                    <p className="text-xs font-bold text-slate-700">{addedOn}</p>
+                  </div>
+
                   {/* Metrics */}
-                  <div className="flex items-center bg-white rounded-xl border border-slate-200 py-2 shadow-sm">
-                    <div className="flex-1 flex flex-col items-center justify-center border-r border-slate-100">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <Icon icon="lucide:eye" className="w-3.5 h-3.5 text-blue-500" />
-                        <span className="text-sm font-bold text-slate-700">{views}</span>
-                      </div>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Views</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50/50 border border-blue-100 rounded-lg" title="Views">
+                      <Icon icon="lucide:eye" className="w-3.5 h-3.5 text-blue-500" />
+                      <span className="text-xs font-bold text-blue-700">{views}</span>
                     </div>
-                    <div className="flex-1 flex flex-col items-center justify-center border-r border-slate-100">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <Icon icon="lucide:message-square" className="w-3.5 h-3.5 text-orange-500" />
-                        <span className="text-sm font-bold text-slate-700">{inquiries}</span>
-                      </div>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Inquiries</span>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-orange-50/50 border border-orange-100 rounded-lg" title="Inquiries">
+                      <Icon icon="lucide:message-square" className="w-3.5 h-3.5 text-orange-500" />
+                      <span className="text-xs font-bold text-orange-700">{inquiries}</span>
                     </div>
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <Icon icon="lucide:calendar-check" className="w-3.5 h-3.5 text-brand-teal" />
-                        <span className="text-sm font-bold text-slate-700">{bookings}</span>
-                      </div>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bookings</span>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg" title="Bookings">
+                      <Icon icon="lucide:calendar-check" className="w-3.5 h-3.5 text-brand-teal" />
+                      <span className="text-xs font-bold text-brand-teal">{bookings}</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    <Link to={`/properties/${rawListing._id}`} className="flex-1 bg-white border border-slate-200 hover:border-brand-teal hover:bg-brand-teal/5 text-slate-600 hover:text-brand-teal py-2 rounded-xl flex items-center justify-center transition-all shadow-sm">
-                      <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
-                    </Link>
-                    <button
-                      onClick={() => setEditingPropertyId(rawListing._id)}
-                      className="flex-1 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-slate-600 hover:text-blue-600 py-2 rounded-xl flex items-center justify-center transition-all shadow-sm"
-                    >
-                      <Icon icon="lucide:pencil" className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDelete(rawListing._id)} className="flex-1 bg-white border border-slate-200 hover:border-red-500 hover:bg-red-50 text-slate-600 hover:text-red-600 py-2 rounded-xl flex items-center justify-center transition-all shadow-sm">
-                      <Icon icon="lucide:trash-2" className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                {/* Actions */}
+                <div className="flex items-center gap-1.5 sm:border-l sm:border-slate-100 sm:pl-4 shrink-0 justify-end mt-2 sm:mt-0">
+                  <Link to={`/properties/${rawListing._id}`} className="w-8 h-8 rounded-lg text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-all" title="View">
+                    <Icon icon="lucide:eye" className="w-4 h-4" />
+                  </Link>
+                  <button onClick={() => setEditingPropertyId(rawListing._id)} className="w-8 h-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 flex items-center justify-center transition-all" title="Edit">
+                    <Icon icon="lucide:pencil" className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(rawListing._id)} className="w-8 h-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all" title="Delete">
+                    <Icon icon="lucide:trash-2" className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             );

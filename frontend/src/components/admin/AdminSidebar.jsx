@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
@@ -13,6 +13,17 @@ const AdminSidebar = ({ isMobile }) => {
   const [pendingReportCount, setPendingReportCount] = useState(0);
   const [unreadReportCount, setUnreadReportCount] = useState(0);
   const [user, setUser] = useState(null);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -36,11 +47,11 @@ const AdminSidebar = ({ isMobile }) => {
       setUnreadReportCount(0);
     } else {
       if (pendingReportCount > lastViewed) {
-         
+
         setUnreadReportCount(pendingReportCount - lastViewed);
       } else {
         localStorage.setItem('lastViewedReportCount', pendingReportCount.toString());
-         
+
         setUnreadReportCount(0);
       }
     }
@@ -96,7 +107,7 @@ const AdminSidebar = ({ isMobile }) => {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPendingCount();
-     
+
     fetchPendingReportCount();
 
     // Establish WebSocket Connection
@@ -237,7 +248,7 @@ const AdminSidebar = ({ isMobile }) => {
         </Link>
       </div>
 
-      <div className="flex-1 flex flex-col justify-between pr-0 pb-6 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 flex flex-col justify-between pr-0 overflow-y-auto custom-scrollbar">
         {/* Navigation */}
         <div className="space-y-1 mt-2">
           {navItems.map((item) => {
@@ -274,45 +285,50 @@ const AdminSidebar = ({ isMobile }) => {
         </div>
 
         {/* Bottom Profile Area */}
-        <div className="mx-4 mt-auto relative pt-2">
-
-          {/* Collapsible Options */}
+        <div className="p-4 shrink-0 mt-auto border-t border-slate-100 relative" ref={profileRef}>
+          {/* Floating Options Menu */}
           <div
-            className={`flex flex-col gap-1 transition-all duration-300 ease-in-out overflow-hidden ${isProfileOpen ? 'max-h-12.5 opacity-100 mb-2' : 'max-h-0 opacity-0 mb-0'
+            className={`absolute bottom-[80px] left-4 right-4 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 p-2 origin-bottom transition-all duration-300 ${isProfileOpen ? 'opacity-100 translate-y-0 visible scale-100' : 'opacity-0 translate-y-4 invisible scale-95'
               }`}
           >
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors w-full text-left"
-            >
-              <Icon icon="lucide:power" className="w-4.5 h-4.5 text-red-400" />
-              Logout
+
+
+            <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left group">
+              <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                <Icon icon="lucide:log-out" className="w-4 h-4 text-red-500" />
+              </div>
+              Sign Out
             </button>
           </div>
 
-          {/* Profile Widget Trigger */}
-          <div
+          {/* Profile Trigger */}
+          <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="p-3 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-between group shadow-sm bg-white"
+            className={`w-full flex items-center justify-between p-2 rounded-xl transition-all duration-300 border ${isProfileOpen
+              ? 'bg-slate-50 border-slate-200 shadow-inner'
+              : 'bg-white border-transparent hover:border-slate-100 hover:bg-slate-50 hover:shadow-sm'
+              }`}
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#062F26] text-white flex items-center justify-center font-bold text-lg shadow-sm overflow-hidden">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-[#062F26] text-white flex shrink-0 items-center justify-center font-bold text-[15px] overflow-hidden shadow-sm">
                 {user?.profilePic ? (
                   <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'A'
                 )}
               </div>
-              <div>
-                <h4 className="text-sm font-bold text-slate-800 leading-tight">{user?.fullName || 'Admin User'}</h4>
-                <p className="text-xs text-slate-500 font-medium">{user?.email || 'admin@housynest.com'}</p>
+              <div className="flex flex-col items-start truncate">
+                <span className="text-sm font-bold text-slate-800 leading-tight truncate max-w-[120px]">{user?.fullName || 'Admin User'}</span>
+                <span className="text-[11px] font-medium text-slate-500 truncate max-w-[120px]">{user?.email || 'admin@housynest.com'}</span>
               </div>
             </div>
-            <Icon
-              icon="lucide:chevron-up"
-              className={`w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-all duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
-            />
-          </div>
+            <div className={`w-7 h-7 rounded-full flex shrink-0 items-center justify-center transition-colors ${isProfileOpen ? 'bg-slate-200' : 'bg-slate-100'}`}>
+              <Icon
+                icon="lucide:chevron-up"
+                className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
+              />
+            </div>
+          </button>
         </div>
       </div>
     </aside>

@@ -1,11 +1,23 @@
-import { useState, useEffect } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import logo from '../../assets/logo.png';
 import { io } from 'socket.io-client';
 
 const TenantSidebar = ({ onClose, isMobile }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
   });
@@ -79,7 +91,17 @@ const TenantSidebar = ({ onClose, isMobile }) => {
     return () => socket.disconnect();
   }, [user]);
 
-
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout error', err);
+    }
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   const navItems = [
     { name: 'Saved Properties', icon: 'lucide:heart', path: '/tenant/dashboard' },
@@ -189,48 +211,59 @@ const TenantSidebar = ({ onClose, isMobile }) => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-4 shrink-0 flex flex-col gap-4 mt-auto">
-        {/* Profile Card & Options */}
-        <div className="relative pt-2 border-t border-slate-100 flex flex-col justify-end">
-          {/* Collapsible Options (Opening Upwards) */}
-          <div
-            className={`flex flex-col gap-1 transition-all duration-300 ease-in-out overflow-hidden ${isProfileOpen ? 'max-h-25 opacity-100 mb-2' : 'max-h-0 opacity-0 mb-0'
-              }`}
-          >
-            <Link to="/tenant/profile" onClick={onClose} className="flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-[#F8F9FA] hover:text-[#062F26] transition-colors w-full text-left">
-              <Icon icon="lucide:user" className="w-4.5 h-4.5 text-slate-400" />
-              Profile
-            </Link>
-            <button className="flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors w-full text-left">
-              <Icon icon="lucide:power" className="w-4.5 h-4.5 text-red-400" />
-              Logout
-            </button>
-          </div>
-
-          {/* Profile Trigger */}
-          <div
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="bg-transparent rounded-xl p-2 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#062F26] text-white flex items-center justify-center font-bold text-[15px] overflow-hidden">
-                {user?.profilePic ? (
-                  <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'T'
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-[#062F26] leading-tight truncate w-24 sm:w-auto">{user?.fullName || 'Tenant Name'}</span>
-                <span className="text-xs font-medium text-slate-500 truncate w-32 sm:w-auto">{user?.email || 'tenant@email.com'}</span>
-              </div>
+      <div className="p-4 shrink-0 mt-auto border-t border-slate-100 relative" ref={profileRef}>
+        {/* Floating Options Menu */}
+        <div
+          className={`absolute bottom-[80px] left-4 right-4 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 p-2 origin-bottom transition-all duration-300 ${
+            isProfileOpen ? 'opacity-100 translate-y-0 visible scale-100' : 'opacity-0 translate-y-4 invisible scale-95'
+          }`}
+        >
+          <Link to="/tenant/profile" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-[#F8F9FA] hover:text-[#062F26] transition-colors w-full group">
+            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+               <Icon icon="lucide:user" className="w-4 h-4 text-slate-500 group-hover:text-[#062F26]" />
             </div>
+            My Profile
+          </Link>
+          
+          <div className="h-px bg-slate-100 my-1 mx-2"></div>
+          
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left group">
+            <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+               <Icon icon="lucide:log-out" className="w-4 h-4 text-red-500" />
+            </div>
+            Sign Out
+          </button>
+        </div>
+
+        {/* Profile Trigger */}
+        <button
+          onClick={() => setIsProfileOpen(!isProfileOpen)}
+          className={`w-full flex items-center justify-between p-2 rounded-2xl transition-all duration-300 border ${
+            isProfileOpen 
+              ? 'bg-slate-50 border-slate-200 shadow-inner' 
+              : 'bg-white border-transparent hover:border-slate-100 hover:bg-slate-50 hover:shadow-sm'
+          }`}
+        >
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-[#062F26] text-white flex shrink-0 items-center justify-center font-bold text-[15px] overflow-hidden shadow-sm">
+              {user?.profilePic ? (
+                <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'T'
+              )}
+            </div>
+            <div className="flex flex-col items-start truncate">
+              <span className="text-sm font-bold text-slate-800 leading-tight truncate max-w-[120px]">{user?.fullName || 'Tenant Name'}</span>
+              <span className="text-[11px] font-medium text-slate-500 truncate max-w-[120px]">{user?.email || 'tenant@email.com'}</span>
+            </div>
+          </div>
+          <div className={`w-7 h-7 rounded-full flex shrink-0 items-center justify-center transition-colors ${isProfileOpen ? 'bg-slate-200' : 'bg-slate-100'}`}>
             <Icon
               icon="lucide:chevron-up"
-              className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
             />
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );
