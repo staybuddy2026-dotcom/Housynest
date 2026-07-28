@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
 
@@ -10,6 +10,26 @@ const ScheduleVisitModal = ({ isOpen, onClose, property }) => {
     time: '',
     message: ''
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setFormData(prev => ({
+            ...prev,
+            name: user.name || user.fullName || '',
+            phone: user.phone || user.mobile || user.phoneNo || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to parse user from localStorage', error);
+      }
+    } else {
+      // Optional: reset form when modal closes, but handle submit already does this
+    }
+  }, [isOpen]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -187,6 +207,7 @@ const ScheduleVisitModal = ({ isOpen, onClose, property }) => {
               onChange={handleChange}
               placeholder="Any specific requirements or questions?"
               rows="3"
+              data-lenis-prevent
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-all resize-none"
             ></textarea>
           </div>

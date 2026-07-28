@@ -4,6 +4,8 @@ import InquiriesChartWidget from '../../components/dashboard/InquiriesChartWidge
 import RecentMessagesWidget from '../../components/dashboard/RecentMessagesWidget';
 import QuickActionsWidget from '../../components/dashboard/QuickActionsWidget';
 import RecentInquiriesTable from '../../components/dashboard/RecentInquiriesTable';
+import PerformanceChartWidget from '../../components/dashboard/PerformanceChartWidget';
+import BookingsSummaryWidget from '../../components/dashboard/BookingsSummaryWidget';
 import { Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 
@@ -42,12 +44,14 @@ const OwnerDashboard = () => {
 
         {/* Left Column (Listings & Table) */}
         <div className="lg:col-span-2 flex flex-col gap-4">
+          <PerformanceChartWidget />
           <MyListingsWidget />
           <RecentInquiriesTable />
         </div>
 
         {/* Right Column (Widgets) */}
         <div className="flex flex-col gap-4">
+          <BookingsSummaryWidget />
           <InquiriesChartWidget />
           <RecentMessagesWidget />
           <QuickActionsWidget />

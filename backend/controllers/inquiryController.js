@@ -53,6 +53,7 @@ export const createInquiry = async (req, res) => {
     // Socket.io integration
     const io = getIo();
     io.to(`user_${ownerId}`).emit('newInquiry', inquiry);
+    io.to(`user_${req.user._id}`).emit('inquirySent', inquiry);
 
     res.status(201).json(inquiry);
   } catch (error) {

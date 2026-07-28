@@ -181,7 +181,28 @@ const OwnerListings = () => {
             const title = rawListing.pgName || rawListing.propertyCategory || 'Property';
             const type = rawListing.propertyType === 'PG' ? 'PG / Co-living' : 'Flat / Apartment';
             const location = rawListing.locality ? `${rawListing.locality}, ${rawListing.city || ''}` : (rawListing.address || 'Unknown Location');
-            const price = rawListing.monthlyRent ? `₹${rawListing.monthlyRent}` : (rawListing.rooms && rawListing.rooms.length > 0 ? `₹${rawListing.rooms[0].rentPerBed}` : 'N/A');
+            let pgPrices = [];
+            if (rawListing.propertyType === 'PG' && rawListing.pgPricing) {
+              const pricingMap = {};
+              Object.keys(rawListing.pgPricing).forEach(key => {
+                const priceObj = rawListing.pgPricing[key];
+                if (priceObj && priceObj.rentPerBed && Number(priceObj.rentPerBed) > 0) {
+                  const type = key.split('_')[0]; // Single, Double, etc.
+                  const currentRent = Number(priceObj.rentPerBed);
+                  if (!pricingMap[type] || currentRent < pricingMap[type]) {
+                    pricingMap[type] = currentRent;
+                  }
+                }
+              });
+              pgPrices = Object.keys(pricingMap).map(type => ({
+                sharingType: type,
+                rentPerBed: pricingMap[type]
+              }));
+            }
+            
+            const price = rawListing.propertyType === 'PG' 
+              ? (pgPrices.length > 0 ? `₹${Math.min(...pgPrices.map(p => p.rentPerBed))} / month` : 'N/A')
+              : (rawListing.monthlyRent ? `₹${rawListing.monthlyRent}` : 'N/A');
             const image = (rawListing.images && rawListing.images.length > 0) ? rawListing.images[0].url : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800';
             const addedOn = rawListing.createdAt ? new Date(rawListing.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Unknown';
             const views = rawListing.views || 0;
@@ -228,8 +249,24 @@ const OwnerListings = () => {
 
                     <div className="flex items-center justify-between mt-auto mb-3">
                       <div>
-                        <p className="text-[10px] font-semibold text-slate-400 mb-0.5">Rent / Month</p>
-                        <p className="text-sm font-bold text-[#062F26]">{price}</p>
+                        <p className="text-[10px] font-semibold text-slate-400 mb-0.5">{rawListing.propertyType === 'PG' ? 'Rent per bed' : 'Rent / Month'}</p>
+                        {rawListing.propertyType === 'PG' && pgPrices.length > 0 ? (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {pgPrices.slice(0, 2).map((pgPrice, idx) => (
+                              <span key={idx} className="flex items-center gap-1 bg-[#EAF5F2] text-[#062F26] px-1.5 py-0.5 rounded text-[10px] font-bold border border-brand-teal/20">
+                                 <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
+                                 ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
+                              </span>
+                            ))}
+                            {pgPrices.length > 2 && (
+                              <span className="flex items-center bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] font-bold border border-slate-200">
+                                +{pgPrices.length - 2} more
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm font-bold text-[#062F26]">{price}</span>
+                        )}
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] font-semibold text-slate-400 mb-0.5">Added On</p>
@@ -317,8 +354,24 @@ const OwnerListings = () => {
                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 px-2 sm:px-0">
                   {/* Price */}
                   <div className="w-24 shrink-0">
-                    <p className="text-[10px] font-semibold text-slate-400 mb-0.5">Rent / Month</p>
-                    <p className="text-sm font-bold text-[#062F26]">{price}</p>
+                    <p className="text-[10px] font-semibold text-slate-400 mb-0.5">{rawListing.propertyType === 'PG' ? 'Rent per bed' : 'Rent / Month'}</p>
+                    {rawListing.propertyType === 'PG' && pgPrices.length > 0 ? (
+                      <div className="flex flex-col gap-1 mt-1">
+                        {pgPrices.slice(0, 2).map((pgPrice, idx) => (
+                          <span key={idx} className="flex items-center gap-1 bg-[#EAF5F2] text-[#062F26] px-1.5 py-0.5 rounded text-[10px] font-bold border border-brand-teal/20 w-fit">
+                             <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
+                             ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
+                          </span>
+                        ))}
+                        {pgPrices.length > 2 && (
+                          <span className="flex items-center bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] font-bold border border-slate-200 w-fit">
+                            +{pgPrices.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm font-bold text-[#062F26]">{price}</p>
+                    )}
                   </div>
                   
                   {/* Date */}

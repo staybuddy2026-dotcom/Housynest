@@ -49,7 +49,7 @@ const VisitCard = ({ visit }) => {
 
   const styles = getStatusStyles(visit.status);
   const propertyImage = visit.property?.images?.[0]?.url || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80';
-  const propertyName = visit.property?.pgName || (visit.property?.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property?.propertyCategory) || 'Unknown Property';
+  const propertyName = !visit.property ? 'Deleted Property' : (visit.property.pgName || (visit.property.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property.propertyCategory) || 'Unknown Property');
   const location = visit.property?.locality ? `${visit.property.locality}, ${visit.property.city}` : (visit.property?.city || 'Location unavailable');
 
   return (

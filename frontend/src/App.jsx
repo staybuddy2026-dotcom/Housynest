@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet } from 'react-router-dom';
 import { ReactLenis } from 'lenis/react';
-import { io } from 'socket.io-client';
+import socket, { joinUserRoom } from './lib/socket';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -26,6 +26,8 @@ import OwnerProfile from './pages/dashboard/OwnerProfile';
 import OwnerReports from './pages/dashboard/OwnerReports';
 import OwnerPayments from './pages/dashboard/OwnerPayments';
 import OwnerBookings from './pages/dashboard/OwnerBookings';
+import OwnerBookingRequests from './pages/dashboard/OwnerBookingRequests';
+import OwnerTenants from './pages/dashboard/OwnerTenants';
 import TenantDashboardLayout from './layouts/TenantDashboardLayout';
 import TenantSavedProperties from './pages/dashboard/TenantSavedProperties';
 import TenantRequests from './pages/dashboard/TenantRequests';
@@ -56,15 +58,21 @@ import { Toaster, toast } from 'react-hot-toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ChatbotWidget from './components/chatbot/ChatbotWidget';
 
+const RootApp = () => (
+  <>
+    <Outlet />
+    <ChatbotWidget />
+  </>
+);
+
 function App() {
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (!userStr) return;
 
     const user = JSON.parse(userStr);
-    const socket = io('http://localhost:5000');
 
-    socket.emit('joinUserRoom', user.id || user._id);
+    joinUserRoom(user.id || user._id);
 
     socket.on('newNotification', (data) => {
       toast.success(`New Message: ${data.message.text}`, {
@@ -72,6 +80,13 @@ function App() {
       });
 
       // 2. Dispatch custom event for unread count logic
+      window.dispatchEvent(new CustomEvent('globalNewNotification', { detail: data }));
+    });
+
+    socket.on('newInquiry', (data) => {
+      toast.success(`New Inquiry received!`, {
+        duration: 3000,
+      });
       window.dispatchEvent(new CustomEvent('globalNewNotification', { detail: data }));
     });
 
@@ -87,6 +102,16 @@ function App() {
         duration: 3000,
       });
       window.dispatchEvent(new CustomEvent('globalLawyerRequestUpdated', { detail: data }));
+    });
+
+    socket.on('visit_update', (data) => {
+      const currentUserId = user.id || user._id;
+      if (data.ownerId === currentUserId || data.tenantId === currentUserId) {
+        toast.success(`New property visit request update!`, {
+          duration: 3000,
+        });
+        window.dispatchEvent(new CustomEvent('globalNewNotification', { detail: data }));
+      }
     });
 
     socket.on('newOwnerContract', (contract) => {
@@ -118,7 +143,14 @@ function App() {
     });
 
     return () => {
-      socket.disconnect();
+      socket.off('newNotification');
+      socket.off('newInquiry');
+      socket.off('newLawyerRequest');
+      socket.off('lawyerRequestUpdated');
+      socket.off('newOwnerContract');
+      socket.off('newTenantContract');
+      socket.off('ownerSignedContract');
+      socket.off('tenantSignedContract');
     };
   }, []);
 
@@ -146,8 +178,14 @@ function App() {
           },
         }}
       />
-      <Router>
-        <Routes>
+      <RouterProvider router={router} />
+    </>
+  );
+}
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootApp />}>
           {/* Auth Routes */}
           <Route path="/signup" element={<Auth />} />
           <Route path="/login" element={<Auth />} />
@@ -185,6 +223,8 @@ function App() {
             <Route path="lawyer-requests" element={<OwnerLawyerRequests />} />
             <Route path="contracts" element={<OwnerContracts />} />
             <Route path="bookings" element={<OwnerBookings />} />
+            <Route path="booking-requests" element={<OwnerBookingRequests />} />
+            <Route path="tenants" element={<OwnerTenants />} />
             <Route path="profile" element={<OwnerProfile />} />
             <Route path="reports" element={<OwnerReports />} />
             <Route path="payments" element={<OwnerPayments />} />
@@ -242,11 +282,8 @@ function App() {
           {/* Admin Login Route */}
           <Route path="/control/login" element={<AdminLogin />} />
 
-        </Routes>
-        <ChatbotWidget />
-      </Router>
-    </>
-  );
-}
+    </Route>
+  )
+);
 
 export default App;

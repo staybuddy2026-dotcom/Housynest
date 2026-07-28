@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import socket from '../../lib/socket';
 
 const TABS = ['All Inquiries', 'New', 'Contacted', 'In Discussion', 'Closed'];
 
@@ -50,7 +51,7 @@ const OwnerInquiries = () => {
               color: 'bg-teal-100 text-teal-700'
             },
             property: {
-              title: inq.propertyId?.pgName || (inq.propertyId?.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId?.propertyCategory) || 'Unknown Property',
+              title: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
               location: `${inq.propertyId?.locality || ''}, ${inq.propertyId?.city || ''}`.replace(/^, | , $/g, ''),
               rent: inq.propertyId?.monthlyRent ? `₹${inq.propertyId.monthlyRent}` : inq.propertyId?.rooms?.[0]?.rentPerBed ? `₹${inq.propertyId.rooms[0].rentPerBed}` : 'N/A',
               image: inq.propertyId?.images?.[0]?.url || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=100&auto=format&fit=crop&q=60'
@@ -79,6 +80,16 @@ const OwnerInquiries = () => {
     };
 
     fetchInquiries();
+
+    const handleNewInquiry = (newInq) => {
+      fetchInquiries();
+    };
+
+    socket.on('newInquiry', handleNewInquiry);
+
+    return () => {
+      socket.off('newInquiry', handleNewInquiry);
+    };
   }, []);
 
   const handleTabChange = (tab) => {

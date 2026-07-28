@@ -281,6 +281,7 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
                   placeholder="Hi,&#10;&#10;I am interested in your PG.&#10;Could you please let me know if a single sharing room is available from 15th July?&#10;&#10;Thank you."
                   rows="4"
                   required
+                  data-lenis-prevent
                   className="w-full bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-all resize-none"
                 ></textarea>
               </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import logo from '../../assets/logo.png';
-import { io } from 'socket.io-client';
+import socket, { joinUserRoom, disconnectSocket } from '../../lib/socket';
 
 const Sidebar = ({ onClose, isMobile }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -108,18 +108,12 @@ const Sidebar = ({ onClose, isMobile }) => {
 
   useEffect(() => {
     if (!user) return;
-    const socket = io('http://localhost:5000');
-    socket.emit('joinUserRoom', user.id || user._id);
+    
+    joinUserRoom(user.id || user._id);
 
-    socket.on('newNotification', () => {
-      setCounts(prev => ({ ...prev, unreadMessages: prev.unreadMessages + 1 }));
-    });
-
-    socket.on('newInquiry', () => {
-      setCounts(prev => ({ ...prev, newRequests: prev.newRequests + 1 }));
-    });
-
-    socket.on('visit_update', () => {
+    const onNewNotification = () => setCounts(prev => ({ ...prev, unreadMessages: prev.unreadMessages + 1 }));
+    const onNewInquiry = () => setCounts(prev => ({ ...prev, newRequests: prev.newRequests + 1 }));
+    const onVisitUpdate = () => {
       // Re-fetch counts when visit updates (new visit or status change)
       const fetchCounts = async () => {
         try {
@@ -135,9 +129,17 @@ const Sidebar = ({ onClose, isMobile }) => {
         } catch { /* ignore */ }
       };
       fetchCounts();
-    });
+    };
 
-    return () => socket.disconnect();
+    socket.on('newNotification', onNewNotification);
+    socket.on('newInquiry', onNewInquiry);
+    socket.on('visit_update', onVisitUpdate);
+
+    return () => {
+      socket.off('newNotification', onNewNotification);
+      socket.off('newInquiry', onNewInquiry);
+      socket.off('visit_update', onVisitUpdate);
+    };
   }, [user]);
 
   const navigate = useNavigate();
@@ -155,6 +157,7 @@ const Sidebar = ({ onClose, isMobile }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      disconnectSocket();
       localStorage.removeItem('accessToken');
       localStorage.removeItem('user');
       navigate('/login');
@@ -166,11 +169,13 @@ const Sidebar = ({ onClose, isMobile }) => {
     { name: 'My Listings', icon: 'lucide:building-2', path: '/owner/listings' },
     { name: 'Visits', icon: 'lucide:calendar-days', path: '/owner/visits', badge: counts.newVisits > 0 ? counts.newVisits : null },
     { name: 'Inquiries', icon: 'lucide:message-circle-question', path: '/owner/inquiries', badge: counts.newRequests > 0 ? counts.newRequests : null },
+    { name: 'Booking Requests', icon: 'lucide:calendar-search', path: '/owner/booking-requests' },
+    { name: 'Bookings', icon: 'lucide:book-open-check', path: '/owner/bookings' },
+    { name: 'Tenants', icon: 'lucide:users-2', path: '/owner/tenants' },
+    { name: 'Rent Collection', icon: 'lucide:wallet', path: '/owner/payments' },
     { name: 'Messages', icon: 'lucide:message-square', path: '/owner/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
     { name: 'Lawyer Requests', icon: 'lucide:users', path: '/owner/lawyer-requests', badge: counts.newLawyerRequests > 0 ? counts.newLawyerRequests : null },
     { name: 'Contracts', icon: 'lucide:file-text', path: '/owner/contracts', badge: counts.newOwnerContracts > 0 ? counts.newOwnerContracts : null },
-    { name: 'Bookings', icon: 'lucide:book-open-check', path: '/owner/bookings' },
-    { name: 'Payments', icon: 'lucide:wallet', path: '/owner/payments' },
     { name: 'Reports', icon: 'lucide:bar-chart-3', path: '/owner/reports' },
   ];
 
@@ -197,7 +202,9 @@ const Sidebar = ({ onClose, isMobile }) => {
                   {item.name.split(' ')[0]}
                 </span>
                 {item.badge && (
-                  <span className="absolute top-2 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                  <span className="absolute top-1 right-0.5 min-w-[14px] h-[14px] flex items-center justify-center px-0.5 bg-[#062F26] rounded-full border border-white text-[8px] font-bold text-white shadow-sm">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
                 )}
               </>
             )}
@@ -240,9 +247,9 @@ const Sidebar = ({ onClose, isMobile }) => {
                   <span className="text-sm font-bold tracking-wide">{item.name}</span>
                 </div>
                 {item.badge && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600'
+                  <span className={`text-[10px] min-w-[20px] h-[20px] flex items-center justify-center px-1.5 rounded-full font-bold shadow-sm ${isActive ? 'bg-white text-[#062F26]' : 'bg-[#062F26] text-white'
                     }`}>
-                    {item.badge}
+                    {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </>

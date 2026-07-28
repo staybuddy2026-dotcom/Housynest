@@ -164,7 +164,11 @@ const PropertySidebarCard = ({
           </div>
           <div className="border border-slate-100/60 bg-slate-50/50 rounded-lg p-2.5">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Available From</p>
-            <p className="text-sm font-bold text-[#062F26]">15 July 2026</p>
+            <p className="text-sm font-bold text-[#062F26]">
+              {property.availableDate 
+                ? new Date(property.availableDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
+                : (propertyType === 'PG' ? 'Immediately' : 'Contact Owner')}
+            </p>
           </div>
         </div>
 

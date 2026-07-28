@@ -1,19 +1,19 @@
 import { z } from 'zod';
 
-const numericString = z.string().regex(/^\d+$/, "Must be a valid positive number");
+const numericString = z.coerce.string().regex(/^\d*$/, "Must be a valid positive number");
 
 const pgSchema = z.object({
   propertyType: z.literal('PG'),
   postingAs: z.enum(['Owner', 'Property Manager', 'Agent']),
   city: z.string().min(1, 'City is required'),
   pgPresentIn: z.string().min(1, 'Required'),
-  operationalSince: z.string().regex(/^\d{4}$/, "Must be a valid 4-digit year").min(1, 'Required'),
+  operationalSince: z.coerce.string().regex(/^\d{4}$/, "Must be a valid 4-digit year").min(1, 'Required'),
   pgName: z.string().min(3, 'Name must be at least 3 characters'),
   
   address: z.string().min(5, "Address must be at least 5 characters"),
   locality: z.string().min(2, "Locality is required"),
   state: z.string().min(2, "State is required"),
-  pincode: z.string().regex(/^\d{6}$/, "Pincode must be exactly 6 digits"),
+  pincode: z.coerce.string().regex(/^\d{6}$/, "Pincode must be exactly 6 digits"),
   landmark: z.string().min(2, "Landmark is required"),
   mapLink: z.string().regex(/^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com)\/.*$/, "Must be a valid Google Maps link").optional().or(z.literal('')),
   nearbyPlaces: z.array(
@@ -23,17 +23,40 @@ const pgSchema = z.object({
     })
   ).optional(),
 
-  rooms: z.array(
+  totalFloorsCount: numericString.optional(),
+  floors: z.array(
     z.object({
-      sharingType: z.string(),
-      totalBeds: numericString.min(1, "Required"),
-      availableBeds: numericString.min(1, "Required"),
-      rentPerBed: numericString.min(1, "Required"),
-      depositPerBed: numericString.min(1, "Required"),
-      facilities: z.array(z.string()).optional(),
-      extraFacilities: z.array(z.string()).optional()
+      floorName: z.string().min(1, "Floor name is required"),
+      rooms: z.array(
+        z.object({
+          roomName: z.string().min(1, "Room name is required"),
+          sharingType: z.string(),
+          isAC: z.boolean().optional(),
+          facilities: z.array(z.string()).optional(),
+          extraFacilities: z.array(z.string()).optional(),
+          beds: z.array(
+            z.object({
+              bedName: z.string().min(1, "Bed name is required"),
+              status: z.enum(['Vacant', 'Occupied', 'Reserved'])
+            })
+          ).optional()
+        })
+      ).optional()
     })
-  ).min(1, "At least one room is required"),
+  ).optional(),
+
+  pgPricing: z.object({
+    Single_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Single_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Double_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Double_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Triple_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Triple_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Four_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Four_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Other_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Other_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+  }).optional(),
 
   services: z.array(z.string()).optional(),
   extraServices: z.array(z.string()).optional(),
@@ -73,7 +96,7 @@ const tenantSchema = z.object({
   address: z.string().min(5, "Address must be at least 5 characters"),
   locality: z.string().min(2, "Locality is required"),
   state: z.string().min(2, "State is required"),
-  pincode: z.string().regex(/^\d{6}$/, "Pincode must be exactly 6 digits"),
+  pincode: z.coerce.string().regex(/^\d{6}$/, "Pincode must be exactly 6 digits"),
   landmark: z.string().min(2, "Landmark is required"),
   mapLink: z.string().regex(/^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com)\/.*$/, "Must be a valid Google Maps link").optional().or(z.literal('')),
   nearbyPlaces: z.array(z.any()).optional(),

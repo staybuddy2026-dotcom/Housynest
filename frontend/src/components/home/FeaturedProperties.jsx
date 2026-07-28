@@ -36,7 +36,9 @@ const FeaturedProperties = () => {
             images: p.images && p.images.length > 0 ? p.images.map(img => img.url) : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800'],
             amenities: p.societyAmenities?.length > 0 ? p.societyAmenities : (p.commonAmenities?.length > 0 ? p.commonAmenities : []),
             isVerified: p.isVerified || false,
-            rooms: p.rooms || []
+            rooms: p.rooms || [],
+            pgPricing: p.pgPricing || {},
+            floors: p.floors || []
           }));
           setProperties(mappedProperties); // Top 8 properties mapped
         }

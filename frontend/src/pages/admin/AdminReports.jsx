@@ -50,7 +50,7 @@ const AdminReports = () => {
         const formattedData = rawData.map(report => ({
           id: report._id,
           image: report.propertyId?.images?.[0]?.url || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=150&h=150',
-          propertyName: report.propertyId?.pgName || report.propertyId?.propertyCategory || 'Unknown Property',
+          propertyName: !report.propertyId ? 'Deleted Property' : (report.propertyId.pgName || report.propertyId.propertyCategory || 'Unknown Property'),
           propertyType: report.propertyId?.propertyType || 'N/A',
           reportedByName: report.reporterId?.fullName || 'Unknown User',
           reportedByEmail: report.reporterId?.email || 'N/A',

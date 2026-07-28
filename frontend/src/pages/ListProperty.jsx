@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useBlocker } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { listPropertySchema } from '../lib/validations/listPropertySchema';
@@ -22,15 +22,33 @@ import TenantPropertyDetails from '../components/list-property/TenantPropertyDet
 import TenantPricingPreferences from '../components/list-property/TenantPricingPreferences';
 
 const ListProperty = () => {
-  const [activeStep, setActiveStep] = useState(1);
+  const savedStateStr = sessionStorage.getItem('listPropertyState');
+  const savedState = savedStateStr ? JSON.parse(savedStateStr) : null;
+
+  const [activeStep, setActiveStep] = useState(savedState?.activeStep || 1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      !isSubmitted && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  const confirmNavigation = () => {
+    sessionStorage.removeItem('listPropertyState');
+    sessionStorage.removeItem('pgRoomOptionsState');
+    if (blocker.proceed) blocker.proceed();
+  };
+
+  const cancelNavigation = () => {
+    if (blocker.reset) blocker.reset();
+  };
+
   const methods = useForm({
     resolver: zodResolver(listPropertySchema),
     mode: 'onChange',
-    defaultValues: {
+    defaultValues: savedState?.formValues || {
       propertyType: 'PG', // 'PG' or 'Tenant'
       propertyCategory: 'Villa',
       societyName: '',
@@ -46,17 +64,10 @@ const ListProperty = () => {
       landmark: '',
       mapLink: '',
       nearbyPlaces: [],
-      rooms: [
-        {
-          sharingType: 'Single',
-          totalBeds: '',
-          availableBeds: '',
-          rentPerBed: '',
-          depositPerBed: '',
-          facilities: [],
-          extraFacilities: []
-        }
-      ],
+      buildingName: '',
+      totalFloorsCount: '',
+      floors: [],
+      pgPricing: {},
       services: [],
       extraServices: [],
       foodProvided: false,
@@ -104,6 +115,24 @@ const ListProperty = () => {
 
   const propertyType = methods.watch('propertyType');
 
+  // Save form progress to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('listPropertyState', JSON.stringify({
+      activeStep,
+      formValues: methods.getValues()
+    }));
+  }, [activeStep, methods]);
+
+  useEffect(() => {
+    const subscription = methods.watch(() => {
+      sessionStorage.setItem('listPropertyState', JSON.stringify({
+        activeStep,
+        formValues: methods.getValues()
+      }));
+    });
+    return () => subscription.unsubscribe();
+  }, [methods, activeStep]);
+
   // Scroll to top when step changes
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -138,7 +167,7 @@ const ListProperty = () => {
       if (pType === 'PG') fieldsToValidate = ['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces'];
       else fieldsToValidate = ['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor', 'ageOfProperty'];
     } else if (activeStep === 3) {
-      if (pType === 'PG') fieldsToValidate = ['rooms'];
+      if (pType === 'PG') fieldsToValidate = ['buildingName', 'floors', 'pgPricing'];
       else fieldsToValidate = ['monthlyRent', 'maxPeople', 'securityAmount', 'maintenanceCharges', 'maintenancePeriod', 'availableFromType', 'availableDate', 'additionalRooms', 'overlooking', 'facing', 'societyAmenities', 'preferredTenants', 'localityDescription'];
     } else if (activeStep === 4) {
       if (pType === 'PG') fieldsToValidate = ['services', 'extraServices', 'foodProvided', 'meals', 'vegNonVeg', 'foodCharges', 'commonAmenities', 'extraCommonAmenities', 'parking'];
@@ -242,6 +271,9 @@ const ListProperty = () => {
       // Append standard fields
       Object.keys(data).forEach(key => {
         if (key === 'photos' || key === 'verificationDocs') return; // Handled separately
+        
+        // Skip empty strings to avoid backend CastErrors for Number fields
+        if (data[key] === '') return;
 
         if (Array.isArray(data[key]) || typeof data[key] === 'object') {
           formData.append(key, JSON.stringify(data[key]));
@@ -278,6 +310,8 @@ const ListProperty = () => {
 
       if (response.ok) {
         setIsSubmitted(true);
+        sessionStorage.removeItem('listPropertyState');
+        sessionStorage.removeItem('pgRoomOptionsState');
         toast.success('Property listed successfully!');
       } else {
         if (response.status === 401) {
@@ -301,6 +335,38 @@ const ListProperty = () => {
       toast.error('An error occurred while submitting. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const onError = (errors) => {
+    console.error("Form Validation Errors:", errors);
+    const errorFields = Object.keys(errors);
+    toast.error(`Please fix errors in: ${errorFields.join(', ')}`);
+
+    const getStepFromField = (field) => {
+      const pType = methods.getValues('propertyType');
+      if (pType === 'PG') {
+        if (['propertyType', 'postingAs', 'city', 'pgPresentIn', 'operationalSince', 'pgName'].includes(field)) return 1;
+        if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces'].includes(field)) return 2;
+        if (['buildingName', 'floors', 'pgPricing'].includes(field)) return 3;
+        if (['services', 'extraServices', 'foodProvided', 'meals', 'vegNonVeg', 'foodCharges', 'commonAmenities', 'extraCommonAmenities', 'parking'].includes(field)) return 4;
+        if (['preferredGender', 'tenantPreference', 'pgRules', 'extraRules', 'noticePeriod', 'gateClosingTime'].includes(field)) return 5;
+        if (['virtualTour', 'photos'].includes(field)) return 6;
+      } else {
+        if (['propertyType', 'postingAs', 'city', 'propertyCategory', 'societyName'].includes(field)) return 1;
+        if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor', 'ageOfProperty'].includes(field)) return 2;
+        if (['monthlyRent', 'maxPeople', 'securityAmount', 'maintenanceCharges', 'maintenancePeriod', 'availableFromType', 'availableDate', 'additionalRooms', 'overlooking', 'facing', 'societyAmenities', 'preferredTenants', 'localityDescription'].includes(field)) return 3;
+        if (['virtualTour', 'photos'].includes(field)) return 4;
+      }
+      return null;
+    };
+
+    const firstErrorField = errorFields[0];
+    const stepToNavigate = getStepFromField(firstErrorField);
+
+    if (stepToNavigate && stepToNavigate !== activeStep) {
+       setActiveStep(stepToNavigate);
+       toast.error(`Navigating to step ${stepToNavigate} to fix errors.`);
     }
   };
 
@@ -334,9 +400,9 @@ const ListProperty = () => {
       case 2: return propertyType === 'Tenant' ? <TenantPropertyDetails onNext={handleNext} onPrev={handlePrev} /> : <PgPropertyDetails onNext={handleNext} onPrev={handlePrev} />;
       case 3: return propertyType === 'Tenant' ? <TenantPricingPreferences onNext={handleNext} onPrev={handlePrev} /> : <PgRoomOptions onNext={handleNext} onPrev={handlePrev} />;
       case 4: return propertyType === 'Tenant' ? <PgPhotos onNext={handleNext} onPrev={handlePrev} /> : <PgAmenities onNext={handleNext} onPrev={handlePrev} />;
-      case 5: return propertyType === 'Tenant' ? <PgVerifyProperty onNext={methods.handleSubmit(onSubmit)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
+      case 5: return propertyType === 'Tenant' ? <PgVerifyProperty onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
       case 6: return propertyType === 'Tenant' ? null : <PgPhotos onNext={handleNext} onPrev={handlePrev} />;
-      case 7: return propertyType === 'Tenant' ? null : <PgVerifyProperty onNext={methods.handleSubmit(onSubmit)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
+      case 7: return propertyType === 'Tenant' ? null : <PgVerifyProperty onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
       default: return null;
     }
   };
@@ -347,7 +413,7 @@ const ListProperty = () => {
       <div className="relative w-full h-60 lg:h-70">
         <img src={aboutmain} alt="Hero" className="w-full h-full object-cover brightness-[0.85] opacity-90" />
         <div className="absolute inset-0 bg-linear-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#F8F9FA]"></div>
-        <div className="absolute inset-0 pt-10 px-4 sm:px-6 lg:px-8 xl:px-20">
+        <div className="absolute inset-0 pt-10 px-4 sm:px-6 lg:px-8 xl:px-20 3xl:px-28!">
           <div className="max-w-340 3xl:max-w-420 mx-auto ml-1 lg:ml-0 xl:ml-3">
             <div className="flex items-center text-xs font-semibold text-brand-teal mb-4">
               <Link to="/" className="hover:underline cursor-pointer">Home</Link>
@@ -360,7 +426,7 @@ const ListProperty = () => {
         </div>
       </div>
 
-      <div id="form-container" className="max-w-340 3xl:max-w-420 mx-auto px-4 sm:px-6 lg:px-8 xl:px-0 -mt-6 sm:-mt-10 lg:-mt-16 relative z-10 scroll-mt-24 sm:scroll-mt-28">
+      <div id="form-container" className="max-w-340 3xl:max-w-420 mx-auto px-4 sm:px-6 lg:px-8 xl:px-0 -mt-6 sm:-mt-10 lg:-mt-16 relative z-30 scroll-mt-24 sm:scroll-mt-28">
         <FormProvider {...methods}>
           <form onSubmit={(e) => e.preventDefault()} className="flex flex-col lg:flex-row gap-4 items-start">
 
@@ -381,6 +447,36 @@ const ListProperty = () => {
           </form>
         </FormProvider>
       </div>
+
+      {/* Navigation Confirmation Modal */}
+      {blocker.state === "blocked" && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-4">
+              <Icon icon="lucide:alert-triangle" width="24" strokeWidth="2.5" />
+            </div>
+            <h3 className="text-xl font-bold text-[#062F26] mb-2">Leave this page?</h3>
+            <p className="text-sm text-slate-500 mb-6">
+              You are currently listing a property. If you leave now, all your unsaved progress will be lost. Are you sure you want to navigate away?
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button 
+                onClick={cancelNavigation}
+                className="px-4 py-2 rounded-lg text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                Stay
+              </button>
+              <button 
+                onClick={confirmNavigation}
+                className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-[#062F26] hover:bg-brand-teal transition-colors"
+              >
+                Leave Page
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

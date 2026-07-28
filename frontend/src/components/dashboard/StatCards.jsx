@@ -1,6 +1,6 @@
 import { Icon } from '@iconify/react';
 import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import socket, { joinUserRoom } from '../../lib/socket';
 import ReactApexChart from 'react-apexcharts';
 
 const defaultStats = [
@@ -30,10 +30,10 @@ const defaultStats = [
     iconColor: 'text-purple-500',
   },
   {
-    title: 'Active Contracts',
-    value: '4',
-    subtitle: 'View all contracts',
-    icon: 'lucide:file-text',
+    title: 'Total Tenants',
+    value: '0',
+    subtitle: 'Currently residing',
+    icon: 'lucide:users',
     color: 'bg-orange-500/10',
     iconColor: 'text-orange-500',
   }
@@ -92,14 +92,14 @@ const StatCards = ({ data: initialData }) => {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const [propertiesRes, countsRes] = await Promise.all([
+      const [propertiesRes, inquiriesRes] = await Promise.all([
         fetch('/api/properties/owner', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/users/notification-counts', { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch('/api/inquiries/owner', { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
-      if (propertiesRes.ok && countsRes.ok) {
+      if (propertiesRes.ok && inquiriesRes.ok) {
         const properties = await propertiesRes.json();
-        const counts = await countsRes.json();
+        const inquiries = await inquiriesRes.json();
 
         const total = properties.length;
         const active = properties.filter(p => p.status === 'Active' || p.status === 'Approved').length;
@@ -116,10 +116,11 @@ const StatCards = ({ data: initialData }) => {
           };
 
           // New Inquiries
+          const newInquiries = inquiries.filter(inq => inq.status === 'New').length;
           newStats[1] = {
             ...newStats[1],
-            value: counts.newRequests?.toString() || '0',
-            subtitle: 'Active unread requests'
+            value: newInquiries.toString(),
+            subtitle: 'Awaiting your action'
           };
 
           // Total Bookings
@@ -128,6 +129,28 @@ const StatCards = ({ data: initialData }) => {
             ...newStats[2],
             value: totalBookings.toString(),
             subtitle: 'Across all listings'
+          };
+
+          // Total Tenants
+          let totalTenants = 0;
+          properties.forEach(p => {
+            if (p.floors) {
+              p.floors.forEach(f => {
+                if (f.rooms) {
+                  f.rooms.forEach(r => {
+                    if (r.beds) {
+                      totalTenants += r.beds.filter(b => b.status === 'Occupied').length;
+                    }
+                  });
+                }
+              });
+            }
+          });
+
+          newStats[3] = {
+            ...newStats[3],
+            value: totalTenants.toString(),
+            subtitle: 'Currently residing'
           };
 
           return newStats;
@@ -158,21 +181,24 @@ const StatCards = ({ data: initialData }) => {
   useEffect(() => {
     if (!user || initialData) return;
 
-    const socket = io('http://localhost:5000');
-    socket.emit('joinUserRoom', user.id || user._id);
+    joinUserRoom(user.id || user._id);
 
     // Removed newNotification socket listener since Unread Messages card is gone
 
-    socket.on('newInquiry', () => {
+    const onNewInquiry = () => {
       setStats(prev => {
         const newStats = [...prev];
         const currentVal = parseInt(newStats[1].value) || 0;
         newStats[1] = { ...newStats[1], value: (currentVal + 1).toString() };
         return newStats;
       });
-    });
+    };
 
-    return () => socket.disconnect();
+    socket.on('newInquiry', onNewInquiry);
+
+    return () => {
+      socket.off('newInquiry', onNewInquiry);
+    };
   }, [user, initialData]);
 
   return (

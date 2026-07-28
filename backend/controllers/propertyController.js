@@ -1,6 +1,7 @@
 import Property from '../models/Property.js';
 import User from '../models/User.js';
 import Newsletter from '../models/Newsletter.js';
+import Inquiry from '../models/Inquiry.js';
 import { getIo } from '../socket.js';
 import { sendPropertyDeletionEmail } from './authController.js';
 import { sendGenericEmail } from '../utils/emailService.js';
@@ -12,15 +13,18 @@ export const createProperty = async (req, res) => {
   try {
     const propertyData = req.body;
     
-    // Convert rooms from stringified JSON if needed (multipart/form-data sends complex objects as strings)
-    if (propertyData.rooms && typeof propertyData.rooms === 'string') {
-      try {
-        propertyData.rooms = JSON.parse(propertyData.rooms);
-      } catch (e) {
-        console.error("Failed to parse rooms:", propertyData.rooms);
-        propertyData.rooms = [];
+    // Convert complex objects/arrays from stringified JSON if needed (multipart/form-data sends complex objects as strings)
+    const jsonFields = ['rooms', 'floors', 'pgPricing'];
+    jsonFields.forEach(field => {
+      if (propertyData[field] && typeof propertyData[field] === 'string') {
+        try {
+          propertyData[field] = JSON.parse(propertyData[field]);
+        } catch (e) {
+          console.error(`Failed to parse ${field}:`, propertyData[field]);
+          propertyData[field] = field === 'pgPricing' ? {} : [];
+        }
       }
-    }
+    });
     
     // Convert array fields from strings if needed
     const arrayFields = ['nearbyPlaces', 'services', 'extraServices', 'meals', 'commonAmenities', 'extraCommonAmenities', 'parking', 'pgRules', 'extraRules', 'additionalRooms', 'overlooking', 'societyAmenities', 'preferredTenants', 'usps', 'customUsps'];
@@ -153,8 +157,15 @@ export const getPendingPropertyCount = async (req, res) => {
 // @access  Private
 export const getOwnerProperties = async (req, res) => {
   try {
-    const properties = await Property.find({ owner: req.user._id });
-    res.json(properties);
+    const properties = await Property.find({ owner: req.user._id }).lean();
+    
+    // Dynamically calculate accurate inquiries count for perfect sync with DB
+    const propertiesWithCounts = await Promise.all(properties.map(async (prop) => {
+      const inquiryCount = await Inquiry.countDocuments({ propertyId: prop._id });
+      return { ...prop, inquiries: inquiryCount };
+    }));
+    
+    res.json(propertiesWithCounts);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch owner properties' });
   }
@@ -473,13 +484,13 @@ export const createReview = async (req, res) => {
       return res.status(404).json({ message: 'Property not found' });
     }
 
-    const alreadyReviewed = await Review.findOne({
+    const reviewCount = await Review.countDocuments({
       property: propertyId,
       tenant: req.user._id
     });
 
-    if (alreadyReviewed) {
-      return res.status(400).json({ message: 'You have already reviewed this property.' });
+    if (reviewCount >= 3) {
+      return res.status(400).json({ message: 'You have reached the maximum limit of 3 reviews for this property.' });
     }
 
     const review = new Review({

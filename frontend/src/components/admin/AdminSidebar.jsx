@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
+import socket, { disconnectSocket } from '../../lib/socket';
 import logo from '../../assets/logo.png';
 
 const AdminSidebar = ({ isMobile }) => {
@@ -111,20 +111,20 @@ const AdminSidebar = ({ isMobile }) => {
     fetchPendingReportCount();
 
     // Establish WebSocket Connection
-    const socket = io('http://localhost:5000', {
-      withCredentials: true,
-    });
-
-    socket.on('property_update', () => {
+    const onPropertyUpdate = () => {
       fetchPendingCount();
-    });
+    };
 
-    socket.on('report_update', () => {
+    const onReportUpdate = () => {
       fetchPendingReportCount();
-    });
+    };
+
+    socket.on('property_update', onPropertyUpdate);
+    socket.on('report_update', onReportUpdate);
 
     return () => {
-      socket.disconnect();
+      socket.off('property_update', onPropertyUpdate);
+      socket.off('report_update', onReportUpdate);
     };
   }, [fetchPendingCount, fetchPendingReportCount]);
 
@@ -136,6 +136,7 @@ const AdminSidebar = ({ isMobile }) => {
     } catch (err) {
       console.error('Logout error', err);
     }
+    disconnectSocket();
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
@@ -172,8 +173,8 @@ const AdminSidebar = ({ isMobile }) => {
                   <Icon icon={item.icon} className={`w-4.5 h-4.5 ${isActive ? 'text-[#25D366]' : 'text-slate-400'}`} />
                   <span className="text-sm">{item.name}</span>
                   {item.badge && (
-                    <span className="ml-auto w-4 h-4 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
-                      {item.badge}
+                    <span className="ml-auto min-w-[18px] h-[18px] bg-[#062F26] rounded-full text-white text-[10px] font-bold flex items-center justify-center px-1 shadow-sm">
+                      {item.badge > 99 ? '99+' : item.badge}
                     </span>
                   )}
                 </Link>
@@ -214,7 +215,9 @@ const AdminSidebar = ({ isMobile }) => {
                   {item.name === 'Listings Management' ? 'Listings' : item.name === 'Property Requests' ? 'Properties' : item.name === 'User Management' ? 'Users' : item.name}
                 </span>
                 {item.badge && (
-                  <span className="absolute top-2 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+                  <span className="absolute top-1 right-1 min-w-[14px] h-[14px] flex items-center justify-center px-0.5 bg-[#062F26] rounded-full border border-white text-[8px] font-bold text-white shadow-sm">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
                 )}
               </Link>
             );
@@ -272,11 +275,9 @@ const AdminSidebar = ({ isMobile }) => {
                   </span>
                 </div>
                 {item.badge && (
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isActive
-                    ? 'bg-white/20 text-white'
-                    : 'bg-emerald-50 text-emerald-600'
+                  <span className={`text-[10px] min-w-[20px] h-[20px] flex items-center justify-center px-1.5 rounded-full font-bold shadow-sm ${isActive ? 'bg-white text-[#062F26]' : 'bg-[#062F26] text-white'
                     }`}>
-                    {item.badge}
+                    {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </Link>

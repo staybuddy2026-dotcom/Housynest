@@ -30,16 +30,40 @@ const propertySchema = new mongoose.Schema({
   operationalSince: String,
   pgName: String,
 
-  // PG Rooms
-  rooms: [{
-    sharingType: String,
-    totalBeds: String,
-    availableBeds: String,
-    rentPerBed: String,
-    depositPerBed: String,
-    facilities: [String],
-    extraFacilities: [String]
+  // PG Rooms (Hierarchical Structure)
+  totalFloorsCount: Number,
+  floors: [{
+    floorName: String,
+    rooms: [{
+      roomName: String,
+      sharingType: String,
+      isAC: { type: Boolean, default: false },
+      facilities: [String],
+      extraFacilities: [String],
+      beds: [{
+        bedName: String,
+        status: {
+          type: String,
+          enum: ['Vacant', 'Occupied', 'Reserved'],
+          default: 'Vacant'
+        }
+      }]
+    }]
   }],
+
+  // PG Pricing by Sharing Type
+  pgPricing: {
+    Single_AC: { rentPerBed: String, depositPerBed: String },
+    Single_NonAC: { rentPerBed: String, depositPerBed: String },
+    Double_AC: { rentPerBed: String, depositPerBed: String },
+    Double_NonAC: { rentPerBed: String, depositPerBed: String },
+    Triple_AC: { rentPerBed: String, depositPerBed: String },
+    Triple_NonAC: { rentPerBed: String, depositPerBed: String },
+    Four_AC: { rentPerBed: String, depositPerBed: String },
+    Four_NonAC: { rentPerBed: String, depositPerBed: String },
+    Other_AC: { rentPerBed: String, depositPerBed: String },
+    Other_NonAC: { rentPerBed: String, depositPerBed: String }
+  },
 
   // PG Amenities
   services: [String],
@@ -125,5 +149,42 @@ const propertySchema = new mongoose.Schema({
     default: 0
   }
 }, { timestamps: true });
+
+// Cascade delete related data when a property is deleted
+propertySchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+  try {
+    const propertyId = this._id;
+
+    // 1. Delete all inquiries for this property, and their associated messages
+    const inquiries = await mongoose.model('Inquiry').find({ propertyId });
+    for (const inq of inquiries) {
+      await mongoose.model('Message').deleteMany({ inquiryId: inq._id });
+    }
+    await mongoose.model('Inquiry').deleteMany({ propertyId });
+
+    // 2. Delete all visits for this property
+    await mongoose.model('Visit').deleteMany({ property: propertyId });
+
+    // 3. Delete all reviews for this property
+    await mongoose.model('Review').deleteMany({ property: propertyId });
+
+    // 4. Delete all reports for this property
+    await mongoose.model('Report').deleteMany({ propertyId });
+
+    // 5. Remove property from all users' savedProperties and listedProperties
+    await mongoose.model('User').updateMany(
+      { savedProperties: propertyId },
+      { $pull: { savedProperties: propertyId } }
+    );
+    await mongoose.model('User').updateMany(
+      { listedProperties: propertyId },
+      { $pull: { listedProperties: propertyId } }
+    );
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default mongoose.model('Property', propertySchema);

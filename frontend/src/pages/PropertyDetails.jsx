@@ -98,6 +98,9 @@ const PropertyDetails = () => {
               gateClosingTime: data.gateClosingTime,
               noticePeriod: data.noticePeriod,
               pgRules: data.pgRules || [],
+              floors: data.floors || [],
+              pgPricing: data.pgPricing || {},
+
 
               // Tenant Details
               bhkType: data.bhkType,
@@ -170,6 +173,8 @@ const PropertyDetails = () => {
                 ...(p.services || [])
               ],
               rooms: p.rooms || [],
+              pgPricing: p.pgPricing || {},
+              floors: p.floors || [],
               isVerified: p.isVerified || false
             }));
             setSimilarProperties(mappedSimilar);
@@ -239,36 +244,91 @@ const PropertyDetails = () => {
 
   const basePrice = property.price ? parseInt(property.price.replace(/,/g, ''), 10) || 12000 : 12000;
 
-  const pgRooms = property.rooms && property.rooms.length > 0
-    ? property.rooms.map((r, idx) => ({
-      title: r.sharingType || `Room ${idx + 1}`,
-      available: r.availableBeds || 0,
-      totalBeds: r.totalBeds || 1,
-      maxPeople: parseInt(r.totalBeds, 10) || 1,
-      rent: Number(r.rentPerBed || basePrice).toLocaleString('en-IN'),
-      deposit: Number(r.depositPerBed || basePrice * 2).toLocaleString('en-IN'),
-      amenities: r.facilities || []
-    }))
-    : [
-      {
-        title: 'Double Sharing',
-        available: 10,
-        totalBeds: 20,
-        maxPeople: 2,
-        rent: Math.floor(basePrice * 0.8).toLocaleString('en-IN'),
-        deposit: Math.floor(basePrice * 1.6).toLocaleString('en-IN'),
-        amenities: ['Bed', 'Mattress', 'Table', 'Wifi', 'Cupboard', 'Washroom', 'Aircooler']
-      },
-      {
-        title: 'Single Sharing',
-        available: 11,
-        totalBeds: 15,
-        maxPeople: 1,
-        rent: basePrice.toLocaleString('en-IN'),
-        deposit: Math.floor(basePrice * 2).toLocaleString('en-IN'),
-        amenities: ['Bed', 'Washroom', 'Aircooler', 'Table', 'Cupboard', 'Mattress', 'Wifi']
+  let pgRooms = [];
+
+  if (propertyType === 'PG') {
+    if (property.pgPricing && Object.keys(property.pgPricing).length > 0) {
+      const roomStats = {};
+      if (property.floors && property.floors.length > 0) {
+        property.floors.forEach(floor => {
+          if (floor.rooms) {
+            floor.rooms.forEach(room => {
+              const type = room.sharingType;
+              if (type) {
+                const acSuffix = room.isAC ? '_AC' : '_NonAC';
+                const pricingKey = type + acSuffix;
+
+                if (!roomStats[pricingKey]) {
+                  roomStats[pricingKey] = {
+                    title: `${type} Sharing ${room.isAC ? '(AC)' : ''}`.trim(),
+                    totalBeds: 0,
+                    available: 0,
+                    amenities: new Set(),
+                    maxPeople: type === 'Single' ? 1 : type === 'Double' ? 2 : type === 'Triple' ? 3 : type === 'Four' ? 4 : 1,
+                  };
+                }
+
+                if (room.beds) {
+                  roomStats[pricingKey].totalBeds += room.beds.length;
+                  roomStats[pricingKey].available += room.beds.filter(b => b.status === 'Vacant').length;
+                }
+                if (room.facilities) {
+                  room.facilities.forEach(f => roomStats[pricingKey].amenities.add(f));
+                }
+              }
+            });
+          }
+        });
       }
-    ];
+
+      Object.keys(property.pgPricing).forEach(key => {
+        const pricing = property.pgPricing[key];
+        if (pricing && pricing.rentPerBed && pricing.rentPerBed !== '0') {
+          const stats = roomStats[key] || {
+            title: key.replace('_', ' Sharing ').replace('NonAC', '').replace('AC', '(AC)').trim(),
+            totalBeds: 0,
+            available: 0,
+            amenities: new Set(),
+            maxPeople: key.includes('Single') ? 1 : key.includes('Double') ? 2 : key.includes('Triple') ? 3 : 1
+          };
+
+          pgRooms.push({
+            title: stats.title,
+            available: stats.available,
+            totalBeds: stats.totalBeds,
+            maxPeople: stats.maxPeople,
+            rent: Number(pricing.rentPerBed).toLocaleString('en-IN'),
+            deposit: pricing.depositPerBed ? Number(pricing.depositPerBed).toLocaleString('en-IN') : Number(pricing.rentPerBed * 2).toLocaleString('en-IN'),
+            amenities: Array.from(stats.amenities)
+          });
+        }
+      });
+    }
+
+    // Fallback if no valid pgPricing found
+    if (pgRooms.length === 0) {
+      pgRooms = [
+        {
+          title: 'Double Sharing',
+          available: 10,
+          totalBeds: 20,
+          maxPeople: 2,
+          rent: Math.floor(basePrice * 0.8).toLocaleString('en-IN'),
+          deposit: Math.floor(basePrice * 1.6).toLocaleString('en-IN'),
+          amenities: ['Bed', 'Mattress', 'Table', 'Wifi', 'Cupboard', 'Washroom', 'Aircooler']
+        },
+        {
+          title: 'Single Sharing',
+          available: 11,
+          totalBeds: 15,
+          maxPeople: 1,
+          rent: basePrice.toLocaleString('en-IN'),
+          deposit: Math.floor(basePrice * 2).toLocaleString('en-IN'),
+          amenities: ['Bed', 'Washroom', 'Aircooler', 'Table', 'Cupboard', 'Mattress', 'Wifi']
+        }
+      ];
+    }
+  }
 
   const galleryImages = property.images && property.images.length > 0
     ? property.images.map((img, i) => ({ name: `Image ${i + 1}`, img: img }))
@@ -336,7 +396,7 @@ const PropertyDetails = () => {
   ];
 
   const tabs = propertyType === 'PG'
-    ? ['Overview', 'Property Details', 'Room Details', 'Amenities & Services', 'Food Details', 'Rules & Policies', 'Nearby Places']
+    ? ['Overview', 'Property Details', 'Rooms & Beds', 'Amenities & Services', 'Food Details', 'Rules & Policies', 'Nearby Places']
     : ['Overview', 'Property Details', 'Amenities & Services', 'Nearby Places'];
 
   // eslint-disable-next-line no-unused-vars
@@ -426,7 +486,10 @@ const PropertyDetails = () => {
             <h3 className="text-xl sm:text-2xl font-bold text-[#062F26] mb-1">Similar Properties</h3>
             <p className="text-sm font-medium text-slate-500">Properties you might also like in this area</p>
           </div>
-          <Link to="/properties" className="text-brand-teal text-sm font-bold hover:underline hidden sm:block">View All</Link>
+          <Link to="/properties" className="hidden sm:flex items-center gap-2 bg-white border-2 border-brand-teal/20 hover:border-brand-teal/50 hover:bg-[#EAF5F2] text-[#062F26] text-sm font-bold py-2 px-6 rounded-md transition-all shadow-sm group">
+            View All
+            <Icon icon="lucide:arrow-right" className="w-4 h-4 text-brand-teal group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -434,8 +497,11 @@ const PropertyDetails = () => {
             <PropertyListingCard key={property.id} property={property} />
           ))}
         </div>
-        <div className="mt-6 text-center sm:hidden">
-          <Link to="/properties" className="text-brand-teal text-sm font-bold hover:underline inline-block">View All Properties</Link>
+        <div className="mt-8 flex justify-center sm:hidden">
+          <Link to="/properties" className="inline-flex items-center gap-2 bg-white border-2 border-brand-teal/20 hover:border-brand-teal/50 hover:bg-[#EAF5F2] text-[#062F26] text-sm font-bold py-3 px-8 rounded-xl transition-all shadow-sm group">
+            View All Properties
+            <Icon icon="lucide:arrow-right" className="w-4 h-4 text-brand-teal group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
       </div>
 

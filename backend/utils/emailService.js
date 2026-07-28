@@ -25,7 +25,7 @@ const generateEmailHtml = (subject, content) => {
 
   return `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-      <div style="background-color: #062F26; padding: 24px; text-align: center; border-bottom: 4px solid #25D366;">
+      <div style="background-color: #ffffff; padding: 24px; text-align: center; border-bottom: 4px solid #062F26;">
         <img src="cid:housynestlogo" alt="Housynest Logo" style="height: 48px; width: auto; display: block; margin: 0 auto;" />
       </div>
       <div style="padding: 40px 32px; color: #334155; line-height: 1.7; font-size: 16px;">

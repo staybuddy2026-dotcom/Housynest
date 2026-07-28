@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import EmojiPicker from 'emoji-picker-react';
-import { io } from 'socket.io-client';
+import socket, { joinUserRoom } from '../../lib/socket';
 
 const OwnerMessages = () => {
   const location = useLocation();
@@ -15,6 +15,8 @@ const OwnerMessages = () => {
   const [messageInput, setMessageInput] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
   const emojiPickerRef = useRef(null);
   const socketRef = useRef(null);
   const activeChatIdRef = useRef(activeChatId);
@@ -40,55 +42,78 @@ const OwnerMessages = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const emitTyping = () => {
+    if (socketRef.current && activeChatIdRef.current) {
+      socketRef.current.emit('typing', { inquiryId: activeChatIdRef.current, userId: user.id || user._id });
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        socketRef.current.emit('stopTyping', { inquiryId: activeChatIdRef.current, userId: user.id || user._id });
+      }, 2000);
+    }
+  };
+
   const onEmojiClick = (emojiObject) => {
     setMessageInput(prevInput => prevInput + emojiObject.emoji);
+    emitTyping();
   };
 
   useEffect(() => {
     if (!user) return;
 
-    socketRef.current = io('http://localhost:5000');
+    socketRef.current = socket;
 
-    socketRef.current.emit('joinUserRoom', user.id || user._id);
+    joinUserRoom(user.id || user._id);
+    
+    // Explicitly request the online users list
+    socketRef.current.emit('getOnlineUsers');
 
-    socketRef.current.on('newNotification', (data) => {
+    const handleNewNotification = (data) => {
       setConversations(prev => prev.map(conv => {
         if (conv.id === data.inquiryId) {
           return {
             ...conv,
             lastMessage: data.message.text,
             time: new Date(data.message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            unread: activeChatIdRef.current !== data.inquiryId ? conv.unread + 1 : conv.unread
+            unread: activeChatIdRef.current === data.inquiryId ? 0 : (conv.unread || 0) + 1
           };
         }
         return conv;
       }));
-    });
+    };
+    socketRef.current.on('newNotification', handleNewNotification);
 
-    socketRef.current.on('onlineUsersList', (users) => {
-      setOnlineUsers(new Set(users));
-    });
+    const handleOnlineUsersList = (users) => {
+      setOnlineUsers(new Set(users.map(u => String(u))));
+    };
+    socketRef.current.on('onlineUsersList', handleOnlineUsersList);
 
-    socketRef.current.on('userOnline', (userId) => {
+    const handleUserOnline = (userId) => {
       setOnlineUsers(prev => {
         const newSet = new Set(prev);
-        newSet.add(userId);
+        newSet.add(String(userId));
         return newSet;
       });
-    });
+    };
+    socketRef.current.on('userOnline', handleUserOnline);
 
-    socketRef.current.on('userOffline', (userId) => {
+    const handleUserOffline = (userId) => {
       setOnlineUsers(prev => {
         const newSet = new Set(prev);
-        newSet.delete(userId);
+        newSet.delete(String(userId));
         return newSet;
       });
-    });
+    };
+    socketRef.current.on('userOffline', handleUserOffline);
 
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.off('newNotification', handleNewNotification);
+        socketRef.current.off('onlineUsersList', handleOnlineUsersList);
+        socketRef.current.off('userOnline', handleUserOnline);
+        socketRef.current.off('userOffline', handleUserOffline);
+      }
     };
-  }, [user]);
+  }, [user?.id, user?._id]);
 
   useEffect(() => {
     const fetchInquiriesAsConversations = async () => {
@@ -107,11 +132,11 @@ const OwnerMessages = () => {
             return {
               id: inq._id,
               name: senderName,
-              otherUserId: inq.senderId?._id,
+              otherUserId: inq.senderId?._id ? String(inq.senderId._id) : null,
               initials: senderName.charAt(0).toUpperCase(),
               profilePic: inq.senderId?.profilePic,
               avatarColor: 'bg-teal-100 text-teal-700',
-              property: inq.propertyId?.pgName || (inq.propertyId?.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId?.propertyCategory) || 'Unknown Property',
+              property: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
               propertyContext: `Subject: ${inq.subject}`,
               lastMessage: inq.message,
               time: new Date(inq.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -124,8 +149,6 @@ const OwnerMessages = () => {
           if (mappedConversations.length > 0) {
             if (preSelectedChatId && mappedConversations.some(c => c.id === preSelectedChatId)) {
               setActiveChatId(preSelectedChatId);
-            } else {
-              setActiveChatId(mappedConversations[0].id);
             }
           }
         } else {
@@ -140,10 +163,26 @@ const OwnerMessages = () => {
     };
 
     fetchInquiriesAsConversations();
+
+    const handleNewInquiry = () => {
+      fetchInquiriesAsConversations();
+    };
+    
+    if (socketRef.current) {
+      socketRef.current.on('newInquiry', handleNewInquiry);
+    }
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('newInquiry', handleNewInquiry);
+      }
+    };
   }, []);
 
   useEffect(() => {
     if (!activeChatId) return;
+
+    setIsOtherUserTyping(false);
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, unread: 0 } : c));
@@ -238,13 +277,37 @@ const OwnerMessages = () => {
             date: new Date(message.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
           }];
         });
+
+        setConversations(prev => prev.map(c => {
+          if (c.id === (message.inquiryId || activeChatId)) {
+            return {
+              ...c,
+              lastMessage: message.text,
+              time: new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              unread: 0
+            };
+          }
+          return c;
+        }));
+      };
+
+      const handleTyping = ({ userId }) => {
+        if (userId !== user.id && userId !== user._id) setIsOtherUserTyping(true);
+      };
+
+      const handleStopTyping = ({ userId }) => {
+        if (userId !== user.id && userId !== user._id) setIsOtherUserTyping(false);
       };
 
       socketRef.current.on('receiveMessage', handleReceiveMessage);
+      socketRef.current.on('userTyping', handleTyping);
+      socketRef.current.on('userStopTyping', handleStopTyping);
 
       return () => {
         if (socketRef.current) {
           socketRef.current.off('receiveMessage', handleReceiveMessage);
+          socketRef.current.off('userTyping', handleTyping);
+          socketRef.current.off('userStopTyping', handleStopTyping);
           socketRef.current.emit('leaveChatRoom', activeChatId);
         }
       };
@@ -253,6 +316,11 @@ const OwnerMessages = () => {
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !activeChatId) return;
+
+    if (socketRef.current && typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      socketRef.current.emit('stopTyping', { inquiryId: activeChatId, userId: user.id || user._id });
+    }
 
     try {
       const token = localStorage.getItem('accessToken');
@@ -271,6 +339,36 @@ const OwnerMessages = () => {
       if (!res.ok) {
         toast.error('Failed to send message');
         setMessageInput(text); // Revert on failure
+      } else {
+        const message = await res.json();
+        const mappedMessage = {
+          id: message._id,
+          rawId: message._id,
+          sender: message.senderId.fullName,
+          initials: message.senderId.fullName.charAt(0).toUpperCase(),
+          profilePic: message.senderId.profilePic,
+          avatarColor: 'bg-slate-100 text-slate-700',
+          isMe: true,
+          text: message.text,
+          time: new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          date: new Date(message.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        };
+
+        setActiveChatHistory(prev => {
+          if (prev.some(m => m.rawId === mappedMessage.rawId)) return prev;
+          return [...prev, mappedMessage];
+        });
+
+        setConversations(prev => prev.map(c => {
+          if (c.id === activeChatId) {
+            return {
+              ...c,
+              lastMessage: mappedMessage.text,
+              time: mappedMessage.time
+            };
+          }
+          return c;
+        }));
       }
     } catch (err) {
       console.error(err);
@@ -353,7 +451,7 @@ const OwnerMessages = () => {
                       </span>
                     </div>
                     <p className="text-xs font-bold text-slate-600 truncate mt-0.5">{conv.property}</p>
-                    {conv.unread > 0 && (
+                    {(conv.unread > 0 && conv.id !== activeChatId) && (
                       <div className="flex justify-end mt-1.5">
                         <div className="w-5 h-5 rounded-full bg-[#062F26] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
                           {conv.unread}
@@ -400,9 +498,9 @@ const OwnerMessages = () => {
 
               {/* Header Actions (Status) */}
               <div className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${onlineUsers.has(activeChat?.otherUserId) ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                <span className={`text-xs font-medium ${onlineUsers.has(activeChat?.otherUserId) ? 'text-emerald-600' : 'text-slate-500'}`}>
-                  {onlineUsers.has(activeChat?.otherUserId) ? 'Online' : 'Offline'}
+                <span className={`w-2 h-2 rounded-full ${isOtherUserTyping ? 'bg-brand-teal animate-pulse' : (onlineUsers.has(String(activeChat?.otherUserId)) ? 'bg-emerald-500' : 'bg-slate-400')}`}></span>
+                <span className={`text-xs font-medium ${isOtherUserTyping ? 'text-brand-teal' : (onlineUsers.has(String(activeChat?.otherUserId)) ? 'text-emerald-600' : 'text-slate-500')}`}>
+                  {isOtherUserTyping ? 'Typing...' : (onlineUsers.has(String(activeChat?.otherUserId)) ? 'Online' : 'Offline')}
                 </span>
               </div>
             </div>
@@ -456,23 +554,48 @@ const OwnerMessages = () => {
                   )}
 
                   {/* Bubble Container */}
-                  <div className={`flex flex-col gap-1 max-w-[70%] ${msg.isMe ? 'items-end' : 'items-start'}`}>
-                    <div className={`px-4 py-3 text-sm font-medium leading-relaxed ${msg.isMe
+                  <div className={`flex flex-col max-w-[70%] ${msg.isMe ? 'items-end' : 'items-start'}`}>
+                    <div className={`px-3 pt-2 pb-1.5 text-sm font-medium leading-relaxed ${msg.isMe
                       ? 'bg-[#EAF5F2] text-[#062F26] rounded-2xl rounded-tr-sm'
                       : 'bg-slate-50 border border-slate-100 text-slate-700 rounded-2xl rounded-tl-sm'
                       }`}>
-                      {msg.text}
-                    </div>
-                    <div className="flex items-center gap-1.5 px-1">
-                      <span className="text-xs font-medium text-slate-400">{msg.time}</span>
-                      {msg.isMe && (
-                        <Icon icon="lucide:check-check" className="w-3.5 h-3.5 text-brand-teal" />
-                      )}
+                      <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+                        <span className="mt-0.5">{msg.text}</span>
+                        <div className="flex items-center gap-1 ml-auto shrink-0 self-end">
+                          <span className={`text-[10px] font-medium ${msg.isMe ? 'text-[#062F26]/60' : 'text-slate-400'}`}>{msg.time}</span>
+                          {msg.isMe && (
+                            <Icon icon="lucide:check-check" className="w-3.5 h-3.5 text-brand-teal" />
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                 </div>
               ))}
+              
+              {/* Typing Indicator Bubble */}
+              {isOtherUserTyping && (
+                <div className="flex gap-3 justify-start animate-in fade-in duration-300">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden ${activeChat?.avatarColor}`}>
+                    {activeChat?.profilePic ? (
+                      <img src={activeChat.profilePic} alt={activeChat.name} className="w-full h-full object-cover" />
+                    ) : (
+                      activeChat?.initials
+                    )}
+                  </div>
+                  <div className="flex flex-col items-start max-w-[70%]">
+                    <div className="bg-slate-50 border border-slate-100 text-slate-700 rounded-2xl rounded-tl-sm px-4 py-3">
+                      <div className="flex items-center gap-1 h-3">
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -509,7 +632,10 @@ const OwnerMessages = () => {
                 <input
                   type="text"
                   value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
+                  onChange={(e) => {
+                    setMessageInput(e.target.value);
+                    emitTyping();
+                  }}
                   onKeyDown={handleKeyPress}
                   placeholder="Type a message..."
                   className="flex-1 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 bg-transparent px-2"

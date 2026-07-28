@@ -57,7 +57,9 @@ const TenantSavedProperties = () => {
               ...(property.societyAmenities || []),
               ...(property.commonAmenities || []),
               ...(property.services || [])
-            ]
+            ],
+            pgPricing: property.pgPricing || {},
+            floors: property.floors || []
           }));
 
           const userStr = localStorage.getItem('user');

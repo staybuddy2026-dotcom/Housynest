@@ -71,6 +71,8 @@ const Properties = () => {
             isVerified: p.isVerified || false,
             category: p.propertyCategory || '',
             rooms: p.rooms || [],
+            pgPricing: p.pgPricing || {},
+            floors: p.floors || [],
             vegNonVeg: p.vegNonVeg || ''
           }));
           setDbProperties(mappedProperties);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import socket from '../../lib/socket';
 
 const RequestCard = ({ request }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -186,7 +187,7 @@ const TenantRequests = () => {
           const data = await res.json();
           const mappedRequests = data.map(inq => ({
             id: inq._id,
-            title: inq.propertyId?.pgName || (inq.propertyId?.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId?.propertyCategory) || 'Unknown Property',
+            title: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
             status: inq.status,
             date: new Date(inq.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
             roomType: inq.propertyId?.propertyType || 'N/A',
@@ -213,6 +214,17 @@ const TenantRequests = () => {
     };
 
     fetchRequests();
+
+    const handleInquirySent = (newInq) => {
+      // Re-fetch to ensure all populated fields are perfectly up-to-date
+      fetchRequests();
+    };
+
+    socket.on('inquirySent', handleInquirySent);
+
+    return () => {
+      socket.off('inquirySent', handleInquirySent);
+    };
   }, []);
 
   return (

@@ -24,8 +24,27 @@ const MyListingsWidget = () => {
           const mappedListings = data.slice(0, 4).map(p => {
             const title = p.pgName || p.propertyCategory || 'Property';
             const location = `${p.locality || ''}, ${p.city || ''}`.replace(/^, | , $/g, '');
+            let pgPrices = [];
+            if (p.propertyType === 'PG' && p.pgPricing) {
+              const pricingMap = {};
+              Object.keys(p.pgPricing).forEach(key => {
+                const priceObj = p.pgPricing[key];
+                if (priceObj && priceObj.rentPerBed && Number(priceObj.rentPerBed) > 0) {
+                  const type = key.split('_')[0]; // Single, Double, etc.
+                  const currentRent = Number(priceObj.rentPerBed);
+                  if (!pricingMap[type] || currentRent < pricingMap[type]) {
+                    pricingMap[type] = currentRent;
+                  }
+                }
+              });
+              pgPrices = Object.keys(pricingMap).map(type => ({
+                sharingType: type,
+                rentPerBed: pricingMap[type]
+              }));
+            }
+
             const price = p.propertyType === 'PG'
-              ? `₹${p.rooms?.[0]?.rentPerBed || '0'} / month`
+              ? (pgPrices.length > 0 ? `₹${Math.min(...pgPrices.map(p => p.rentPerBed))} / month` : '₹0 / month')
               : `₹${p.monthlyRent || '0'} / month`;
             const image = p.images && p.images.length > 0
               ? p.images[0].url
@@ -37,6 +56,8 @@ const MyListingsWidget = () => {
               status: p.status || 'Active',
               location,
               price,
+              propertyType: p.propertyType,
+              pgPrices,
               views: p.views || 0,
               inquiries: p.inquiries || 0,
               bookings: p.bookings || 0,
@@ -76,11 +97,27 @@ const MyListingsWidget = () => {
                   {listing.status}
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-xs font-medium text-slate-500 mb-1">
+              <div className="flex items-center gap-1 text-xs font-medium text-slate-500 mb-1.5">
                 <Icon icon="lucide:map-pin" className="w-3 h-3" />
                 <span className="truncate">{listing.location}</span>
               </div>
-              <p className="text-xs font-bold text-[#062F26]">{listing.price}</p>
+              {listing.propertyType === 'PG' && listing.pgPrices && listing.pgPrices.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {listing.pgPrices.slice(0, 2).map((pgPrice, idx) => (
+                    <span key={idx} className="flex items-center gap-1 bg-[#EAF5F2] text-[#062F26] px-1.5 py-0.5 rounded text-[10px] font-bold border border-brand-teal/20">
+                       <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
+                       ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
+                    </span>
+                  ))}
+                  {listing.pgPrices.length > 2 && (
+                    <span className="flex items-center bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] font-bold border border-slate-200">
+                      +{listing.pgPrices.length - 2} more
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs font-bold text-[#062F26]">{listing.price}</p>
+              )}
             </div>
             <div className="flex items-center gap-6 shrink-0 text-center pr-4">
               <div className="flex flex-col items-center">

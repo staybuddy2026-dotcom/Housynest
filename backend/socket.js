@@ -15,8 +15,14 @@ export const initSocket = (server) => {
   io.on('connection', (socket) => {
     console.log(`New client connected: ${socket.id}`);
 
+    socket.on('getOnlineUsers', () => {
+      const onlineUsersList = Array.from(userSockets.keys());
+      socket.emit('onlineUsersList', onlineUsersList);
+    });
+
     // Join a user-specific room for global notifications
     socket.on('joinUserRoom', (userId) => {
+      if (!userId) return;
       socket.join(`user_${userId}`);
       socket.userId = userId;
       console.log(`User ${userId} joined their personal room`);
@@ -43,6 +49,15 @@ export const initSocket = (server) => {
     socket.on('leaveChatRoom', (inquiryId) => {
       socket.leave(`inquiry_${inquiryId}`);
       console.log(`Socket ${socket.id} left inquiry chat ${inquiryId}`);
+    });
+
+    // Typing events
+    socket.on('typing', ({ inquiryId, userId }) => {
+      socket.to(`inquiry_${inquiryId}`).emit('userTyping', { inquiryId, userId });
+    });
+
+    socket.on('stopTyping', ({ inquiryId, userId }) => {
+      socket.to(`inquiry_${inquiryId}`).emit('userStopTyping', { inquiryId, userId });
     });
 
     socket.on('disconnect', () => {

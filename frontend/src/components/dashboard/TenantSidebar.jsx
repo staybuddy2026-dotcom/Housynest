@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import logo from '../../assets/logo.png';
-import { io } from 'socket.io-client';
+import socket, { joinUserRoom, disconnectSocket } from '../../lib/socket';
 
 const TenantSidebar = ({ onClose, isMobile }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -27,7 +27,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
     const fetchCounts = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch('/api/users/tenant/notifications', {
+        const response = await fetch('/api/users/notification-counts', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -77,18 +77,19 @@ const TenantSidebar = ({ onClose, isMobile }) => {
   // For safety, let's just connect it.
   useEffect(() => {
     if (!user) return;
-    const socket = io('http://localhost:5000');
-    socket.emit('joinUserRoom', user.id || user._id);
 
-    socket.on('newNotification', () => {
-      setCounts(prev => ({ ...prev, unreadMessages: prev.unreadMessages + 1 }));
-    });
+    joinUserRoom(user.id || user._id);
 
-    socket.on('newTenantContract', () => {
-      setCounts(prev => ({ ...prev, newTenantContracts: prev.newTenantContracts + 1 }));
-    });
+    const onNewNotification = () => setCounts(prev => ({ ...prev, unreadMessages: prev.unreadMessages + 1 }));
+    const onNewTenantContract = () => setCounts(prev => ({ ...prev, newTenantContracts: prev.newTenantContracts + 1 }));
 
-    return () => socket.disconnect();
+    socket.on('newNotification', onNewNotification);
+    socket.on('newTenantContract', onNewTenantContract);
+
+    return () => {
+      socket.off('newNotification', onNewNotification);
+      socket.off('newTenantContract', onNewTenantContract);
+    };
   }, [user]);
 
   const handleLogout = async () => {
@@ -97,6 +98,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
     } catch (err) {
       console.error('Logout error', err);
     }
+    disconnectSocket();
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
@@ -134,7 +136,9 @@ const TenantSidebar = ({ onClose, isMobile }) => {
                   {item.name === 'Saved Properties' ? 'Saved' : item.name === 'My Requests' ? 'Requests' : item.name.split(' ')[0]}
                 </span>
                 {item.badge && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                  <span className="absolute top-1 right-1 min-w-[14px] h-[14px] flex items-center justify-center px-0.5 bg-[#062F26] rounded-full border border-white text-[8px] font-bold text-white shadow-sm">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
                 )}
               </>
             )}
@@ -177,9 +181,9 @@ const TenantSidebar = ({ onClose, isMobile }) => {
                   <span className="text-sm font-bold tracking-wide">{item.name}</span>
                 </div>
                 {item.badge && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-600'
+                  <span className={`text-[10px] min-w-[20px] h-[20px] flex items-center justify-center px-1.5 rounded-full font-bold shadow-sm ${isActive ? 'bg-white text-[#062F26]' : 'bg-[#062F26] text-white'
                     }`}>
-                    {item.badge}
+                    {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </>
