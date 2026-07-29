@@ -104,10 +104,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                         <span className="text-xs font-bold text-slate-400 block uppercase">Tenant Preference</span>
                         <span className="text-sm font-semibold text-slate-700">{property.tenantPreference || '-'}</span>
                       </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Gate Closing Time</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.gateClosingTime || '-'}</span>
-                      </div>
+
                       <div>
                         <span className="text-xs font-bold text-slate-400 block uppercase">Notice Period</span>
                         <span className="text-sm font-semibold text-slate-700">{property.noticePeriod || '-'}</span>

@@ -65,6 +65,7 @@ const PerformanceChartWidget = () => {
     labels: ['Today', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
     xaxis: {
       categories: ['Today', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+      tickPlacement: 'on',
       labels: {
         style: { colors: '#94a3b8', fontWeight: 600 }
       },
@@ -165,9 +166,8 @@ const PerformanceChartWidget = () => {
     <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 relative group cursor-default hover:border-brand-teal/20 hover:shadow-[0_8px_30px_rgba(10,168,125,0.06)] transition-all duration-300">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-1 relative z-10">
         <div>
-          <h3 className="text-[22px] font-bold text-[#062F26] flex items-center gap-1.5 cursor-pointer hover:text-brand-teal transition-colors">
+          <h3 className="text-[22px] font-bold text-[#062F26] flex items-center gap-1.5 transition-colors">
             Organization Performance
-            <Icon icon="lucide:chevron-down" className="w-5 h-5 text-slate-400" />
           </h3>
           
           {/* Interactive Custom Legend */}
@@ -190,7 +190,7 @@ const PerformanceChartWidget = () => {
               onClick={() => handleLegendClick('Rent Collected')}
               className={`flex items-center gap-2 cursor-pointer transition-colors ${hiddenSeries['Rent Collected'] ? 'text-slate-300' : 'text-brand-teal hover:text-emerald-700'}`}
             >
-              <div className={`w-3.5 h-3.5 rounded-full transition-colors ${hiddenSeries['Rent Collected'] ? 'bg-slate-200' : 'hidden'}`}></div>
+              <div className={`w-3.5 h-3.5 rounded-full transition-colors ${hiddenSeries['Rent Collected'] ? 'bg-slate-200' : 'bg-brand-teal'}`}></div>
               Rent Collected
             </div>
           </div>

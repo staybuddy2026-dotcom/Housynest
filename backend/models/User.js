@@ -36,8 +36,21 @@ const userSchema = new mongoose.Schema({
     aadharNumber: String,
     certificate: String,
   },
+  dob: {
+    type: Date,
+  },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other'],
+  },
+  emergencyContact: {
+    name: String,
+    relationship: String,
+    phone: String,
+  },
   googleId: {
     type: String,
+    unique: true,
     sparse: true,
   },
   savedProperties: [{

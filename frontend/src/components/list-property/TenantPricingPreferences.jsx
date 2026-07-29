@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
+import CustomDropdown from './CustomDropdown';
 
 const InputField = ({ label, required, subtitle, prefix, error, ...props }) => (
   <div className="flex flex-col gap-1 sm:gap-1.5">
@@ -113,33 +114,7 @@ const TenantPricingPreferences = ({ onNext, onPrev }) => {
     setValue(field, value, { shouldValidate: true });
   };
 
-  const [customRooms, setCustomRooms] = useState([]);
-  const [customOverlooking, setCustomOverlooking] = useState([]);
-  const [customAmenities, setCustomAmenities] = useState([]);
-
-  const handleAddCustom = (setter, currentList, value) => {
-    if (value && value.trim() && !currentList.includes(value.trim())) {
-      setter([...currentList, value.trim()]);
-    }
-  };
-
   const availableFromType = watch('availableFromType');
-  const additionalRooms = watch('additionalRooms') || [];
-  const overlooking = watch('overlooking') || [];
-  const societyAmenities = watch('societyAmenities') || [];
-  const preferredTenants = watch('preferredTenants') || [];
-
-  const facingOptions = ['East', 'North', 'North-East', 'North-West', 'South', 'South-East', 'South-West', 'West'];
-  const defaultAdditionalRooms = ['Pooja Room', 'Servant Room', 'Store', 'Study'];
-  const defaultOverlooking = ['Garden/Park', 'Main Road', 'Pool'];
-  const defaultSocietyAmenities = [
-    'Maintenance Staff', 'Water Supply', 'Power Back Up', 'Private Terrace/Garden', 'RO Water System',
-    'Rain Water Harvesting', 'Reserved Parking', 'Security', 'Service/Goods Lift', 'Swimming Pool',
-    'Vaastu Compliant', 'Waste Disposal', 'Air Conditioned', 'Banquet Hall', 'Bar/Lounge',
-    'Cafeteria/Food Court', 'Club House', 'Conference Room', 'DTH Television Facility', 'Gymnasium',
-    'Intercom Facility', 'Internet/Wi-Fi Connectivity', 'Jogging and Strolling Track', 'Laundry Service', 'Lift'
-  ];
-  const defaultPreferredTenants = ['Couple/Family', 'Vegetarians', 'With Company lease', 'Without Pets'];
 
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] flex flex-col h-full">
@@ -156,8 +131,8 @@ const TenantPricingPreferences = ({ onNext, onPrev }) => {
           </button>
         )}
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-[#062F26] mb-0.5 sm:mb-1">Pricing & Preferences</h2>
-          <p className="text-xs sm:text-xs text-slate-500 font-medium">Rent, amenities & preferences</p>
+          <h2 className="text-lg sm:text-xl font-bold text-[#062F26] mb-0.5 sm:mb-1">Pricing & Status</h2>
+          <p className="text-xs sm:text-xs text-slate-500 font-medium">Rent, dates & preferences</p>
         </div>
       </div>
 
@@ -178,16 +153,13 @@ const TenantPricingPreferences = ({ onNext, onPrev }) => {
                 <InputField label="Maintenance Charges (Optional)" prefix="₹" onInput={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); }} {...register('maintenanceCharges')} error={errors.maintenanceCharges?.message} placeholder="Enter Maintenance" />
               </div>
               <div className="flex-1 relative w-full sm:w-auto">
-                <select
-                  {...register('maintenancePeriod')}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300 appearance-none"
-                >
-                  <option value="" disabled>Select</option>
-                  <option value="Monthly">Monthly</option>
-                  <option value="Annually">Annually</option>
-                  <option value="One-time">One-time</option>
-                </select>
-                <Icon icon="lucide:chevron-down" className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <CustomDropdown
+                  options={['Monthly', 'Annually', 'One-time']}
+                  value={watch('maintenancePeriod')}
+                  onChange={val => handleUpdate('maintenancePeriod', val)}
+                  error={errors.maintenancePeriod?.message}
+                  placeholder="Select"
+                />
               </div>
             </div>
           </div>
@@ -221,68 +193,6 @@ const TenantPricingPreferences = ({ onNext, onPrev }) => {
             )}
           </div>
         </fieldset>
-
-        {/* Additional Details */}
-        <div>
-          <h3 className="text-sm sm:text-sm font-bold text-[#062F26] mb-3 sm:mb-4 border-b pb-2">Additional Details</h3>
-
-          <div className="flex flex-col gap-5 sm:gap-6">
-            <CheckboxGrid
-              label="Additional Rooms"
-              options={[...defaultAdditionalRooms, ...customRooms]}
-              selected={additionalRooms}
-              onChange={val => handleUpdate('additionalRooms', val)}
-              onAddCustom={(val) => handleAddCustom(setCustomRooms, customRooms, val)}
-            />
-
-            <CheckboxGrid
-              label="Overlooking"
-              options={[...defaultOverlooking, ...customOverlooking]}
-              selected={overlooking}
-              onChange={val => handleUpdate('overlooking', val)}
-              onAddCustom={(val) => handleAddCustom(setCustomOverlooking, customOverlooking, val)}
-            />
-
-            <div className="flex flex-col gap-1 sm:gap-1.5 mt-2">
-              <label className="text-xs sm:text-sm font-bold text-[#062F26]">Facing</label>
-              <div className="relative">
-                <select
-                  {...register('facing')}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300 appearance-none"
-                >
-                  <option value="" disabled>Select Facing</option>
-                  {facingOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-                <Icon icon="lucide:chevron-down" className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
-
-            <CheckboxGrid
-              label="Society Amenities"
-              options={[...defaultSocietyAmenities, ...customAmenities]}
-              selected={societyAmenities}
-              onChange={val => handleUpdate('societyAmenities', val)}
-              onAddCustom={(val) => handleAddCustom(setCustomAmenities, customAmenities, val)}
-            />
-            <CheckboxGrid label="Tenants you Prefer" options={defaultPreferredTenants} selected={preferredTenants} onChange={val => handleUpdate('preferredTenants', val)} />
-          </div>
-        </div>
-
-        {/* Locality Description */}
-        <fieldset className="border border-slate-200 rounded-xl p-4 sm:p-5 pt-3 hover:border-slate-300 transition-colors">
-          <legend className="text-xs sm:text-sm font-bold text-[#062F26] px-2 ml-2">
-            Locality Description
-          </legend>
-          <div className="flex flex-col gap-1 sm:gap-1.5 mt-1">
-            <textarea
-              {...register('localityDescription')}
-              placeholder="Tell us what you like & dislike about this locality."
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border ${errors.localityDescription ? 'border-red-500' : 'border-slate-200'} rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300 placeholder:font-normal placeholder:text-slate-400 min-h-30 resize-y`}
-            ></textarea>
-            {errors.localityDescription && <span className="text-red-500 text-[10px] sm:text-xs">{errors.localityDescription.message}</span>}
-          </div>
-        </fieldset>
-
       </div>
 
       {/* Form Actions */}

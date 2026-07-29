@@ -65,6 +65,11 @@ const propertySchema = new mongoose.Schema({
     Other_NonAC: { rentPerBed: String, depositPerBed: String }
   },
 
+  // PG Booking Configuration
+  paymentModel: String,
+  rentalPeriod: String,
+  bookingType: String,
+
   // PG Amenities
   services: [String],
   extraServices: [String],
@@ -82,7 +87,6 @@ const propertySchema = new mongoose.Schema({
   pgRules: [String],
   extraRules: [String],
   noticePeriod: String,
-  gateClosingTime: String,
 
   // Tenant Specific Property Details
   bhkType: String,
@@ -125,10 +129,18 @@ const propertySchema = new mongoose.Schema({
   }],
   
   // Verification documents
-  verificationDocs: [{
-    url: String,
-    public_id: String
-  }],
+  verificationDocs: {
+    type: [{
+      url: String,
+      public_id: String
+    }],
+    validate: {
+      validator: function(v) {
+        return v && v.length > 0;
+      },
+      message: 'At least one verification document is required.'
+    }
+  },
   
   status: {
     type: String,

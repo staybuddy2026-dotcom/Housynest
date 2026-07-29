@@ -18,8 +18,8 @@ const pgSchema = z.object({
   mapLink: z.string().regex(/^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com)\/.*$/, "Must be a valid Google Maps link").optional().or(z.literal('')),
   nearbyPlaces: z.array(
     z.object({
-      place: z.string().min(1, "Required"),
-      distance: z.string().min(1, "Required")
+      place: z.string().optional().or(z.literal('')),
+      distance: z.string().optional().or(z.literal(''))
     })
   ).optional(),
 
@@ -58,6 +58,10 @@ const pgSchema = z.object({
     Other_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
   }).optional(),
 
+  paymentModel: z.string().min(1, "Payment Model is required").optional(),
+  rentalPeriod: z.string().min(1, "Rental Period is required").optional(),
+  bookingType: z.string().min(1, "Booking Type is required").optional(),
+
   services: z.array(z.string()).optional(),
   extraServices: z.array(z.string()).optional(),
   foodProvided: z.boolean().optional(),
@@ -73,7 +77,6 @@ const pgSchema = z.object({
   pgRules: z.array(z.string()).optional(),
   extraRules: z.array(z.string()).optional(),
   noticePeriod: z.string().min(1, "Notice Period is required"),
-  gateClosingTime: z.string().min(1, "Required"),
 
   uspCategory: z.string().optional(),
   uspText: z.string().optional(),

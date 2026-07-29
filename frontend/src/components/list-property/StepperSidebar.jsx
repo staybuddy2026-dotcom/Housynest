@@ -5,18 +5,20 @@ const pgSteps = [
   { id: 1, title: 'Basic Details', subtitle: 'Property type, location & pricing' },
   { id: 2, title: 'Property Details', subtitle: 'Rooms, size, furnishing & more' },
   { id: 3, title: 'Room Options', subtitle: 'Add single, double, triple sharing' },
-  { id: 4, title: 'Amenities & Services', subtitle: 'Facilities, food, parking & more' },
-  { id: 5, title: 'Rules & Policies', subtitle: 'PG rules and policies' },
-  { id: 6, title: 'Photos & Videos', subtitle: 'Add photos, floor plan & video' },
-  { id: 7, title: 'Verify Property', subtitle: 'Upload verification documents' }
+  { id: 4, title: 'Booking', subtitle: 'Set up your rental and booking rules' },
+  { id: 5, title: 'Amenities', subtitle: 'Common Area Amenities & Parking' },
+  { id: 6, title: 'Services', subtitle: 'Facilities, food & more' },
+  { id: 7, title: 'Rules & Policies', subtitle: 'PG rules and policies' },
+  { id: 8, title: 'Photos & Videos', subtitle: 'Add photos, floor plan & video' }
 ];
 
 const tenantSteps = [
   { id: 1, title: 'Basic Details', subtitle: 'Property type, location & pricing' },
   { id: 2, title: 'Property Details', subtitle: 'Address, society, specs' },
-  { id: 3, title: 'Pricing & Preferences', subtitle: 'Rent, amenities & preferences' },
-  { id: 4, title: 'Photos & Videos', subtitle: 'Add photos, floor plan & video' },
-  { id: 5, title: 'Verify Property', subtitle: 'Upload verification documents' }
+  { id: 3, title: 'Pricing & Status', subtitle: 'Rent, dates & preferences' },
+  { id: 4, title: 'Additional Details', subtitle: 'Rooms, facing & overlooking' },
+  { id: 5, title: 'Amenities', subtitle: 'Society and property amenities' },
+  { id: 6, title: 'Photos & Videos', subtitle: 'Add photos, floor plan & video' }
 ];
 
 const StepperSidebar = ({ activeStep, propertyType = 'PG' }) => {

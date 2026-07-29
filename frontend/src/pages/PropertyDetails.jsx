@@ -95,7 +95,6 @@ const PropertyDetails = () => {
               meals: data.meals,
               foodCharges: data.foodCharges,
               parking: data.parking,
-              gateClosingTime: data.gateClosingTime,
               noticePeriod: data.noticePeriod,
               pgRules: data.pgRules || [],
               floors: data.floors || [],

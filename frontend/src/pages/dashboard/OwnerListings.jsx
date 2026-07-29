@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import EditPropertyForm from '../../components/dashboard/EditPropertyForm';
+import OwnerPropertyDetails from '../../components/dashboard/OwnerPropertyDetails';
 
 const OwnerListings = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,6 +13,7 @@ const OwnerListings = () => {
   const [listings, setListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingPropertyId, setEditingPropertyId] = useState(null);
+  const [viewingPropertyId, setViewingPropertyId] = useState(null);
 
   const fetchProperties = useCallback(async () => {
     try {
@@ -84,6 +86,21 @@ const OwnerListings = () => {
           onSuccess={() => {
             setEditingPropertyId(null);
             fetchProperties();
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (viewingPropertyId) {
+    return (
+      <div className="animate-fadeIn">
+        <OwnerPropertyDetails
+          propertyId={viewingPropertyId}
+          onClose={() => setViewingPropertyId(null)}
+          onEdit={() => {
+            setViewingPropertyId(null);
+            setEditingPropertyId(viewingPropertyId);
           }}
         />
       </div>
@@ -293,10 +310,10 @@ const OwnerListings = () => {
                     </div>
 
                     <div className="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-slate-100">
-                      <Link to={`/properties/${rawListing._id}`} className="flex-1 bg-white border border-slate-200 hover:border-brand-teal hover:bg-brand-teal/5 text-slate-600 hover:text-brand-teal py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm">
+                      <button onClick={() => setViewingPropertyId(rawListing._id)} className="flex-1 cursor-pointer bg-white border border-slate-200 hover:border-brand-teal hover:bg-brand-teal/5 text-slate-600 hover:text-brand-teal py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm">
                         <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
                         View
-                      </Link>
+                      </button>
                       <button
                         onClick={() => setEditingPropertyId(rawListing._id)}
                         className="flex-1 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-slate-600 hover:text-blue-600 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
@@ -399,9 +416,9 @@ const OwnerListings = () => {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 sm:border-l sm:border-slate-100 sm:pl-4 shrink-0 justify-end mt-2 sm:mt-0">
-                  <Link to={`/properties/${rawListing._id}`} className="w-8 h-8 rounded-lg text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-all" title="View">
+                  <button onClick={() => setViewingPropertyId(rawListing._id)} className="cursor-pointer w-8 h-8 rounded-lg text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-all" title="View">
                     <Icon icon="lucide:eye" className="w-4 h-4" />
-                  </Link>
+                  </button>
                   <button onClick={() => setEditingPropertyId(rawListing._id)} className="w-8 h-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 flex items-center justify-center transition-all" title="Edit">
                     <Icon icon="lucide:pencil" className="w-4 h-4" />
                   </button>

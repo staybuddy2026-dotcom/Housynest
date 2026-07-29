@@ -505,13 +505,6 @@ const PropertyTabContent = ({
             {propertyType === 'PG' && (
               <>
                 <div className="group flex gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                  <Icon icon="lucide:clock" className="w-5 h-5 text-brand-teal mt-0.5 stroke-[2.5] group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300" />
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 mb-1">Gate Closing Time</p>
-                    <p className="text-sm font-bold text-[#062F26]">{property.gateClosingTime || '10:30 PM'}</p>
-                  </div>
-                </div>
-                <div className="group flex gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
                   <Icon icon="lucide:users" className="w-5 h-5 text-brand-teal mt-0.5 stroke-[2.5] group-hover:scale-110 transition-transform duration-300" />
                   <div>
                     <p className="text-xs font-bold text-slate-500 mb-1">Visitors Allowed</p>

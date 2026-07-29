@@ -8,6 +8,8 @@ const OwnerProfile = () => {
     email: '',
     phone: '',
     profilePic: '',
+    dob: '',
+    gender: '',
   });
   const [isUploading, setIsUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -31,6 +33,8 @@ const OwnerProfile = () => {
             email: user.email || '',
             phone: user.phone || '',
             profilePic: user.profilePic || '',
+            dob: user.dob ? user.dob.split('T')[0] : '',
+            gender: user.gender || '',
           });
           // Update localStorage so navbar and other places have latest
           localStorage.setItem('user', JSON.stringify(user));
@@ -89,15 +93,36 @@ const OwnerProfile = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate save
-    toast.success('Profile updated successfully');
-    setIsEditing(false);
+    const toastId = toast.loading('Updating profile...');
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/users/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        toast.success('Profile updated successfully', { id: toastId });
+        setIsEditing(false);
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile', { id: toastId });
+    }
   };
 
   return (
-    <div className="animate-fadeIn max-w-7xl mx-auto pb-10">
+    <div className="animate-fadeIn p-4 mx-auto pb-10">
       <h1 className="text-2xl font-bold text-[#062F26] tracking-tight mb-6">Profile Settings</h1>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -127,13 +152,13 @@ const OwnerProfile = () => {
               />
             </label>
           </div>
-          
+
           <h2 className="text-xl font-bold text-slate-800 leading-tight mb-1.5">{formData.fullName || 'Owner Name'}</h2>
           <p className="text-sm font-medium text-slate-500 mb-4">{formData.email}</p>
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#EAF5F2] text-[#062F26] mb-8">
             Owner
           </span>
-          
+
           {/* Update Photo Button */}
           <label className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-100 hover:text-[#062F26] transition-all cursor-pointer group">
             {isUploading ? (
@@ -193,62 +218,111 @@ const OwnerProfile = () => {
                   disabled={!isEditing}
                   required
                   className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all ${isEditing
-                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
-                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
-                    }`}
-                />
-            </div>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">
-              Email
-            </label>
-            <div className="relative">
-              <Icon icon="lucide:mail" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                disabled
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-500 cursor-not-allowed"
-              />
-            </div>
-            {isEditing && <p className="text-xs text-slate-400 mt-2 ml-1">Email cannot be changed.</p>}
-          </div>
-
-          {/* Phone Number */}
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">
-              Phone Number
-            </label>
-            <div className="relative">
-              <Icon icon="lucide:phone" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all ${isEditing
                     ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
                     : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
-                  }`}
-              />
+                    }`}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Submit Button */}
-          {isEditing && (
-            <button
-              type="submit"
-              className="mt-2 w-full bg-[#062F26] text-white font-bold text-[15px] py-3.5 rounded-xl hover:bg-brand-teal transition-colors shadow-sm"
-            >
-              Save Changes
-            </button>
-          )}
-        </form>
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Email
+              </label>
+              <div className="relative">
+                <Icon icon="lucide:mail" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  disabled
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-500 cursor-not-allowed"
+                />
+              </div>
+              {isEditing && <p className="text-xs text-slate-400 mt-2 ml-1">Email cannot be changed.</p>}
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Icon icon="lucide:phone" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all ${isEditing
+                    ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                    : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                    }`}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Date of Birth */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Date of Birth
+                </label>
+                <div className="relative">
+                  <Icon icon="lucide:calendar" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="date"
+                    name="dob"
+                    value={formData.dob}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all ${isEditing
+                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                      }`}
+                  />
+                </div>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Gender
+                </label>
+                <div className="relative">
+                  <Icon icon="lucide:user-circle" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all appearance-none ${isEditing
+                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                      }`}
+                  >
+                    <option value="" disabled>Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <Icon icon="lucide:chevron-down" className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            {isEditing && (
+              <button
+                type="submit"
+                className="mt-2 w-full bg-[#062F26] text-white font-bold text-[15px] py-3.5 rounded-xl hover:bg-brand-teal transition-colors shadow-sm"
+              >
+                Save Changes
+              </button>
+            )}
+          </form>
         </div>
       </div>
     </div>

@@ -17,22 +17,48 @@ const InputField = ({ label, required, error, ...props }) => (
 
 const PgPropertyDetails = ({ onNext, onPrev }) => {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
-  const [newPlace, setNewPlace] = useState('');
-  const [newDistance, setNewDistance] = useState('');
 
-  const nearbyPlaces = watch('nearbyPlaces') || [];
+  const [dragActive, setDragActive] = useState(false);
+  const verificationDocs = watch('verificationDocs') || [];
 
-  const handleAddNearby = (e) => {
+  const handleDrag = (e) => {
     e.preventDefault();
-    if (newPlace.trim() && newDistance.trim()) {
-      setValue('nearbyPlaces', [...nearbyPlaces, { place: newPlace.trim(), distance: newDistance.trim() }], { shouldValidate: true });
-      setNewPlace('');
-      setNewDistance('');
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
     }
   };
 
-  const handleRemoveNearby = (index) => {
-    setValue('nearbyPlaces', nearbyPlaces.filter((_, i) => i !== index), { shouldValidate: true });
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleChange = (e) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  const handleFiles = (files) => {
+    const newDocs = Array.from(files).map(file => ({
+      id: Date.now() + Math.random().toString(36).substr(2, 9),
+      url: URL.createObjectURL(file),
+      label: file.name.split('.')[0].substring(0, 15),
+      file: file
+    }));
+    setValue('verificationDocs', [...verificationDocs, ...newDocs], { shouldValidate: true });
+  };
+
+  const removeDoc = (index) => {
+    setValue('verificationDocs', verificationDocs.filter((_, i) => i !== index), { shouldValidate: true });
   };
 
   return (
@@ -66,8 +92,9 @@ const PgPropertyDetails = ({ onNext, onPrev }) => {
           placeholder="Enter Your Address"
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <InputField label="Area / Locality" required {...register('locality')} error={errors.locality?.message} placeholder="e.g. Navarangpura, Satellite" />
+          <InputField label="City" required {...register('city')} error={errors.city?.message} placeholder="e.g. Ahmedabad, Bangalore" />
           <InputField label="State" required {...register('state')} error={errors.state?.message} placeholder="e.g. Gujarat, Maharashtra" />
         </div>
 
@@ -93,53 +120,61 @@ const PgPropertyDetails = ({ onNext, onPrev }) => {
           </p>
         </div>
 
-        {/* Nearby Places */}
-        <div className="flex flex-col gap-2 sm:gap-3">
-          <label className="text-xs sm:text-sm font-bold text-[#062F26]">Nearby Places</label>
-          <p className="text-[10px] text-slate-400 -mt-1.5 sm:-mt-2">Type a place and distance, press Add</p>
+      </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-start">
-            <div className="flex-1 flex gap-2 sm:gap-3">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={newPlace}
-                  onChange={(e) => setNewPlace(e.target.value)}
-                  placeholder="e.g. Metro Station"
-                  className="w-full px-3 sm:px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300"
-                />
-              </div>
-              <div className="w-25 sm:w-30">
-                <input
-                  type="text"
-                  value={newDistance}
-                  onChange={(e) => setNewDistance(e.target.value)}
-                  placeholder="e.g. 500m"
-                  className="w-full px-3 sm:px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300"
-                />
-              </div>
-            </div>
-            <button type="button" onClick={handleAddNearby} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-brand-teal text-white text-sm sm:text-sm font-bold rounded-lg hover:bg-[#062F26] transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-md shadow-brand-teal/20">
-              Add
-            </button>
+      {/* Verification Documents Section (Mandatory) */}
+      <div className="mt-8 pt-6 border-t border-slate-100">
+        <h3 className="text-sm sm:text-sm font-bold text-[#062F26] mb-2 sm:mb-3 flex gap-1.5 items-center">
+          Verification Documents <span className="text-red-500">*</span>
+        </h3>
+        <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-relaxed mb-4">
+          Upload documents to get a verified badge on your listing. This builds trust with potential tenants.<br />
+          Accepted: electricity bill, property tax receipt, ownership deed, or any government-issued property ID proof.
+        </p>
+
+        <div
+          className={`relative border-2 border-dashed rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-all duration-300 ${errors.verificationDocs ? 'border-red-500 bg-red-50' : (dragActive ? 'border-brand-teal bg-[#EAF5F2] scale-[1.02]' : 'border-slate-200 bg-slate-50 hover:border-brand-teal/50 hover:bg-slate-50/50')
+            }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <input
+            type="file"
+            multiple
+            accept=".jpg,.jpeg,.png,.pdf"
+            onChange={handleChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-sm flex items-center justify-center mb-3 sm:mb-4 transition-colors ${errors.verificationDocs ? 'bg-red-500 text-white' : (dragActive ? 'bg-brand-teal text-white' : 'bg-white text-slate-400')}`}>
+            <Icon icon="lucide:shield-check" className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth="2" />
           </div>
-
-          {/* List of Nearby Places */}
-          {nearbyPlaces?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {nearbyPlaces.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-xs font-bold text-slate-600">
-                  <span>{item.place}</span>
-                  <span className="text-brand-teal">{item.distance}</span>
-                  <button type="button" onClick={() => handleRemoveNearby(idx)} className="text-slate-400 hover:text-red-500 transition-colors ml-1">
-                    <Icon icon="lucide:x" width="14" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          <p className={`text-sm sm:text-sm font-bold mb-1 ${errors.verificationDocs ? 'text-red-600' : 'text-[#062F26]'}`}>Click to upload verification documents</p>
+          <p className="text-xs sm:text-xs text-slate-400 font-medium">JPG, PNG, PDF accepted • Max 5 files</p>
+          {errors.verificationDocs && <span className="text-red-500 text-[10px] sm:text-xs mt-2 block">{errors.verificationDocs.message || 'Please upload verification documents'}</span>}
         </div>
 
+        {/* Uploaded Files Preview */}
+        {verificationDocs.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
+            {verificationDocs.map((doc, idx) => (
+              <div key={doc.id || idx} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-white aspect-square shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                  <Icon icon="lucide:file-text" width="32" className="text-brand-teal mb-2" />
+                  <span className="text-[10px] font-bold text-slate-500 truncate w-full text-center">{doc.label || `Document ${idx + 1}`}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeDoc(idx)}
+                  className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center text-slate-400 opacity-0 group-hover:opacity-100 transition-all hover:text-red-500 hover:bg-red-50 shadow-sm"
+                >
+                  <Icon icon="lucide:trash-2" width="14" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Form Actions */}

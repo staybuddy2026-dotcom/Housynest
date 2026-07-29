@@ -8,6 +8,13 @@ const TenantProfile = () => {
     email: '',
     phone: '',
     profilePic: '',
+    dob: '',
+    gender: '',
+    emergencyContact: {
+      name: '',
+      relationship: '',
+      phone: '',
+    }
   });
   const [isUploading, setIsUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -31,6 +38,9 @@ const TenantProfile = () => {
             email: user.email || '',
             phone: user.phone || '',
             profilePic: user.profilePic || '',
+            dob: user.dob ? user.dob.split('T')[0] : '',
+            gender: user.gender || '',
+            emergencyContact: user.emergencyContact || { name: '', relationship: '', phone: '' },
           });
           // Update localStorage so navbar and other places have latest
           localStorage.setItem('user', JSON.stringify(user));
@@ -45,6 +55,16 @@ const TenantProfile = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleNestedChange = (e, parent) => {
+    setFormData({
+      ...formData,
+      [parent]: {
+        ...formData[parent],
+        [e.target.name]: e.target.value
+      }
+    });
   };
 
   const handleImageUpload = async (e) => {
@@ -89,15 +109,36 @@ const TenantProfile = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate save
-    toast.success('Profile updated successfully');
-    setIsEditing(false);
+    const toastId = toast.loading('Updating profile...');
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/users/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        toast.success('Profile updated successfully', { id: toastId });
+        setIsEditing(false);
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile', { id: toastId });
+    }
   };
 
   return (
-    <div className="animate-fadeIn max-w-7xl mx-auto pb-10">
+    <div className="animate-fadeIn p-4 mx-auto">
       <h1 className="text-2xl font-bold text-[#062F26] tracking-tight mb-6">Profile Settings</h1>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -193,8 +234,8 @@ const TenantProfile = () => {
                   disabled={!isEditing}
                   required
                   className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all ${isEditing
-                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
-                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                    ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                    : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
                     }`}
                 />
               </div>
@@ -232,10 +273,121 @@ const TenantProfile = () => {
                   onChange={handleChange}
                   disabled={!isEditing}
                   className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all ${isEditing
-                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
-                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                    ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                    : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
                     }`}
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Date of Birth */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Date of Birth
+                </label>
+                <div className="relative">
+                  <Icon icon="lucide:calendar" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="date"
+                    name="dob"
+                    value={formData.dob}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all ${isEditing
+                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                      }`}
+                  />
+                </div>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Gender
+                </label>
+                <div className="relative">
+                  <Icon icon="lucide:user-circle" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all appearance-none ${isEditing
+                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                      }`}
+                  >
+                    <option value="" disabled>Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <Icon icon="lucide:chevron-down" className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 border-t border-slate-100 pt-8">
+              <h3 className="text-lg font-bold text-[#062F26] mb-6">Emergency Contact</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Contact Name */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Contact Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Name of contact person"
+                    value={formData.emergencyContact?.name || ''}
+                    onChange={(e) => handleNestedChange(e, 'emergencyContact')}
+                    disabled={!isEditing}
+                    className={`w-full border rounded-xl px-4 py-3 text-sm transition-all ${isEditing
+                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                      }`}
+                  />
+                </div>
+
+                {/* Relationship */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Relationship
+                  </label>
+                  <input
+                    type="text"
+                    name="relationship"
+                    placeholder="e.g. Father, Mother"
+                    value={formData.emergencyContact?.relationship || ''}
+                    onChange={(e) => handleNestedChange(e, 'emergencyContact')}
+                    disabled={!isEditing}
+                    className={`w-full border rounded-xl px-4 py-3 text-sm transition-all ${isEditing
+                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                      }`}
+                  />
+                </div>
+
+                {/* Contact Number */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Contact Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="Emergency contact number"
+                    value={formData.emergencyContact?.phone || ''}
+                    onChange={(e) => handleNestedChange(e, 'emergencyContact')}
+                    disabled={!isEditing}
+                    className={`w-full border rounded-xl px-4 py-3 text-sm transition-all ${isEditing
+                      ? 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
+                      : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+                      }`}
+                  />
+                </div>
               </div>
             </div>
 

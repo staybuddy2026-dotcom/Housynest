@@ -154,7 +154,7 @@ const PropertySidebarCard = ({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="border border-slate-100/60 bg-slate-50/50 rounded-lg p-2.5">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Security Deposit</p>
             <div className='flex items-center gap-1'>
@@ -165,48 +165,56 @@ const PropertySidebarCard = ({
           <div className="border border-slate-100/60 bg-slate-50/50 rounded-lg p-2.5">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Available From</p>
             <p className="text-sm font-bold text-[#062F26]">
-              {property.availableDate 
-                ? new Date(property.availableDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
+              {property.availableDate
+                ? new Date(property.availableDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
                 : (propertyType === 'PG' ? 'Immediately' : 'Contact Owner')}
             </p>
           </div>
         </div>
 
         {propertyType === 'PG' && (
-          <div className="grid grid-cols-2 gap-2 mb-8 text-xs">
-            <div className="flex gap-2 items-start">
-              <Icon icon="lucide:bed" className="w-4 h-4 text-brand-teal mt-0.5 stroke-[2.5]" />
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="flex items-center gap-3 border border-slate-100/60 bg-slate-50/50 rounded-lg p-2.5 transition-all hover:border-brand-teal/30 hover:bg-slate-50">
+              <div className="flex-shrink-0 w-8 h-8 rounded-md bg-white border border-slate-100 flex items-center justify-center shadow-sm">
+                <Icon icon="lucide:bed" className="w-4 h-4 text-brand-teal stroke-[2.5]" />
+              </div>
               <div>
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Total Beds</p>
-                <p className="font-bold text-slate-700 text-xs">{pgRooms[selectedRoomIndex].totalBeds}</p>
+                <p className="text-sm font-bold text-[#062F26] leading-none">{pgRooms[selectedRoomIndex].totalBeds}</p>
               </div>
             </div>
 
-            <div className="flex gap-2 items-start">
-              <Icon icon="lucide:user-check" className="w-4 h-4 text-brand-teal mt-0.5 stroke-[2.5]" />
+            <div className="flex items-center gap-3 border border-slate-100/60 bg-slate-50/50 rounded-lg p-2.5 transition-all hover:border-brand-teal/30 hover:bg-slate-50">
+              <div className="flex-shrink-0 w-8 h-8 rounded-md bg-white border border-slate-100 flex items-center justify-center shadow-sm">
+                <Icon icon="lucide:user-check" className="w-4 h-4 text-brand-teal stroke-[2.5]" />
+              </div>
               <div>
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Available Beds</p>
-                <p className="font-bold text-slate-700 text-xs">{pgRooms[selectedRoomIndex].available}</p>
+                <p className="text-sm font-bold text-[#062F26] leading-none">{pgRooms[selectedRoomIndex].available}</p>
               </div>
             </div>
           </div>
         )}
 
         {propertyType !== 'PG' && (
-          <div className="grid grid-cols-2 gap-2 mb-8 text-xs">
-            <div className="flex gap-2 items-start">
-              <Icon icon="lucide:scaling" className="w-4 h-4 text-brand-teal mt-0.5 stroke-[2.5]" />
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            <div className="flex items-center gap-3 border border-slate-100/60 bg-slate-50/50 rounded-lg p-2.5 transition-all hover:border-brand-teal/30 hover:bg-slate-50">
+              <div className="flex-shrink-0 w-8 h-8 rounded-md bg-white border border-slate-100 flex items-center justify-center shadow-sm">
+                <Icon icon="lucide:scaling" className="w-4 h-4 text-brand-teal stroke-[2.5]" />
+              </div>
               <div>
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Built-up Area</p>
-                <p className="font-bold text-slate-700 text-xs">{property.builtUpArea ? `${property.builtUpArea} sq.ft.` : 'N/A'}</p>
+                <p className="text-sm font-bold text-[#062F26] leading-none">{property.builtUpArea ? `${property.builtUpArea} sq.ft.` : 'N/A'}</p>
               </div>
             </div>
 
-            <div className="flex gap-2 items-start">
-              <Icon icon="lucide:scaling" className="w-4 h-4 text-brand-teal mt-0.5 stroke-[2.5]" />
+            <div className="flex items-center gap-3 border border-slate-100/60 bg-slate-50/50 rounded-lg p-2.5 transition-all hover:border-brand-teal/30 hover:bg-slate-50">
+              <div className="flex-shrink-0 w-8 h-8 rounded-md bg-white border border-slate-100 flex items-center justify-center shadow-sm">
+                <Icon icon="lucide:scaling" className="w-4 h-4 text-brand-teal stroke-[2.5]" />
+              </div>
               <div>
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Carpet Area</p>
-                <p className="font-bold text-slate-700 text-xs">{property.carpetArea ? `${property.carpetArea} sq.ft.` : 'N/A'}</p>
+                <p className="text-sm font-bold text-[#062F26] leading-none">{property.carpetArea ? `${property.carpetArea} sq.ft.` : 'N/A'}</p>
               </div>
             </div>
           </div>

@@ -2,81 +2,9 @@ import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
 
-const CheckboxGroup = ({ options, selected, onChange }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-    {options.map(opt => (
-      <label key={opt} className={`flex items-center justify-between p-3 sm:p-3.5 rounded-lg border cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${selected.includes(opt) ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' : 'border-slate-200 bg-white hover:border-brand-teal/30 hover:bg-slate-50 hover:shadow-sm'
-        }`}>
-        <span className={`text-xs sm:text-sm font-semibold ${selected.includes(opt) ? 'text-[#062F26]' : 'text-slate-700'}`}>{opt}</span>
-        <input
-          type="checkbox"
-          checked={selected.includes(opt)}
-          onChange={() => {
-            const updated = selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt];
-            onChange(updated);
-          }}
-          className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
-        />
-      </label>
-    ))}
-  </div>
-);
-
-const AddExtraForm = ({ onAdd }) => {
-  const [val, setVal] = useState('');
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (val.trim()) {
-      onAdd(val.trim());
-      setVal('');
-    }
-  };
-  return (
-    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 sm:mt-3">
-      <input
-        type="text"
-        value={val}
-        onChange={e => setVal(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handleSubmit(e);
-          }
-        }}
-        placeholder="Add extra..."
-        className="flex-1 w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300"
-      />
-      <button type="button" onClick={handleSubmit} className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 bg-brand-teal text-white text-sm sm:text-sm font-bold rounded-lg hover:bg-[#062F26] transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-md shadow-brand-teal/20">
-        Add
-      </button>
-    </div>
-  );
-};
-
-const CustomTags = ({ items, onRemove }) => {
-  if (!items || items.length === 0) return null;
-  return (
-    <div className="flex flex-wrap gap-2 mt-3">
-      {items.map((item, idx) => (
-        <div key={idx} className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700">
-          {item}
-          <button type="button" onClick={() => onRemove(item)} className="hover:text-red-500 transition-colors">
-            <Icon icon="lucide:x" width="12" />
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 const PgAmenities = ({ onNext, onPrev }) => {
-  const { register, watch, setValue } = useFormContext();
+  const { watch, setValue } = useFormContext();
 
-  const services = watch('services') || [];
-  const extraServices = watch('extraServices') || [];
-  const foodProvided = watch('foodProvided');
-  const meals = watch('meals') || [];
-  const vegNonVeg = watch('vegNonVeg');
   const commonAmenities = watch('commonAmenities') || [];
   const extraCommonAmenities = watch('extraCommonAmenities') || [];
   const parkingAvailable = watch('parkingAvailable') || false;
@@ -84,167 +12,205 @@ const PgAmenities = ({ onNext, onPrev }) => {
 
   const handleUpdate = (field, value) => setValue(field, value, { shouldValidate: true });
 
-  const handleAddExtra = (field, currentArr, item) => {
-    if (!currentArr.includes(item)) {
-      handleUpdate(field, [...currentArr, item]);
+  const toggleAmenity = (opt) => {
+    const updated = commonAmenities.includes(opt) ? commonAmenities.filter(s => s !== opt) : [...commonAmenities, opt];
+    handleUpdate('commonAmenities', updated);
+  };
+
+  const [customVal, setCustomVal] = useState('');
+  const handleAddCustom = (e) => {
+    e?.preventDefault();
+    if (customVal.trim() && !extraCommonAmenities.includes(customVal.trim())) {
+      handleUpdate('extraCommonAmenities', [...extraCommonAmenities, customVal.trim()]);
+      setCustomVal('');
     }
   };
-  const handleRemoveExtra = (field, currentArr, item) => {
-    handleUpdate(field, currentArr.filter(i => i !== item));
+
+  const handleRemoveExtra = (item) => {
+    handleUpdate('extraCommonAmenities', extraCommonAmenities.filter(i => i !== item));
   };
+
+  const handleRemoveAmenity = (item) => {
+    handleUpdate('commonAmenities', commonAmenities.filter(i => i !== item));
+  };
+
+  const allSelected = [...commonAmenities, ...extraCommonAmenities];
+
+  const amenityOptions = ['Bed', 'Study Table', 'Wardrobe', 'Ac', 'Wifi', 'Heater', 'Geyser', 'Separate Washroom', 'Private Balcony', 'Inhouse Kitchen', 'Gym', 'Library', 'Indoor Games', 'Swimming Pool', 'Work Cabin'];
 
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] flex flex-col h-full">
 
-      <div className="mb-4 sm:mb-6 flex items-start gap-3 sm:gap-4">
+      {/* Header section with back button */}
+      <div className="mb-6 flex items-start gap-4">
         {onPrev && (
           <button
             type="button"
             onClick={onPrev}
-            className="mt-0.5 w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="mt-1 w-8 h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-brand-teal hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth="2.5" />
+            <Icon icon="lucide:arrow-left" className="w-4.5 h-4.5" strokeWidth="2.5" />
           </button>
         )}
-        <div>
-          <h2 className="text-lg sm:text-xl font-bold text-[#062F26] mb-0.5 sm:mb-1">Amenities & Services</h2>
-          <p className="text-xs sm:text-xs text-slate-500 font-medium">Facilities, food, parking & more</p>
+        
+        <div className="flex gap-4 items-center">
+          <div className="w-12 h-12 rounded-xl bg-[#EAF5F2] flex items-center justify-center text-brand-teal shadow-sm">
+            <Icon icon="lucide:wifi" className="w-6 h-6" strokeWidth="2.5" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-[#062F26] mb-1">Property Amenities</h2>
+            <p className="text-sm text-slate-500 font-medium">Select all amenities available at your property</p>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-6 sm:gap-8 flex-1">
+      <div className="flex flex-col flex-1 gap-8">
 
-        {/* Services Available */}
-        <div>
-          <h3 className="text-sm font-bold text-[#062F26] mb-3">Services Available</h3>
-          <CheckboxGroup
-            options={['Laundry', 'Room Cleaning', 'Warden']}
-            selected={services}
-            onChange={(val) => handleUpdate('services', val)}
-          />
-          <AddExtraForm onAdd={(val) => handleAddExtra('extraServices', extraServices, val)} />
-          <CustomTags items={extraServices} onRemove={(val) => handleRemoveExtra('extraServices', extraServices, val)} />
+        {/* 3-Column Grid for Default Amenities */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {amenityOptions.map(opt => {
+            const isSelected = commonAmenities.includes(opt);
+            return (
+              <label 
+                key={opt} 
+                className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${
+                  isSelected 
+                    ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' 
+                    : 'border-slate-200 bg-white hover:border-brand-teal/30 hover:bg-slate-50 hover:shadow-sm'
+                }`}
+              >
+                <span className={`text-sm font-semibold ${isSelected ? 'text-[#062F26]' : 'text-slate-600'}`}>
+                  {opt}
+                </span>
+                
+                <div className="flex items-center justify-center w-5 h-5">
+                  {isSelected ? (
+                    <Icon icon="lucide:check-circle-2" className="w-5 h-5 text-brand-teal drop-shadow-sm" strokeWidth="2.5" />
+                  ) : (
+                    <div className="w-4 h-4 rounded border-2 border-slate-200 bg-white group-hover:border-slate-300 transition-colors"></div>
+                  )}
+                </div>
+                
+                {/* Hidden real checkbox for accessibility / native behavior tracking if needed, though toggle is handled by onClick of label theoretically, actually React handles it better when input is there */}
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggleAmenity(opt)}
+                  className="hidden"
+                />
+              </label>
+            );
+          })}
         </div>
 
-        {/* Food Provided */}
-        <div className="p-5 border border-slate-200 rounded-xl bg-slate-50/50">
-          <label className="flex items-center gap-3 cursor-pointer mb-4">
-            <input
-              type="checkbox"
-              checked={foodProvided}
-              onChange={(e) => handleUpdate('foodProvided', e.target.checked)}
-              className="w-5 h-5 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
-            />
-            <span className="text-sm font-bold text-[#062F26]">Food Provided</span>
-          </label>
+        {/* Divider */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px bg-slate-100"></div>
+          <span className="text-xs font-bold text-brand-teal uppercase tracking-wider">Add Custom Amenities</span>
+          <div className="flex-1 h-px bg-slate-100"></div>
+        </div>
 
-          {foodProvided && (
-            <div className="flex flex-col gap-4 sm:gap-5 pl-4 sm:pl-8 border-l-2 border-slate-200 mt-2">
-              <div>
-                <label className="text-xs font-bold text-slate-600 mb-2 block">Meals</label>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  {['Breakfast', 'Lunch', 'Dinner'].map(meal => (
-                    <button
-                      key={meal}
-                      type="button"
-                      onClick={() => {
-                        handleUpdate('meals', meals.includes(meal) ? meals.filter(x => x !== meal) : [...meals, meal]);
-                      }}
-                      className={`flex-1 py-2 sm:py-2.5 rounded-lg border text-xs sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${meals.includes(meal) ? 'bg-[#EAF5F2] border-brand-teal/50 text-[#062F26] shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
-                        }`}
-                    >
-                      {meals.includes(meal) && <Icon icon="lucide:check" width="12" className="text-brand-teal" strokeWidth="3" />}
-                      {meal}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        {/* Add Custom Amenity Box */}
+        <div className="border border-dashed border-slate-300 rounded-xl p-5 bg-slate-50/50">
+          <h3 className="text-sm font-bold text-[#062F26] mb-3">Custom Amenity</h3>
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <div className="relative flex-1 w-full">
+              <Icon icon="lucide:plus" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={customVal}
+                onChange={e => setCustomVal(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddCustom(e);
+                  }
+                }}
+                placeholder="e.g. Pet-friendly area, Solar panels..."
+                className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300"
+              />
+            </div>
+            <button 
+              type="button" 
+              onClick={handleAddCustom} 
+              className="w-full sm:w-auto px-6 py-3 bg-[#062F26] text-white text-sm font-bold rounded-lg hover:bg-brand-teal transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-md shadow-brand-teal/20"
+            >
+              Add
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-500 font-medium mt-2 flex items-center gap-1.5">
+            <Icon icon="lucide:lightbulb" className="w-3.5 h-3.5 text-brand-teal" />
+            Add any amenity not listed above and click Add
+          </p>
+        </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-600 mb-2 block">Veg/Nonveg Food Provided</label>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  {['Veg', 'Veg & Non Veg'].map(opt => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => handleUpdate('vegNonVeg', opt)}
-                      className={`flex-1 py-2 sm:py-2.5 rounded-lg border text-xs sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${vegNonVeg === opt ? 'bg-[#EAF5F2] border-brand-teal/50 text-[#062F26] shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
-                        }`}
-                    >
-                      {vegNonVeg === opt && <Icon icon="lucide:check" width="12" className="text-brand-teal" strokeWidth="3" />}
-                      {opt}
-                    </button>
-                  ))}
+        {/* Selected Amenities Preview Box */}
+        <div className="bg-[#F8F9FA] rounded-xl p-6 border border-slate-100 min-h-[140px] flex items-center justify-center transition-all duration-300">
+          {allSelected.length === 0 ? (
+            <div className="text-center flex flex-col items-center opacity-70">
+              <Icon icon="lucide:sparkles" className="w-6 h-6 text-brand-teal mb-2" />
+              <h4 className="text-sm font-bold text-slate-600 mb-1">No Amenities Selected</h4>
+              <p className="text-xs text-slate-400 font-medium">Select amenities to showcase what you offer</p>
+            </div>
+          ) : (
+            <div className="w-full flex flex-wrap gap-2.5 items-start justify-start content-start min-h-[92px]">
+              {commonAmenities.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2 bg-white border border-slate-200 px-3.5 py-2 rounded-full text-xs font-bold text-slate-700 shadow-sm transition-all hover:border-brand-teal/30 hover:shadow-md group">
+                  <span className="text-brand-teal"><Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5" /></span>
+                  {item}
+                  <button type="button" onClick={() => handleRemoveAmenity(item)} className="ml-1 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                    <Icon icon="lucide:x" width="14" />
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1 sm:gap-1.5">
-                <label className="text-xs font-bold text-slate-600">Food Charges</label>
-                <div className="relative">
-                  <select
-                    {...register('foodCharges')}
-                    className="w-full px-3 sm:px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300 appearance-none pr-10"
-                  >
-                    <option value="" disabled>Select Food Charges</option>
-                    <option value="Included in rent">Included in rent</option>
-                    <option value="Per meal basis">Per meal basis</option>
-                    <option value="Monthly extra charges">Monthly extra charges</option>
-                    <option value="Pay as you go">Pay as you go</option>
-                  </select>
-                  <Icon icon="lucide:chevron-down" className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              ))}
+              {extraCommonAmenities.map((item, idx) => (
+                <div key={`extra-${idx}`} className="flex items-center gap-2 bg-[#EAF5F2] border border-brand-teal/20 px-3.5 py-2 rounded-full text-xs font-bold text-[#062F26] shadow-sm transition-all hover:border-brand-teal hover:shadow-md group">
+                  <span className="text-brand-teal"><Icon icon="lucide:star" className="w-3.5 h-3.5" /></span>
+                  {item}
+                  <button type="button" onClick={() => handleRemoveExtra(item)} className="ml-1 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                    <Icon icon="lucide:x" width="14" />
+                  </button>
                 </div>
-              </div>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Common Area Amenities */}
-        <div>
-          <h3 className="text-sm font-bold text-[#062F26] mb-3">Common Area Amenities</h3>
-          <CheckboxGroup
-            options={['Fridge', 'Kitchen for Self-cooking', 'RO Water', 'Wi-Fi', 'TV', 'Power Backup', 'CCTV', 'Gymnasium']}
-            selected={commonAmenities}
-            onChange={(val) => handleUpdate('commonAmenities', val)}
-          />
-          <AddExtraForm onAdd={(val) => handleAddExtra('extraCommonAmenities', extraCommonAmenities, val)} />
-          <CustomTags items={extraCommonAmenities} onRemove={(val) => handleRemoveExtra('extraCommonAmenities', extraCommonAmenities, val)} />
-        </div>
-
         {/* Parking Availability */}
-        <div className="p-5 border border-slate-200 rounded-xl bg-slate-50/50">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={parkingAvailable}
-              onChange={(e) => {
-                handleUpdate('parkingAvailable', e.target.checked);
-                if (!e.target.checked) handleUpdate('parking', []);
-              }}
-              className="w-5 h-5 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
-            />
-            <span className="text-sm font-bold text-[#062F26]">Parking Available</span>
-          </label>
+        <div className="border border-slate-200 rounded-xl bg-white overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={parkingAvailable}
+                onChange={(e) => {
+                  handleUpdate('parkingAvailable', e.target.checked);
+                  if (!e.target.checked) handleUpdate('parking', []);
+                }}
+                className="w-5 h-5 text-brand-teal rounded border-slate-300 focus:ring-brand-teal accent-brand-teal cursor-pointer"
+              />
+              <span className="text-sm font-bold text-[#062F26]">Parking Available</span>
+            </label>
+          </div>
 
           {parkingAvailable && (
-            <div className="flex flex-col gap-4 sm:gap-5 pl-4 sm:pl-8 border-l-2 border-slate-200 mt-4">
-              <div>
-                <label className="text-xs font-bold text-slate-600 mb-2 block">Vehicle Type</label>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  {['2-Wheeler', 'Car Parking'].map(opt => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => {
-                        handleUpdate('parking', parking.includes(opt) ? parking.filter(x => x !== opt) : [...parking, opt]);
-                      }}
-                      className={`flex-1 py-2 sm:py-3 rounded-lg border text-sm sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${parking.includes(opt) ? 'bg-[#EAF5F2] border-brand-teal/50 text-[#062F26] shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
-                        }`}
-                    >
-                      {parking.includes(opt) && <Icon icon="lucide:check" width="14" className="text-brand-teal" strokeWidth="3" />}
-                      {opt}
-                    </button>
-                  ))}
-                </div>
+            <div className="p-4 sm:p-5">
+              <label className="text-xs font-bold text-slate-600 mb-3 block">Select Vehicle Type</label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                {['2-Wheeler', 'Car Parking'].map(opt => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      handleUpdate('parking', parking.includes(opt) ? parking.filter(x => x !== opt) : [...parking, opt]);
+                    }}
+                    className={`flex-1 py-3 px-4 rounded-xl border text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${parking.includes(opt) ? 'bg-[#EAF5F2] border-brand-teal text-[#062F26] shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-brand-teal/30 hover:shadow-sm'
+                      }`}
+                  >
+                    {parking.includes(opt) && <Icon icon="lucide:check-circle-2" width="16" className="text-brand-teal" strokeWidth="2.5" />}
+                    {opt}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -253,7 +219,7 @@ const PgAmenities = ({ onNext, onPrev }) => {
       </div>
 
       {/* Form Actions */}
-      <div className="flex justify-end items-center mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-slate-100">
+      <div className="flex justify-end items-center mt-8 pt-6 border-t border-slate-100">
         <button
           type="button"
           onClick={onNext}

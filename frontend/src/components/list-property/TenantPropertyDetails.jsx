@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
+import CustomDropdown from './CustomDropdown';
 
 const InputField = ({ label, required, subtitle, error, ...props }) => (
   <div className="flex flex-col gap-1 sm:gap-1.5">
@@ -51,7 +52,7 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
   const bathrooms = watch('bathrooms');
   const balconies = watch('balconies');
   const furnishingStatus = watch('furnishingStatus');
-  const ageOfProperty = watch('ageOfProperty');
+
   const propertyCategory = watch('propertyCategory');
 
   const handleUpdate = (field, value) => {
@@ -69,6 +70,49 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
 
   const handleRemovePlace = (index) => {
     setValue('nearbyPlaces', nearbyPlaces.filter((_, i) => i !== index), { shouldValidate: true });
+  };
+
+  const [dragActive, setDragActive] = useState(false);
+  const verificationDocs = watch('verificationDocs') || [];
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleChange = (e) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  const handleFiles = (files) => {
+    const newDocs = Array.from(files).map(file => ({
+      id: Date.now() + Math.random().toString(36).substr(2, 9),
+      url: URL.createObjectURL(file),
+      label: file.name.split('.')[0].substring(0, 15),
+      file: file
+    }));
+    setValue('verificationDocs', [...verificationDocs, ...newDocs], { shouldValidate: true });
+  };
+
+  const removeDoc = (index) => {
+    setValue('verificationDocs', verificationDocs.filter((_, i) => i !== index), { shouldValidate: true });
   };
 
   return (
@@ -96,9 +140,12 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
         {/* Address Fields */}
         <div className="flex flex-col gap-3 sm:gap-4">
           <InputField label="Address" required {...register('address')} error={errors.address?.message} placeholder="Enter Your Address" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             <InputField label="Area / Locality" required {...register('locality')} error={errors.locality?.message} placeholder="e.g. Navarangpura, Satellite" />
+            <InputField label="City" required {...register('city')} error={errors.city?.message} placeholder="e.g. Ahmedabad, Bangalore" />
             <InputField label="State" required {...register('state')} error={errors.state?.message} placeholder="e.g. Gujarat, Maharashtra" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <InputField label="Pincode" required onInput={(e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); }} {...register('pincode')} error={errors.pincode?.message} placeholder="380001" />
             <InputField label="Landmark" required {...register('landmark')} error={errors.landmark?.message} placeholder="Enter Your Landmark" />
           </div>
@@ -169,53 +216,48 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
         </div>
 
         {/* Specs */}
-        <ButtonGroup
-          label="No. of Villas in project/Society"
-          options={['<50', '50-100', '>100']}
-          value={numberOfVillas}
-          onChange={val => handleUpdate('numberOfVillas', val)}
-          error={errors.numberOfVillas?.message}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <CustomDropdown
+            label="No. of Villas in project/Society"
+            options={['<50', '50-100', '>100']}
+            value={numberOfVillas}
+            onChange={val => handleUpdate('numberOfVillas', val)}
+            error={errors.numberOfVillas?.message}
+          />
+          <CustomDropdown
+            label="BHK (Bedrooms, Hall, Kitchen)" required
+            options={['1 BHK', '2 BHK', '3 BHK', '4 BHK', '4+ BHK']}
+            value={bhkType}
+            onChange={val => handleUpdate('bhkType', val)}
+            error={errors.bhkType?.message}
+            placeholder="Select BHK"
+          />
+        </div>
 
-        <ButtonGroup
-          label="BHK (Bedrooms, Hall, Kitchen)" required
-          options={['1 BHK', '2 BHK', '3 BHK', '4 BHK', '4+ BHK']}
-          value={bhkType}
-          onChange={val => handleUpdate('bhkType', val)}
-          error={errors.bhkType?.message}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <CustomDropdown
+            label="Bathroom"
+            options={['All', '1+', '2+', '3+', '4+']}
+            value={bathrooms}
+            onChange={val => handleUpdate('bathrooms', val)}
+            error={errors.bathrooms?.message}
+          />
+          <CustomDropdown
+            label="Balcony(Optional)"
+            options={['All', '1+', '2+', '3+', '4+']}
+            value={balconies}
+            onChange={val => handleUpdate('balconies', val)}
+            error={errors.balconies?.message}
+          />
+          <CustomDropdown
+            label="Furnishing"
+            options={['Unfurnished', 'Semi-Furnished', 'Fully-Furnished']}
+            value={furnishingStatus}
+            onChange={val => handleUpdate('furnishingStatus', val)}
+            error={errors.furnishingStatus?.message}
+          />
+        </div>
 
-        <ButtonGroup
-          label="Bathroom"
-          options={['All', '1+', '2+', '3+', '4+']}
-          value={bathrooms}
-          onChange={val => handleUpdate('bathrooms', val)}
-          error={errors.bathrooms?.message}
-        />
-
-        <ButtonGroup
-          label="Balcony(Optional)"
-          options={['All', '1+', '2+', '3+', '4+']}
-          value={balconies}
-          onChange={val => handleUpdate('balconies', val)}
-          error={errors.balconies?.message}
-        />
-
-        <ButtonGroup
-          label="Furnishing"
-          options={['Unfurnished', 'Semi-Furnished', 'Fully-Furnished']}
-          value={furnishingStatus}
-          onChange={val => handleUpdate('furnishingStatus', val)}
-          error={errors.furnishingStatus?.message}
-        />
-
-        <ButtonGroup
-          label="Age of Property"
-          options={['0-1 Years', '1-5 Years', '5-10 Years', '10+ Years']}
-          value={ageOfProperty}
-          onChange={val => handleUpdate('ageOfProperty', val)}
-          error={errors.ageOfProperty?.message}
-        />
 
         {/* Floors (Only for Flat) */}
         {propertyCategory === 'Flat' && (
@@ -236,6 +278,61 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
 
 
 
+      </div>
+
+      {/* Verification Documents Section (Mandatory) */}
+      <div className="mt-8 pt-6 border-t border-slate-100">
+        <h3 className="text-sm sm:text-sm font-bold text-[#062F26] mb-2 sm:mb-3 flex gap-1.5 items-center">
+          Verification Documents <span className="text-red-500">*</span>
+        </h3>
+        <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-relaxed mb-4">
+          Upload documents to get a verified badge on your listing. This builds trust with potential tenants.<br />
+          Accepted: electricity bill, property tax receipt, ownership deed, or any government-issued property ID proof.
+        </p>
+
+        <div
+          className={`relative border-2 border-dashed rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-all duration-300 ${errors.verificationDocs ? 'border-red-500 bg-red-50' : (dragActive ? 'border-brand-teal bg-[#EAF5F2] scale-[1.02]' : 'border-slate-200 bg-slate-50 hover:border-brand-teal/50 hover:bg-slate-50/50')
+            }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <input
+            type="file"
+            multiple
+            accept=".jpg,.jpeg,.png,.pdf"
+            onChange={handleChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-sm flex items-center justify-center mb-3 sm:mb-4 transition-colors ${errors.verificationDocs ? 'bg-red-500 text-white' : (dragActive ? 'bg-brand-teal text-white' : 'bg-white text-slate-400')}`}>
+            <Icon icon="lucide:shield-check" className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth="2" />
+          </div>
+          <p className={`text-sm sm:text-sm font-bold mb-1 ${errors.verificationDocs ? 'text-red-600' : 'text-[#062F26]'}`}>Click to upload verification documents</p>
+          <p className="text-xs sm:text-xs text-slate-400 font-medium">JPG, PNG, PDF accepted • Max 5 files</p>
+          {errors.verificationDocs && <span className="text-red-500 text-[10px] sm:text-xs mt-2 block">{errors.verificationDocs.message || 'Please upload verification documents'}</span>}
+        </div>
+
+        {/* Uploaded Files Preview */}
+        {verificationDocs.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
+            {verificationDocs.map((doc, idx) => (
+              <div key={doc.id || idx} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-white aspect-square shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                  <Icon icon="lucide:file-text" width="32" className="text-brand-teal mb-2" />
+                  <span className="text-[10px] font-bold text-slate-500 truncate w-full text-center">{doc.label || `Document ${idx + 1}`}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeDoc(idx)}
+                  className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center text-slate-400 opacity-0 group-hover:opacity-100 transition-all hover:text-red-500 hover:bg-red-50 shadow-sm"
+                >
+                  <Icon icon="lucide:trash-2" width="14" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Form Actions */}

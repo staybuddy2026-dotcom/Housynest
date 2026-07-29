@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
 
-const PgPhotos = ({ onNext, onPrev }) => {
+const PgPhotos = ({ onNext, onPrev, isSubmitting }) => {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
 
   const fileInputRef = useRef(null);
@@ -196,18 +196,6 @@ const PgPhotos = ({ onNext, onPrev }) => {
           <p className="text-[10px] sm:text-xs text-slate-500">Example: Prime location, Near Metro, 24x7 Security, Great Food, etc.</p>
         </div>
 
-        {/* Description */}
-        <div>
-          <h3 className="text-sm sm:text-sm font-bold text-[#062F26] mb-1">Property Description</h3>
-          <p className="text-[10px] sm:text-xs text-slate-500 mb-2 sm:mb-3">Write a brief description of your property</p>
-          <textarea
-            {...register('description')}
-            placeholder="Enter Description"
-            rows="5"
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal resize-none mb-3"
-          ></textarea>
-        </div>
-
         {/* Photos */}
         <div>
           <h3 className="text-sm sm:text-sm font-bold text-[#062F26] mb-1">Property Images</h3>
@@ -226,20 +214,18 @@ const PgPhotos = ({ onNext, onPrev }) => {
             onDragLeave={onDragLeave}
             onDrop={onDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`w-full py-5 sm:py-6 rounded-2xl border-2 border-dashed transition-all mb-4 sm:mb-6 cursor-pointer flex flex-col items-center justify-center gap-2 ${isDragging ? 'border-brand-teal bg-[#EAF5F2]/50' : 'border-slate-200 bg-slate-50 hover:border-brand-teal/30 hover:bg-[#EAF5F2]/30'
+            className={`w-full p-8 sm:p-10 rounded-2xl border-2 border-dashed transition-all duration-300 mb-6 cursor-pointer flex flex-col items-center justify-center gap-4 group ${isDragging ? 'border-brand-teal bg-brand-teal/5 scale-[0.99]' : 'border-slate-300 bg-slate-50 hover:border-brand-teal hover:bg-[#EAF5F2]/50'
               }`}
           >
-            <div className="text-slate-600">
-              <Icon icon="lucide:cloud-upload" className="w-10 h-10 sm:w-12 sm:h-12" strokeWidth="1.5" />
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors duration-300 ${isDragging ? 'bg-brand-teal text-white' : 'bg-white shadow-sm border border-slate-100 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'}`}>
+              <Icon icon="lucide:image-plus" className="w-7 h-7" strokeWidth="2" />
             </div>
-            <div className="text-center">
-              <p className="text-sm sm:text-[15px] font-bold text-[#062F26]">Drag & drop images here</p>
-              <p className="text-xs sm:text-xs text-slate-500 my-1 sm:my-2">or</p>
-              <button type="button" className="px-5 sm:px-6 py-2 sm:py-2.5 bg-[#062F26] text-white text-xs sm:text-sm font-bold rounded-lg hover:bg-brand-teal transition-colors">
-                Upload Images
-              </button>
+            <div className="text-center space-y-1.5">
+              <p className="text-[15px] font-bold text-[#062F26]">
+                <span className="text-brand-teal hover:underline decoration-2 underline-offset-2">Click to upload</span> or drag and drop
+              </p>
+              <p className="text-xs font-medium text-slate-500">JPG, PNG or WebP (max. 5MB per image)</p>
             </div>
-            <p className="text-[10px] sm:text-xs font-medium text-slate-500 mt-2">JPG, PNG or WebP (Max. 5MB per image)</p>
           </div>
 
           <div className="bg-[#EAF5F2] rounded-xl p-3 sm:p-4 flex items-start gap-2 sm:gap-3 mb-6 sm:mb-8">
@@ -316,9 +302,17 @@ const PgPhotos = ({ onNext, onPrev }) => {
         <button
           type="button"
           onClick={onNext}
-          className="w-full sm:w-auto px-8 py-3 rounded-xl bg-brand-teal text-white font-bold text-sm hover:bg-[#062F26] transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-brand-teal/20 text-center"
+          disabled={isSubmitting}
+          className={`w-full sm:w-auto px-8 py-3 rounded-xl bg-brand-teal text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-brand-teal/20 flex items-center justify-center gap-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'hover:bg-[#062F26] hover:-translate-y-0.5 active:scale-95'}`}
         >
-          Continue
+          {isSubmitting ? (
+            <>
+              <Icon icon="lucide:loader-2" className="animate-spin w-4 h-4" />
+              Submitting...
+            </>
+          ) : (
+            'Continue'
+          )}
         </button>
       </div>
 

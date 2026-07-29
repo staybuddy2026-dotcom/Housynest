@@ -212,17 +212,7 @@ const BasicDetailsForm = ({ formData, setFormData }) => {
           <SelectField label="Notice Period" name="noticePeriod" required options={['30 Days', '15 Days', '2 Months']} value={formData.noticePeriod} onChange={handleChange} />
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
-          <div className="flex flex-col gap-1.5 relative">
-            <label className="text-xs font-bold text-[#062F26]">Gate Closing Time</label>
-            <div className="relative">
-              <input type="time" name="gateClosingTime" value={formData.gateClosingTime} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal" />
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                <Icon icon="lucide:clock" width="16" />
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-[#062F26]">Short Description</label>

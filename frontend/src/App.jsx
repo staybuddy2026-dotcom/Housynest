@@ -34,6 +34,7 @@ import TenantRequests from './pages/dashboard/TenantRequests';
 import TenantVisits from './pages/dashboard/TenantVisits';
 import TenantMessages from './pages/dashboard/TenantMessages';
 import TenantContracts from './pages/dashboard/TenantContracts';
+import TenantTransactions from './pages/dashboard/TenantTransactions';
 import TenantProfile from './pages/dashboard/TenantProfile';
 import LawyerDashboardLayout from './layouts/LawyerDashboardLayout';
 import LawyerOverview from './pages/dashboard/LawyerOverview';
@@ -242,6 +243,7 @@ const router = createBrowserRouter(
             <Route path="requests" element={<TenantRequests />} />
             <Route path="messages" element={<TenantMessages />} />
             <Route path="contracts" element={<TenantContracts />} />
+            <Route path="transactions" element={<TenantTransactions />} />
             <Route path="profile" element={<TenantProfile />} />
             {/* Additional tenant routes can go here */}
           </Route>

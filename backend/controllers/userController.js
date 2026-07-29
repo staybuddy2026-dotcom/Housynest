@@ -19,6 +19,9 @@ export const getUserProfile = async (req, res) => {
         googleId: user.googleId,
         savedProperties: user.savedProperties || [],
         profilePic: user.profilePic || '',
+        dob: user.dob || null,
+        gender: user.gender || '',
+        emergencyContact: user.emergencyContact || { name: '', relationship: '', phone: '' },
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -33,6 +36,9 @@ export const updateUserProfile = async (req, res) => {
     const user = req.user;
     if (user) {
       user.phone = req.body.phone || user.phone;
+      if (req.body.dob) user.dob = req.body.dob;
+      if (req.body.gender) user.gender = req.body.gender;
+      if (req.body.emergencyContact) user.emergencyContact = req.body.emergencyContact;
       
       const updatedUser = await user.save();
       
@@ -45,6 +51,9 @@ export const updateUserProfile = async (req, res) => {
         googleId: updatedUser.googleId,
         savedProperties: updatedUser.savedProperties || [],
         profilePic: updatedUser.profilePic || '',
+        dob: updatedUser.dob || null,
+        gender: updatedUser.gender || '',
+        emergencyContact: updatedUser.emergencyContact || { name: '', relationship: '', phone: '' },
       });
     } else {
       res.status(404).json({ message: 'User not found' });

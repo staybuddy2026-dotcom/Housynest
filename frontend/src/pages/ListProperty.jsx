@@ -14,12 +14,16 @@ import aboutmain from '../assets/aboutmain.png';
 import PgBasicDetails from '../components/list-property/PgBasicDetails';
 import PgPropertyDetails from '../components/list-property/PgPropertyDetails';
 import PgRoomOptions from '../components/list-property/PgRoomOptions';
+import PgBooking from '../components/list-property/PgBooking';
 import PgAmenities from '../components/list-property/PgAmenities';
+import PgServices from '../components/list-property/PgServices';
 import PgRulesPolicies from '../components/list-property/PgRulesPolicies';
 import PgPhotos from '../components/list-property/PgPhotos';
 import PgVerifyProperty from '../components/list-property/PgVerifyProperty';
 import TenantPropertyDetails from '../components/list-property/TenantPropertyDetails';
 import TenantPricingPreferences from '../components/list-property/TenantPricingPreferences';
+import TenantAdditionalDetails from '../components/list-property/TenantAdditionalDetails';
+import TenantAmenities from '../components/list-property/TenantAmenities';
 
 const ListProperty = () => {
   const savedStateStr = sessionStorage.getItem('listPropertyState');
@@ -63,7 +67,7 @@ const ListProperty = () => {
       pincode: '',
       landmark: '',
       mapLink: '',
-      nearbyPlaces: [],
+      nearbyPlaces: [{ place: '', distance: '' }],
       buildingName: '',
       totalFloorsCount: '',
       floors: [],
@@ -82,7 +86,6 @@ const ListProperty = () => {
       pgRules: [],
       extraRules: [],
       noticePeriod: '',
-      gateClosingTime: '',
       uspCategory: '',
       uspText: '',
       description: '',
@@ -162,27 +165,32 @@ const ListProperty = () => {
     const pType = methods.getValues('propertyType');
 
     if (activeStep === 1) {
-      fieldsToValidate = ['propertyType', 'postingAs', 'city', ...(pType === 'PG' ? ['pgPresentIn', 'operationalSince', 'pgName'] : ['propertyCategory', 'societyName'])];
+      fieldsToValidate = ['propertyType', 'postingAs', ...(pType === 'PG' ? ['pgPresentIn', 'operationalSince', 'pgName', 'preferredGender', 'tenantPreference'] : ['propertyCategory', 'societyName'])];
     } else if (activeStep === 2) {
-      if (pType === 'PG') fieldsToValidate = ['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces'];
-      else fieldsToValidate = ['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor', 'ageOfProperty'];
+      if (pType === 'PG') fieldsToValidate = ['address', 'locality', 'city', 'state', 'pincode', 'landmark', 'mapLink', 'verificationDocs'];
+      else fieldsToValidate = ['address', 'locality', 'city', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor', 'ageOfProperty', 'verificationDocs'];
     } else if (activeStep === 3) {
       if (pType === 'PG') fieldsToValidate = ['buildingName', 'floors', 'pgPricing'];
-      else fieldsToValidate = ['monthlyRent', 'maxPeople', 'securityAmount', 'maintenanceCharges', 'maintenancePeriod', 'availableFromType', 'availableDate', 'additionalRooms', 'overlooking', 'facing', 'societyAmenities', 'preferredTenants', 'localityDescription'];
+      else fieldsToValidate = ['monthlyRent', 'maxPeople', 'securityAmount', 'maintenanceCharges', 'maintenancePeriod', 'availableFromType', 'availableDate'];
     } else if (activeStep === 4) {
-      if (pType === 'PG') fieldsToValidate = ['services', 'extraServices', 'foodProvided', 'meals', 'vegNonVeg', 'foodCharges', 'commonAmenities', 'extraCommonAmenities', 'parking'];
-      else fieldsToValidate = ['virtualTour']; // Photos step for Tenant
+      if (pType === 'PG') fieldsToValidate = ['paymentModel', 'rentalPeriod', 'noticePeriod', 'bookingType'];
+      else fieldsToValidate = ['additionalRooms', 'overlooking', 'facing'];
     } else if (activeStep === 5) {
-      if (pType === 'PG') fieldsToValidate = ['preferredGender', 'tenantPreference', 'pgRules', 'extraRules', 'noticePeriod', 'gateClosingTime'];
-      else fieldsToValidate = []; // Verify for Tenant
+      if (pType === 'PG') fieldsToValidate = ['commonAmenities', 'extraCommonAmenities', 'parking'];
+      else fieldsToValidate = ['societyAmenities'];
     } else if (activeStep === 6) {
+      if (pType === 'PG') fieldsToValidate = ['services', 'extraServices', 'foodProvided', 'meals', 'vegNonVeg', 'foodCharges'];
+      else fieldsToValidate = ['virtualTour'];
+    } else if (activeStep === 7) {
+      if (pType === 'PG') fieldsToValidate = ['pgRules', 'extraRules', 'nearbyPlaces'];
+    } else if (activeStep === 8) {
       if (pType === 'PG') fieldsToValidate = ['virtualTour'];
     }
 
     const isStepValid = await methods.trigger(fieldsToValidate);
 
     if (isStepValid) {
-      setActiveStep(prev => Math.min(prev + 1, pType === 'Tenant' ? 5 : 7));
+      setActiveStep(prev => Math.min(prev + 1, pType === 'Tenant' ? 6 : 8));
     } else {
       setTimeout(() => {
         // Find all inputs with red borders
@@ -346,17 +354,21 @@ const ListProperty = () => {
     const getStepFromField = (field) => {
       const pType = methods.getValues('propertyType');
       if (pType === 'PG') {
-        if (['propertyType', 'postingAs', 'city', 'pgPresentIn', 'operationalSince', 'pgName'].includes(field)) return 1;
-        if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces'].includes(field)) return 2;
+        if (['propertyType', 'postingAs', 'city', 'pgPresentIn', 'operationalSince', 'pgName', 'preferredGender', 'tenantPreference'].includes(field)) return 1;
+        if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink'].includes(field)) return 2;
         if (['buildingName', 'floors', 'pgPricing'].includes(field)) return 3;
-        if (['services', 'extraServices', 'foodProvided', 'meals', 'vegNonVeg', 'foodCharges', 'commonAmenities', 'extraCommonAmenities', 'parking'].includes(field)) return 4;
-        if (['preferredGender', 'tenantPreference', 'pgRules', 'extraRules', 'noticePeriod', 'gateClosingTime'].includes(field)) return 5;
-        if (['virtualTour', 'photos'].includes(field)) return 6;
+        if (['paymentModel', 'rentalPeriod', 'noticePeriod', 'bookingType'].includes(field)) return 4;
+        if (['commonAmenities', 'extraCommonAmenities', 'parking'].includes(field)) return 5;
+        if (['services', 'extraServices', 'foodProvided', 'meals', 'vegNonVeg', 'foodCharges'].includes(field)) return 6;
+        if (['pgRules', 'extraRules', 'nearbyPlaces'].includes(field)) return 7;
+        if (['virtualTour', 'photos'].includes(field)) return 8;
       } else {
-        if (['propertyType', 'postingAs', 'city', 'propertyCategory', 'societyName'].includes(field)) return 1;
-        if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor', 'ageOfProperty'].includes(field)) return 2;
-        if (['monthlyRent', 'maxPeople', 'securityAmount', 'maintenanceCharges', 'maintenancePeriod', 'availableFromType', 'availableDate', 'additionalRooms', 'overlooking', 'facing', 'societyAmenities', 'preferredTenants', 'localityDescription'].includes(field)) return 3;
-        if (['virtualTour', 'photos'].includes(field)) return 4;
+        if (['propertyType', 'postingAs', 'city', 'propertyCategory', 'societyName', 'ageOfProperty', 'preferredTenants'].includes(field)) return 1;
+        if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor'].includes(field)) return 2;
+        if (['monthlyRent', 'maxPeople', 'securityAmount', 'maintenanceCharges', 'maintenancePeriod', 'availableFromType', 'availableDate'].includes(field)) return 3;
+        if (['additionalRooms', 'overlooking', 'facing'].includes(field)) return 4;
+        if (['societyAmenities'].includes(field)) return 5;
+        if (['virtualTour', 'photos'].includes(field)) return 6;
       }
       return null;
     };
@@ -399,10 +411,11 @@ const ListProperty = () => {
       case 1: return <PgBasicDetails onNext={handleNext} />;
       case 2: return propertyType === 'Tenant' ? <TenantPropertyDetails onNext={handleNext} onPrev={handlePrev} /> : <PgPropertyDetails onNext={handleNext} onPrev={handlePrev} />;
       case 3: return propertyType === 'Tenant' ? <TenantPricingPreferences onNext={handleNext} onPrev={handlePrev} /> : <PgRoomOptions onNext={handleNext} onPrev={handlePrev} />;
-      case 4: return propertyType === 'Tenant' ? <PgPhotos onNext={handleNext} onPrev={handlePrev} /> : <PgAmenities onNext={handleNext} onPrev={handlePrev} />;
-      case 5: return propertyType === 'Tenant' ? <PgVerifyProperty onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
-      case 6: return propertyType === 'Tenant' ? null : <PgPhotos onNext={handleNext} onPrev={handlePrev} />;
-      case 7: return propertyType === 'Tenant' ? null : <PgVerifyProperty onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
+      case 4: return propertyType === 'Tenant' ? <TenantAdditionalDetails onNext={handleNext} onPrev={handlePrev} /> : <PgBooking onNext={handleNext} onPrev={handlePrev} />;
+      case 5: return propertyType === 'Tenant' ? <TenantAmenities onNext={handleNext} onPrev={handlePrev} /> : <PgAmenities onNext={handleNext} onPrev={handlePrev} />;
+      case 6: return propertyType === 'Tenant' ? <PgPhotos onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgServices onNext={handleNext} onPrev={handlePrev} />;
+      case 7: return propertyType === 'Tenant' ? null : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
+      case 8: return propertyType === 'Tenant' ? null : <PgPhotos onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
       default: return null;
     }
   };

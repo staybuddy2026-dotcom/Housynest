@@ -111,6 +111,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
     { name: 'My Requests', icon: 'lucide:message-circle', path: '/tenant/requests', badge: counts.newRequests > 0 ? counts.newRequests : null },
     { name: 'Messages', icon: 'lucide:message-square', path: '/tenant/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
     { name: 'Contracts', icon: 'lucide:file-text', path: '/tenant/contracts', badge: counts.newTenantContracts > 0 ? counts.newTenantContracts : null },
+    { name: 'Transactions', icon: 'lucide:credit-card', path: '/tenant/transactions' },
   ];
 
   if (isMobile) {
