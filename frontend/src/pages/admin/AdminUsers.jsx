@@ -346,7 +346,7 @@ const AdminUsers = () => {
 
             {isFilterDropdownOpen && (
               <div className="absolute top-full left-0 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden">
-                {['All', 'Landlord', 'Renter', 'Lawyer'].map(role => (
+                {['All', 'Landlord', 'Renter'].map(role => (
                   <button
                     key={role}
                     onClick={() => {

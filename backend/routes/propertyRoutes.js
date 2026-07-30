@@ -6,7 +6,6 @@ import {
   getProperties,
   getOwnerProperties,
   getPropertyById,
-  updateProperty,
   deleteProperty,
   getAdminProperties,
   updatePropertyStatus,
@@ -46,7 +45,6 @@ router.route('/:id/reviews')
 
 router.route('/:id')
   .get(getPropertyById)
-  .put(protect, upload.fields([{ name: 'images', maxCount: 10 }, { name: 'documents', maxCount: 5 }]), updateProperty)
   .delete(protect, deleteProperty);
 
 export default router;

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet } from 'react-router-dom';
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet, useLocation } from 'react-router-dom';
 import { ReactLenis } from 'lenis/react';
 import socket, { joinUserRoom } from './lib/socket';
 import MainLayout from './layouts/MainLayout';
@@ -59,12 +59,18 @@ import { Toaster, toast } from 'react-hot-toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ChatbotWidget from './components/chatbot/ChatbotWidget';
 
-const RootApp = () => (
-  <>
-    <Outlet />
-    <ChatbotWidget />
-  </>
-);
+const RootApp = () => {
+  const location = useLocation();
+  const hideChatbotPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
+  const shouldHideChatbot = hideChatbotPaths.includes(location.pathname);
+
+  return (
+    <>
+      <Outlet />
+      {!shouldHideChatbot && <ChatbotWidget />}
+    </>
+  );
+};
 
 function App() {
   useEffect(() => {
@@ -199,7 +205,11 @@ const router = createBrowserRouter(
             <Route path="about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/properties" element={<Properties />} />
-            <Route path="/properties/:id" element={<PropertyDetails />} />
+            <Route path="/properties/:id" element={
+              <ProtectedRoute>
+                <PropertyDetails />
+              </ProtectedRoute>
+            } />
             <Route path="/list-property" element={
               <ProtectedRoute allowedRoles={['owner']}>
                 <ListProperty />

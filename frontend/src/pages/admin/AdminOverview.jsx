@@ -100,7 +100,7 @@ const AdminOverview = () => {
           { title: 'Total Property Listed', value: properties.length.toString(), subtitle: `${verifiedProps} verified properties`, icon: 'lucide:home', color: 'bg-emerald-50', iconColor: 'text-emerald-600' },
           { title: 'Total Users', value: users.length.toString(), subtitle: `${landlords} Landlords • ${renters} Renters`, icon: 'lucide:users', color: 'bg-blue-50', iconColor: 'text-blue-600' },
           { title: 'Pending Reports', value: '0', subtitle: 'No action required', icon: 'lucide:clipboard-list', color: 'bg-amber-50', iconColor: 'text-amber-500' },
-          { title: 'Active Lawyers', value: lawyers.toString(), subtitle: 'Fully approved', icon: 'lucide:shield-check', color: 'bg-emerald-50', iconColor: 'text-emerald-600' }
+          // { title: 'Active Lawyers', value: lawyers.toString(), subtitle: 'Fully approved', icon: 'lucide:shield-check', color: 'bg-emerald-50', iconColor: 'text-emerald-600' }
         ]);
 
         setAllProperties(properties);

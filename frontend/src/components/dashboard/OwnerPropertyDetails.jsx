@@ -85,7 +85,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
 
   const tabs = [
     'Overview',
-    ...(isPG ? ['Rooms & Beds'] : []),
+    ...(isPG ? ['Rooms & Beds'] : ['Property Details']),
     'Leads',
     'Tenants',
     'Rent Collection',
@@ -108,17 +108,17 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
       }
     });
   } else if (property.propertyType !== 'PG') {
-     totalBeds = property.bhkType ? parseInt(property.bhkType) : 1;
-     availableBeds = status === 'Active' ? totalBeds : 0;
+    totalBeds = property.bhkType ? parseInt(property.bhkType) : 1;
+    availableBeds = status === 'Active' ? totalBeds : 0;
   }
-  
+
   const occupiedBeds = totalBeds - availableBeds;
   const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
 
   // Calculate Rent
   let displayRent = 'N/A';
   let pgPricesList = [];
-  
+
   if (property.propertyType === 'PG' && property.pgPricing) {
     Object.entries(property.pgPricing).forEach(([key, value]) => {
       const price = Number(value.rentPerBed);
@@ -129,7 +129,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
         });
       }
     });
-    
+
     // Fallback displayRent just in case
     if (pgPricesList.length > 0) {
       const prices = pgPricesList.map(p => Number(p.price.replace(/[^0-9]/g, '')));
@@ -141,14 +141,14 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
 
   const views = property.views || 0;
   const leadsGenerated = property.inquiries || 0;
-  
+
   // Dummy revenue based on occupied beds
   let estimatedRevenue = 0;
   if (property.propertyType === 'PG' && property.pgPricing) {
-     const avgRent = Object.values(property.pgPricing).reduce((acc, p) => acc + (Number(p.rentPerBed) || 0), 0) / (Object.values(property.pgPricing).length || 1);
-     estimatedRevenue = occupiedBeds * avgRent;
+    const avgRent = Object.values(property.pgPricing).reduce((acc, p) => acc + (Number(p.rentPerBed) || 0), 0) / (Object.values(property.pgPricing).length || 1);
+    estimatedRevenue = occupiedBeds * avgRent;
   } else if (property.monthlyRent && occupiedBeds > 0) {
-     estimatedRevenue = Number(property.monthlyRent);
+    estimatedRevenue = Number(property.monthlyRent);
   }
 
   const formatRevenue = (amount) => {
@@ -185,7 +185,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
           </div>
           <p className="text-xs font-semibold text-slate-500">Leads Generated</p>
         </div>
-        
+
         {isPG && (
           <>
             <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center">
@@ -227,7 +227,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
           {images.length > 0 ? (
             <>
               <img src={images[currentImageIndex].url || images[currentImageIndex]} alt="Property" className="w-full h-full object-cover transition-opacity duration-300" />
-              
+
               {images.length > 1 && (
                 <>
                   <button
@@ -242,13 +242,13 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                   >
                     <Icon icon="lucide:chevron-right" className="w-6 h-6" />
                   </button>
-                  
+
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md">
                     {images.map((_, i) => (
-                      <button 
-                        key={i} 
+                      <button
+                        key={i}
                         onClick={() => setCurrentImageIndex(i)}
-                        className={`w-2 h-2 rounded-full transition-all cursor-pointer ${i === currentImageIndex ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'}`} 
+                        className={`w-2 h-2 rounded-full transition-all cursor-pointer ${i === currentImageIndex ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'}`}
                       />
                     ))}
                   </div>
@@ -262,33 +262,82 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
 
         {/* Right Side: Amenities and Services */}
         <div className="lg:col-span-1 flex flex-col gap-6">
-          {/* Amenities */}
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
-            <h3 className="text-lg font-bold text-[#062F26] mb-4 shrink-0">Amenities</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-2">
-              {property.commonAmenities?.length > 0 ? property.commonAmenities.map((amenity, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
-                    <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-sm font-semibold text-slate-700 truncate">{amenity}</span>
+          {property.propertyType === 'PG' ? (
+            <>
+              {/* Amenities */}
+              <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
+                <h3 className="text-lg font-bold text-[#062F26] mb-4 shrink-0">Amenities</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-2">
+                  {property.commonAmenities?.length > 0 ? property.commonAmenities.map((amenity, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                        <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-sm font-semibold text-slate-700 truncate">{amenity}</span>
+                    </div>
+                  )) : <p className="text-sm text-slate-500 col-span-2">No specific amenities listed.</p>}
                 </div>
-              )) : <p className="text-sm text-slate-500 col-span-2">No specific amenities listed.</p>}
-            </div>
-          </div>
+              </div>
 
-          {/* Services */}
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
-            <h3 className="text-lg font-bold text-[#062F26] mb-4 shrink-0">Services & Facilities</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-2">
-              {property.services?.length > 0 ? property.services.map((service, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
-                    <Icon icon="lucide:zap" className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-sm font-semibold text-slate-700 truncate">{service}</span>
+              {/* Services */}
+              <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
+                <h3 className="text-lg font-bold text-[#062F26] mb-4 shrink-0">Services & Facilities</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-2">
+                  {property.services?.length > 0 ? property.services.map((service, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                        <Icon icon="lucide:zap" className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-sm font-semibold text-slate-700 truncate">{service}</span>
+                    </div>
+                  )) : <p className="text-sm text-slate-500 col-span-2">No specific services listed.</p>}
                 </div>
-              )) : <p className="text-sm text-slate-500 col-span-2">No specific services listed.</p>}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Society Amenities */}
+              <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
+                <h3 className="text-lg font-bold text-[#062F26] mb-4 shrink-0 flex items-center gap-2">
+                  <Icon icon="lucide:trees" className="w-5 h-5 text-emerald-500" />
+                  Society Amenities
+                </h3>
+                <div className="flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[400px]">
+                  {property.societyAmenities?.length > 0 ? property.societyAmenities.map((amenity, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                        <Icon icon="lucide:check" className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-semibold text-slate-700">{amenity}</span>
+                    </div>
+                  )) : <p className="text-sm text-slate-500">No society amenities listed.</p>}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Nearby Places */}
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
+            <h3 className="text-lg font-bold text-[#062F26] mb-4 shrink-0 flex items-center gap-2">
+              <Icon icon="lucide:map-pin" className="w-5 h-5 text-blue-500" />
+              Nearby Places
+            </h3>
+            <div className="flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[300px]">
+              {property.nearbyPlaces?.filter(p => p.place && p.distance).length > 0 ? (
+                property.nearbyPlaces.filter(p => p.place && p.distance).map((place, idx) => (
+                  <div key={idx} className="flex justify-between items-center border-b border-slate-50 last:border-0 pb-3 last:pb-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                        <Icon icon="lucide:navigation" className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-bold text-slate-700">{place.place}</span>
+                    </div>
+                    <span className="text-xs font-bold text-brand-teal bg-brand-teal/10 px-2 py-1 rounded-md shrink-0">{place.distance}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">No nearby places added.</p>
+              )}
             </div>
           </div>
         </div>
@@ -297,95 +346,71 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
       {/* Property Details Grid (New Sections) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2 flex flex-col gap-6">
-           {/* About Property (Description + USPs) */}
-           {(property.description || property.uspText || property.usps?.length > 0 || property.customUsps?.length > 0) && (
-             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-               <h3 className="text-lg font-bold text-[#062F26] mb-4">About Property</h3>
-               {property.description && (
-                 <p className="text-sm text-slate-600 leading-relaxed mb-6 whitespace-pre-line">{property.description}</p>
-               )}
-               
-               {/* What Makes This Property Unique */}
-               {((property.usps && property.usps.length > 0) || (property.customUsps && property.customUsps.length > 0) || property.uspText) && (
-                 <>
-                   <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-                     <Icon icon="lucide:star" className="w-4 h-4 text-brand-yellow" />
-                     What Makes This Property Unique
-                   </h4>
-                   {property.uspText && <p className="text-sm text-slate-600 mb-3">{property.uspText}</p>}
-                   <div className="flex flex-wrap gap-2">
-                     {property.usps?.map((usp, i) => (
-                       <span key={`usp-${i}`} className="bg-brand-yellow/10 text-brand-yellow px-3 py-1.5 rounded-lg text-xs font-bold">{usp}</span>
-                     ))}
-                     {property.customUsps?.map((cusp, i) => (
-                       <span key={`cusp-${i}`} className="bg-brand-yellow/10 text-brand-yellow px-3 py-1.5 rounded-lg text-xs font-bold">{cusp}</span>
-                     ))}
-                   </div>
-                 </>
-               )}
-             </div>
-           )}
+          {/* About Property (Description + USPs) */}
+          {(property.description || property.uspText || property.usps?.length > 0 || property.customUsps?.length > 0) && (
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+              <h3 className="text-lg font-bold text-[#062F26] mb-4">About Property</h3>
+              {property.description && (
+                <p className="text-sm text-slate-600 leading-relaxed mb-6 whitespace-pre-line">{property.description}</p>
+              )}
 
-           {/* Food Details (if PG) */}
-           {property.propertyType === 'PG' && property.foodProvided && (
-             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-               <h3 className="text-lg font-bold text-[#062F26] mb-4 flex items-center gap-2">
-                 <Icon icon="lucide:utensils" className="w-5 h-5 text-orange-500" />
-                 Food & Meals
-               </h3>
-               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                 {property.vegNonVeg && (
-                   <div>
-                     <p className="text-xs font-medium text-slate-400 mb-1">Food Type</p>
-                     <p className="text-sm font-bold text-slate-700">{property.vegNonVeg}</p>
-                   </div>
-                 )}
-                 {property.foodCharges && (
-                   <div>
-                     <p className="text-xs font-medium text-slate-400 mb-1">Food Charges</p>
-                     <p className="text-sm font-bold text-slate-700">{property.foodCharges}</p>
-                   </div>
-                 )}
-                 {property.meals && property.meals.length > 0 && (
-                   <div className="col-span-2">
-                     <p className="text-xs font-medium text-slate-400 mb-1">Meals Provided</p>
-                     <div className="flex flex-wrap gap-1.5 mt-1">
-                       {property.meals.map((meal, i) => (
-                         <span key={i} className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-semibold">{meal}</span>
-                       ))}
-                     </div>
-                   </div>
-                 )}
-               </div>
-             </div>
-           )}
-        </div>
+              {/* What Makes This Property Unique */}
+              {((property.usps && property.usps.length > 0) || (property.customUsps && property.customUsps.length > 0) || property.uspText) && (
+                <>
+                  <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <Icon icon="lucide:star" className="w-4 h-4 text-brand-yellow" />
+                    What Makes This Property Unique
+                  </h4>
+                  {property.uspText && <p className="text-sm text-slate-600 mb-3">{property.uspText}</p>}
+                  <div className="flex flex-wrap gap-2">
+                    {property.usps?.map((usp, i) => (
+                      <span key={`usp-${i}`} className="bg-brand-yellow/10 text-brand-yellow px-3 py-1.5 rounded-lg text-xs font-bold">{usp}</span>
+                    ))}
+                    {property.customUsps?.map((cusp, i) => (
+                      <span key={`cusp-${i}`} className="bg-brand-yellow/10 text-brand-yellow px-3 py-1.5 rounded-lg text-xs font-bold">{cusp}</span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
-        {/* Nearby Places */}
-        <div className="lg:col-span-1">
-           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-full">
-             <h3 className="text-lg font-bold text-[#062F26] mb-4 flex items-center gap-2">
-               <Icon icon="lucide:map-pin" className="w-5 h-5 text-blue-500" />
-               Nearby Places
-             </h3>
-             <div className="space-y-4">
-               {property.nearbyPlaces?.filter(p => p.place && p.distance).length > 0 ? (
-                 property.nearbyPlaces.filter(p => p.place && p.distance).map((place, idx) => (
-                   <div key={idx} className="flex justify-between items-center border-b border-slate-50 last:border-0 pb-3 last:pb-0">
-                     <div className="flex items-center gap-3">
-                       <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
-                         <Icon icon="lucide:navigation" className="w-4 h-4" />
-                       </div>
-                       <span className="text-sm font-bold text-slate-700">{place.place}</span>
-                     </div>
-                     <span className="text-xs font-bold text-brand-teal bg-brand-teal/10 px-2 py-1 rounded-md">{place.distance}</span>
-                   </div>
-                 ))
-               ) : (
-                 <p className="text-sm text-slate-500">No nearby places added.</p>
-               )}
-             </div>
-           </div>
+          {/* Food Details (if PG) */}
+          {property.propertyType === 'PG' && property.foodProvided && (
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+              <h3 className="text-lg font-bold text-[#062F26] mb-4 flex items-center gap-2">
+                <Icon icon="lucide:utensils" className="w-5 h-5 text-orange-500" />
+                Food & Meals
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {property.vegNonVeg && (
+                  <div>
+                    <p className="text-xs font-medium text-slate-400 mb-1">Food Type</p>
+                    <p className="text-sm font-bold text-slate-700">{property.vegNonVeg}</p>
+                  </div>
+                )}
+                {property.foodCharges && (
+                  <div>
+                    <p className="text-xs font-medium text-slate-400 mb-1">Food Charges</p>
+                    <p className="text-sm font-bold text-slate-700">{property.foodCharges}</p>
+                  </div>
+                )}
+                {property.meals && property.meals.length > 0 && (
+                  <div className="col-span-2">
+                    <p className="text-xs font-medium text-slate-400 mb-1">Meals Provided</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {property.meals.map((meal, i) => (
+                        <span key={i} className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-semibold">{meal}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tenant Property Details moved to separate tab */}
+
         </div>
       </div>
     </div>
@@ -398,22 +423,22 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
       { title: 'No Guests', desc: 'Guests are not allowed inside the property. This helps keep the premises secure for all residents.' }
     ];
 
-    const rulesList = property.pgRules?.length > 0 
+    const rulesList = property.pgRules?.length > 0
       ? property.pgRules.map(r => ({ title: r, desc: `Please adhere to the ${r.toLowerCase()} rule to maintain a peaceful environment for everyone.` }))
       : defaultRules;
 
     return (
       <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn">
         <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
-           <div className="w-12 h-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center">
-              <Icon icon="lucide:shield-alert" className="w-6 h-6" />
-           </div>
-           <div>
-             <h3 className="text-xl font-bold text-[#062F26]">Property Rules & Regulations</h3>
-             <p className="text-sm font-medium text-slate-500 mt-1">Strictly enforced guidelines for all tenants</p>
-           </div>
+          <div className="w-12 h-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center">
+            <Icon icon="lucide:shield-alert" className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-[#062F26]">Property Rules & Regulations</h3>
+            <p className="text-sm font-medium text-slate-500 mt-1">Strictly enforced guidelines for all tenants</p>
+          </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {rulesList.map((rule, idx) => (
             <div key={idx} className="bg-[#FAF6F0] border border-[#F3EFE9] p-5 rounded-xl hover:border-red-200 transition-colors group">
@@ -434,81 +459,201 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
   };
 
   const renderRoomsAndBeds = () => {
-     if (property.propertyType !== 'PG') {
-        return (
-           <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm text-center animate-fadeIn">
-              <Icon icon="lucide:home" className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-[#062F26]">Property Details</h3>
-              <p className="text-sm font-medium text-slate-500 mt-2 max-w-md mx-auto">
-                 This is a {property.bhkType} property. Room and bed management is specifically for PG accommodations.
-              </p>
-           </div>
-        )
-     }
-
-     return (
-        <div className="space-y-6 animate-fadeIn">
-           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-             <h3 className="text-lg font-bold text-[#062F26] mb-4">Floor & Room Layout</h3>
-             {property.floors?.length > 0 ? (
-                <div className="space-y-6">
-                   {property.floors.map((floor, idx) => (
-                      <div key={idx} className="border border-slate-100 rounded-xl overflow-hidden">
-                         <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                            <h4 className="font-bold text-[#062F26]">{floor.floorName || `Floor ${floor.floorNumber || idx + 1}`}</h4>
-                            <span className="text-xs font-semibold text-slate-500">{floor.rooms?.length || 0} Rooms</span>
-                         </div>
-                         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {floor.rooms?.map((room, rIdx) => (
-                               <div key={rIdx} className="border border-slate-200 rounded-lg p-3">
-                                  <div className="flex justify-between items-center mb-3">
-                                     <span className="text-sm font-bold text-[#062F26]">{room.roomName || `Room ${room.roomNumber || rIdx + 1}`}</span>
-                                     <span className="text-[10px] font-bold px-2 py-1 bg-brand-teal/10 text-brand-teal rounded uppercase tracking-wider">
-                                        {room.sharingType} {room.isAC ? 'AC' : 'Non-AC'}
-                                     </span>
-                                  </div>
-                                  <div className="space-y-2">
-                                     {room.beds?.map((bed, bIdx) => (
-                                        <div key={bIdx} className="flex items-center justify-between bg-slate-50 p-2 rounded">
-                                           <div className="flex items-center gap-2">
-                                              <Icon icon="lucide:bed" className="w-4 h-4 text-slate-400" />
-                                              <span className="text-xs font-semibold text-slate-700">{bed.bedName || `Bed ${bIdx + 1}`}</span>
-                                           </div>
-                                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                              bed.status === 'Vacant' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                                           }`}>
-                                              {bed.status}
-                                           </span>
-                                        </div>
-                                     ))}
-                                  </div>
-                               </div>
-                            ))}
-                         </div>
-                      </div>
-                   ))}
-                </div>
-             ) : (
-                <p className="text-sm text-slate-500">No floor details available. Please update the property info.</p>
-             )}
-           </div>
+    if (property.propertyType !== 'PG') {
+      return (
+        <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm text-center animate-fadeIn">
+          <Icon icon="lucide:home" className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-[#062F26]">Property Details</h3>
+          <p className="text-sm font-medium text-slate-500 mt-2 max-w-md mx-auto">
+            This is a {property.bhkType} property. Room and bed management is specifically for PG accommodations.
+          </p>
         </div>
-     );
+      )
+    }
+
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <h3 className="text-lg font-bold text-[#062F26] mb-4">Floor & Room Layout</h3>
+          {property.floors?.length > 0 ? (
+            <div className="space-y-6">
+              {property.floors.map((floor, idx) => (
+                <div key={idx} className="border border-slate-100 rounded-xl overflow-hidden">
+                  <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <h4 className="font-bold text-[#062F26]">{floor.floorName || `Floor ${floor.floorNumber || idx + 1}`}</h4>
+                    <span className="text-xs font-semibold text-slate-500">{floor.rooms?.length || 0} Rooms</span>
+                  </div>
+                  <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {floor.rooms?.map((room, rIdx) => (
+                      <div key={rIdx} className="border border-slate-200 rounded-lg p-3">
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-sm font-bold text-[#062F26]">{room.roomName || `Room ${room.roomNumber || rIdx + 1}`}</span>
+                          <span className="text-[10px] font-bold px-2 py-1 bg-brand-teal/10 text-brand-teal rounded uppercase tracking-wider">
+                            {room.sharingType} {room.isAC ? 'AC' : 'Non-AC'}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {room.beds?.map((bed, bIdx) => (
+                            <div key={bIdx} className="flex items-center justify-between bg-slate-50 p-2 rounded">
+                              <div className="flex items-center gap-2">
+                                <Icon icon="lucide:bed" className="w-4 h-4 text-slate-400" />
+                                <span className="text-xs font-semibold text-slate-700">{bed.bedName || `Bed ${bIdx + 1}`}</span>
+                              </div>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${bed.status === 'Vacant' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                }`}>
+                                {bed.status}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No floor details available. Please update the property info.</p>
+          )}
+        </div>
+      </div>
+    );
   }
 
+  const renderTenantDetails = () => (
+    <div className="space-y-6 animate-fadeIn">
+      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+        <h3 className="text-lg font-bold text-[#062F26] mb-5 flex items-center gap-2">
+          <Icon icon="lucide:info" className="w-5 h-5 text-brand-teal" />
+          Property Configuration & Details
+        </h3>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-4 mb-6">
+          {property.bhkType && (
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-1">Configuration</p>
+              <p className="text-sm font-bold text-slate-700">{property.bhkType}</p>
+            </div>
+          )}
+          {property.furnishingStatus && (
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-1">Furnishing</p>
+              <p className="text-sm font-bold text-slate-700">{property.furnishingStatus}</p>
+            </div>
+          )}
+          {property.bathrooms && (
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-1">Bathrooms</p>
+              <p className="text-sm font-bold text-slate-700">{property.bathrooms}</p>
+            </div>
+          )}
+          {property.balconies && (
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-1">Balconies</p>
+              <p className="text-sm font-bold text-slate-700">{property.balconies}</p>
+            </div>
+          )}
+          {property.builtUpArea && (
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-1">Built-up Area</p>
+              <p className="text-sm font-bold text-slate-700">{property.builtUpArea} sq.ft</p>
+            </div>
+          )}
+          {property.carpetArea && (
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-1">Carpet Area</p>
+              <p className="text-sm font-bold text-slate-700">{property.carpetArea} sq.ft</p>
+            </div>
+          )}
+          {property.propertyOnFloor && (
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-1">Floor No.</p>
+              <p className="text-sm font-bold text-slate-700">{property.propertyOnFloor} / {property.totalFloors || '?'}</p>
+            </div>
+          )}
+          {property.facing && (
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-1">Facing</p>
+              <p className="text-sm font-bold text-slate-700">{property.facing}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#F3EFE9]">
+            <h4 className="text-sm font-bold text-[#062F26] mb-3 flex items-center gap-2">
+              <Icon icon="lucide:indian-rupee" className="w-4 h-4 text-brand-teal" />
+              Rental & Financials
+            </h4>
+            <div className="space-y-2.5">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Rent</span>
+                <span className="text-sm font-black text-[#062F26]">₹{Number(property.monthlyRent || 0).toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Security Deposit</span>
+                <span className="text-sm font-bold text-slate-700">{property.securityAmount ? `₹${Number(property.securityAmount).toLocaleString('en-IN')}` : 'N/A'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Maintenance</span>
+                <span className="text-sm font-bold text-slate-700">{property.maintenanceCharges && property.maintenanceCharges !== '0' ? `₹${Number(property.maintenanceCharges).toLocaleString('en-IN')} / ${property.maintenancePeriod || 'month'}` : 'Included'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#F3EFE9]">
+            <h4 className="text-sm font-bold text-[#062F26] mb-3 flex items-center gap-2">
+              <Icon icon="lucide:users" className="w-4 h-4 text-blue-500" />
+              Tenant Preferences
+            </h4>
+            <div className="space-y-2.5">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Preferred Tenants</span>
+                <span className="text-sm font-bold text-slate-700">{property.preferredTenants?.length > 0 ? property.preferredTenants.join(', ') : 'Anyone'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Max People</span>
+                <span className="text-sm font-bold text-slate-700">{property.maxPeople || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Available From</span>
+                <span className="text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">{property.availableFromType === 'Immediate' ? 'Immediate' : (property.availableDate || 'N/A')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        {property.localityDescription && (
+          <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#F3EFE9] mt-4">
+            <h4 className="text-sm font-bold text-[#062F26] mb-2 flex items-center gap-2">
+              <Icon icon="lucide:map" className="w-4 h-4 text-purple-500" />
+              Locality Description
+            </h4>
+            <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+              {property.localityDescription}
+            </p>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+
   const renderEmptyTab = (tabName) => (
-     <div className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center animate-fadeIn">
-        <Icon icon="lucide:construction" className="w-12 h-12 text-slate-300 mb-4" />
-        <h3 className="text-lg font-bold text-[#062F26] mb-2">{tabName} Data Not Found</h3>
-        <p className="text-sm font-medium text-slate-500 max-w-sm">
-           The {tabName.toLowerCase()} information for this property is not available or is currently under development.
-        </p>
-     </div>
+    <div className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center animate-fadeIn">
+      <Icon icon="lucide:construction" className="w-12 h-12 text-slate-300 mb-4" />
+      <h3 className="text-lg font-bold text-[#062F26] mb-2">{tabName} Data Not Found</h3>
+      <p className="text-sm font-medium text-slate-500 max-w-sm">
+        The {tabName.toLowerCase()} information for this property is not available or is currently under development.
+      </p>
+    </div>
   );
 
   const renderTenants = () => {
     const tenants = [];
-    
+
     if (property.propertyType === 'PG' && property.floors) {
       let tenantCount = 1;
       property.floors.forEach(floor => {
@@ -522,7 +667,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                   const pgDeposit = property.pgPricing?.[sharingKey]?.depositPerBed;
                   const displayRent = pgRent ? `₹${Number(pgRent).toLocaleString()}` : (property.monthlyRent ? `₹${property.monthlyRent}` : '₹10,000');
                   const displayDeposit = pgDeposit ? `Deposit: ₹${Number(pgDeposit).toLocaleString()}` : 'Deposit: ₹20,000';
-                  
+
                   tenants.push({
                     id: `TN-${tenantCount}`,
                     name: 'Tenant Details Pending',
@@ -552,28 +697,28 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
         }
       });
     } else if (property.propertyType === 'Tenant' && (property.status === 'Active' || property.status === 'Occupied')) {
-       // Mock a tenant for a flat if it's considered active/occupied
-       tenants.push({
-          id: 'TN-1',
-          name: 'Tenant Details Pending',
-          initials: 'T',
-          email: 'Not provided in database',
-          phone: 'Not provided',
-          room: 'Full Property',
-          roomNumber: '-',
-          bedNumber: '-',
-          bed: '-',
-          rent: property.monthlyRent ? `₹${Number(property.monthlyRent).toLocaleString()}` : '₹15,000',
-          deposit: property.securityAmount ? `Deposit: ₹${Number(property.securityAmount).toLocaleString()}` : 'Deposit: N/A',
-          payment: 'N/A',
-          moveIn: 'N/A',
-          moveInIso: '',
-          kyc: 'N/A',
-          bookingId: 'N/A',
-          leaseDuration: 'N/A',
-          monthlyRentNum: property.monthlyRent ? `₹${property.monthlyRent}` : '₹15,000',
-          securityDepositNum: property.securityAmount ? `₹${property.securityAmount}` : 'N/A',
-       });
+      // Mock a tenant for a flat if it's considered active/occupied
+      tenants.push({
+        id: 'TN-1',
+        name: 'Tenant Details Pending',
+        initials: 'T',
+        email: 'Not provided in database',
+        phone: 'Not provided',
+        room: 'Full Property',
+        roomNumber: '-',
+        bedNumber: '-',
+        bed: '-',
+        rent: property.monthlyRent ? `₹${Number(property.monthlyRent).toLocaleString()}` : '₹15,000',
+        deposit: property.securityAmount ? `Deposit: ₹${Number(property.securityAmount).toLocaleString()}` : 'Deposit: N/A',
+        payment: 'N/A',
+        moveIn: 'N/A',
+        moveInIso: '',
+        kyc: 'N/A',
+        bookingId: 'N/A',
+        leaseDuration: 'N/A',
+        monthlyRentNum: property.monthlyRent ? `₹${property.monthlyRent}` : '₹15,000',
+        securityDepositNum: property.securityAmount ? `₹${property.securityAmount}` : 'N/A',
+      });
     }
 
     const getPaymentStyle = (status) => {
@@ -623,14 +768,14 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                 <tr key={t.id} className="hover:bg-[#F8F9FA] transition-colors group cursor-pointer">
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                       <Icon icon="lucide:door-open" className="w-4 h-4 text-slate-400" />
-                       {t.room}
+                      <Icon icon="lucide:door-open" className="w-4 h-4 text-slate-400" />
+                      {t.room}
                     </div>
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                       <Icon icon="lucide:bed" className="w-4 h-4 text-slate-400" />
-                       {t.bed}
+                      <Icon icon="lucide:bed" className="w-4 h-4 text-slate-400" />
+                      {t.bed}
                     </div>
                   </td>
                   <td className="py-4 px-5 align-middle">
@@ -664,7 +809,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
 
   const renderRentCollection = () => {
     const rentItems = [];
-    
+
     if (property.propertyType === 'PG' && property.floors) {
       let tenantCount = 1;
       property.floors.forEach(floor => {
@@ -693,13 +838,13 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
         }
       });
     } else if (property.propertyType === 'Tenant' && (property.status === 'Active' || property.status === 'Occupied')) {
-       rentItems.push({
-          id: 'RNT-1',
-          name: 'Occupied Property',
-          initials: 'P',
-          rent: property.monthlyRent ? `₹${Number(property.monthlyRent).toLocaleString()}` : '₹14,500',
-          status: 'Occupied',
-       });
+      rentItems.push({
+        id: 'RNT-1',
+        name: 'Occupied Property',
+        initials: 'P',
+        rent: property.monthlyRent ? `₹${Number(property.monthlyRent).toLocaleString()}` : '₹14,500',
+        status: 'Occupied',
+      });
     }
 
     if (rentItems.length === 0) {
@@ -726,9 +871,9 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
               <div className="flex flex-col">
                 <span className="font-bold text-[#062F26] text-sm mb-0.5">{item.name}</span>
                 <div className="flex items-center text-[11px] font-semibold text-slate-400">
-                   <span className="text-brand-teal font-bold">{item.rent}</span>
-                   <span className="mx-2 text-slate-200">•</span>
-                   <span>Expected Rent</span>
+                  <span className="text-brand-teal font-bold">{item.rent}</span>
+                  <span className="mx-2 text-slate-200">•</span>
+                  <span>Expected Rent</span>
                 </div>
               </div>
             </div>
@@ -754,20 +899,20 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
 
   const renderReports = () => {
     // Generate some somewhat realistic base revenue based on the property rent
-    const baseRent = property.monthlyRent 
-      ? parseInt(property.monthlyRent.replace(/[^0-9]/g, ''), 10) 
+    const baseRent = property.monthlyRent
+      ? parseInt(property.monthlyRent.replace(/[^0-9]/g, ''), 10)
       : (property.propertyType === 'PG' ? 8500 : 15000);
-      
+
     // Assuming maybe 4 occupied beds on average for PGs, or just 1 for a Tenant flat
     const multiplier = property.propertyType === 'PG' ? 4 : 1;
     const baseRevenue = baseRent * multiplier;
 
     // Simulate 12 months of data around this base revenue
     const mockData = Array.from({ length: 12 }, (_, i) => {
-       const variation = 1 - 0.1 + (Math.random() * 0.2); // Random +- 10%
-       // Trending up slightly over the year
-       const trend = 1 + (i * 0.02);
-       return Math.floor(baseRevenue * variation * trend);
+      const variation = 1 - 0.1 + (Math.random() * 0.2); // Random +- 10%
+      // Trending up slightly over the year
+      const trend = 1 + (i * 0.02);
+      return Math.floor(baseRevenue * variation * trend);
     });
 
     const chartOptions = {
@@ -860,8 +1005,8 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
             <p className="text-sm font-medium text-slate-500 mt-1">Financial performance over the last 12 months</p>
           </div>
           <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#F3EFE9] text-right min-w-[200px]">
-             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Total 12m Revenue</span>
-             <span className="text-2xl font-black text-brand-teal">₹{totalRevenue.toLocaleString()}</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Total 12m Revenue</span>
+            <span className="text-2xl font-black text-brand-teal">₹{totalRevenue.toLocaleString()}</span>
           </div>
         </div>
 
@@ -886,7 +1031,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
       return (
         <div className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center animate-fadeIn">
           <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-             <Icon icon="lucide:inbox" className="w-8 h-8 text-slate-300" />
+            <Icon icon="lucide:inbox" className="w-8 h-8 text-slate-300" />
           </div>
           <h3 className="text-lg font-bold text-[#062F26] mb-2">No Leads Yet</h3>
           <p className="text-sm font-medium text-slate-500 max-w-sm mx-auto">
@@ -947,16 +1092,16 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
     return (
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-fadeIn p-6">
         <div className="flex justify-between items-center mb-6">
-           <h3 className="text-lg font-bold text-[#062F26]">Property Leads Kanban <span className="text-brand-teal bg-brand-teal/10 px-2 py-0.5 rounded-md text-sm ml-2">{leads.length}</span></h3>
-           <p className="text-sm font-medium text-slate-500">Drag and drop cards to update status</p>
+          <h3 className="text-lg font-bold text-[#062F26]">Property Leads Kanban <span className="text-brand-teal bg-brand-teal/10 px-2 py-0.5 rounded-md text-sm ml-2">{leads.length}</span></h3>
+          <p className="text-sm font-medium text-slate-500">Drag and drop cards to update status</p>
         </div>
-        
+
         <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-4 min-h-[500px]">
           {columns.map(col => {
             const columnLeads = leads.filter(l => (l.status || 'New') === col.id);
-            
+
             return (
-              <div 
+              <div
                 key={col.id}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, col.id)}
@@ -971,20 +1116,19 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                     {columnLeads.length}
                   </span>
                 </div>
-                
+
                 <div className="p-3 flex-1 flex flex-col gap-3">
                   {columnLeads.map(lead => (
-                    <div 
-                      key={lead._id} 
+                    <div
+                      key={lead._id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, lead._id)}
                       className="bg-white border border-slate-200 rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-md cursor-grab active:cursor-grabbing hover:border-brand-teal/40 transition-all group relative"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-inner ${
-                            lead.senderId?.profilePic ? 'bg-transparent' : 'bg-[#062F26] text-white'
-                          }`}>
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-inner ${lead.senderId?.profilePic ? 'bg-transparent' : 'bg-[#062F26] text-white'
+                            }`}>
                             {lead.senderId?.profilePic ? (
                               <img src={lead.senderId.profilePic} alt={lead.senderId.fullName} className="w-full h-full rounded-full object-cover" />
                             ) : (
@@ -996,13 +1140,13 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                               {lead.senderId?.fullName || 'Unknown User'}
                             </h4>
                             <div className="flex items-center gap-1.5 mt-0.5 text-slate-400">
-                               <Icon icon="lucide:phone" className="w-3 h-3" />
-                               <span className="text-[11px] font-semibold tracking-wide">{lead.senderId?.phone || 'N/A'}</span>
+                              <Icon icon="lucide:phone" className="w-3 h-3" />
+                              <span className="text-[11px] font-semibold tracking-wide">{lead.senderId?.phone || 'N/A'}</span>
                             </div>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between mt-4">
                         <div className="bg-slate-100 text-slate-500 px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1">
                           <Icon icon="lucide:calendar-clock" className="w-3 h-3" />
@@ -1014,10 +1158,10 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                       </div>
                     </div>
                   ))}
-                  
+
                   {columnLeads.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-slate-200/50 rounded-xl text-slate-400 gap-2">
-                       <p className="text-xs font-semibold">Drop leads here</p>
+                      <p className="text-xs font-semibold">Drop leads here</p>
                     </div>
                   )}
                 </div>
@@ -1046,17 +1190,16 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-brand-yellow rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
-                {title.charAt(0).toUpperCase()}
-              </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-[#062F26]">{title}</h1>
-              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm ${
-                status === 'Active' || status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-brand-yellow/20 text-brand-yellow border border-brand-yellow/30'
-              }`}>
+              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm ${property.propertyType === 'PG' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' : 'bg-purple-500/10 text-purple-600 border border-purple-500/20'}`}>
+                {property.propertyType === 'PG' ? 'PG' : 'Tenant'}
+              </span>
+              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm ${status === 'Active' || status === 'Approved' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-brand-yellow/20 text-brand-yellow border border-brand-yellow/30'
+                }`}>
                 {status}
               </span>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-3 text-sm font-medium text-slate-600">
               <div className="flex items-center gap-1.5">
                 <Icon icon="lucide:map-pin" className="w-4 h-4 text-slate-400" />
@@ -1072,12 +1215,12 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
               </div>
               {property.propertyType === 'PG' && pgPricesList.length > 0 ? (
                 <div className="flex items-center gap-2 flex-wrap">
-                   {pgPricesList.map((p, idx) => (
-                      <div key={idx} className="flex items-center gap-1.5 bg-brand-teal/5 border border-brand-teal/20 px-2 py-0.5 rounded text-[11px] font-bold text-[#062F26]">
-                         <span className="text-brand-teal uppercase tracking-wider">{p.type}</span>
-                         <span>{p.price}</span>
-                      </div>
-                   ))}
+                  {pgPricesList.map((p, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 bg-brand-teal/5 border border-brand-teal/20 px-2 py-0.5 rounded text-[11px] font-bold text-[#062F26]">
+                      <span className="text-brand-teal uppercase tracking-wider">{p.type}</span>
+                      <span>{p.price}</span>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5">
@@ -1092,10 +1235,6 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
               <Icon icon="lucide:edit-3" className="w-4 h-4" />
               Edit Info
             </button>
-            <button className="flex items-center gap-2 bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 px-4 py-2.5 rounded-lg font-bold text-sm transition-all shadow-sm">
-              <Icon icon="lucide:upload-cloud" className="w-4 h-4" />
-              Upload Photos
-            </button>
           </div>
         </div>
       </div>
@@ -1106,11 +1245,10 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-3 text-sm font-bold whitespace-nowrap transition-colors relative cursor-pointer ${
-              activeTab === tab 
-                ? 'text-[#062F26]' 
+            className={`pb-3 text-sm font-bold whitespace-nowrap transition-colors relative cursor-pointer ${activeTab === tab
+                ? 'text-[#062F26]'
                 : 'text-slate-400 hover:text-slate-600'
-            }`}
+              }`}
           >
             {tab}
             {activeTab === tab && (
@@ -1124,12 +1262,13 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
       <div>
         {activeTab === 'Overview' && renderOverview()}
         {activeTab === 'Rooms & Beds' && renderRoomsAndBeds()}
+        {activeTab === 'Property Details' && renderTenantDetails()}
         {activeTab === 'Tenants' && renderTenants()}
         {activeTab === 'Rent Collection' && renderRentCollection()}
         {activeTab === 'Leads' && renderLeads()}
         {activeTab === 'Rules & Regulations' && renderRules()}
         {activeTab === 'Reports' && renderReports()}
-        {activeTab !== 'Overview' && activeTab !== 'Rooms & Beds' && activeTab !== 'Tenants' && activeTab !== 'Rent Collection' && activeTab !== 'Leads' && activeTab !== 'Rules & Regulations' && activeTab !== 'Reports' && renderEmptyTab(activeTab)}
+        {activeTab !== 'Overview' && activeTab !== 'Rooms & Beds' && activeTab !== 'Property Details' && activeTab !== 'Tenants' && activeTab !== 'Rent Collection' && activeTab !== 'Leads' && activeTab !== 'Rules & Regulations' && activeTab !== 'Reports' && renderEmptyTab(activeTab)}
       </div>
 
     </div>

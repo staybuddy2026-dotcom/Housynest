@@ -8,14 +8,14 @@ import ScrollToTop from '../components/ScrollToTop';
 const MainLayout = () => {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#F9FAFB] font-sans text-slate-900 selection:bg-brand-teal/20 selection:text-brand-teal">
-      
+
       {/* Fixed Navbar */}
-      <div className="shrink-0 z-50 bg-white border-b border-slate-100">
+      <div className="shrink-0 z-50 bg-white">
         <Navbar />
       </div>
-      
+
       {/* Internal Scrolling Area */}
-      <ReactLenis 
+      <ReactLenis
         className="flex-1 overflow-x-hidden overflow-y-auto"
         options={{ smoothTouch: true, orientation: 'vertical', gestureOrientation: 'vertical' }}
       >
@@ -23,7 +23,7 @@ const MainLayout = () => {
         <main className="grow flex flex-col min-h-max">
           <Outlet />
         </main>
-        
+
         <Newsletter />
         <Footer />
       </ReactLenis>

@@ -45,7 +45,7 @@ const AuthSignupForm = ({ onOtpSent }) => {
   const roles = [
     { id: 'owner', title: 'Owner', subtitle: 'List & Manage', icon: 'lucide:home' },
     { id: 'tenant', title: 'Tenant', subtitle: 'Find Homes', icon: 'lucide:user' },
-    { id: 'lawyer', title: 'Lawyer', subtitle: 'Legal Help', icon: 'lucide:scale' }
+    // { id: 'lawyer', title: 'Lawyer', subtitle: 'Legal Help', icon: 'lucide:scale' }
   ];
 
   const { register, handleSubmit, setValue, trigger, formState: { errors } } = useForm({
@@ -102,7 +102,7 @@ const AuthSignupForm = ({ onOtpSent }) => {
       </div>
 
       {step === 1 && (
-        <div className="grid grid-cols-3 gap-2 mb-4 lg:mb-6">
+        <div className="grid grid-cols-2 gap-2 mb-4 lg:mb-6">
           {roles.map((r) => (
             <button key={r.id} onClick={() => setRole(r.id)} type="button" className={`group relative flex flex-col cursor-pointer items-center justify-center gap-1.5 p-2 rounded-lg border-[1.5px] transition-all duration-300 ${role === r.id ? 'border-[#062F26] bg-[#062F26]/3 shadow-sm transform -translate-y-0.5 ring-1 ring-[#062F26]' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm hover:-translate-y-0.5'}`}>
               <Icon icon={r.icon} className={`w-5.5 h-5.5 transition-colors duration-300 ${role === r.id ? 'text-[#062F26]' : 'text-slate-400 group-hover:text-slate-600'}`} />

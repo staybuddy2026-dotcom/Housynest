@@ -45,6 +45,22 @@
   scrollbar-width: none;
 }
 
+/* Custom Scrollbar for specific containers (Floating Green Style) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-brand-teal, #0aa87d);
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-teal-hover, #062F26);
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

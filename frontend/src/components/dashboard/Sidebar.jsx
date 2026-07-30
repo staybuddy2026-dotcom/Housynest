@@ -174,8 +174,8 @@ const Sidebar = ({ onClose, isMobile }) => {
     { name: 'Tenants', icon: 'lucide:users-2', path: '/owner/tenants' },
     { name: 'Rent Collection', icon: 'lucide:wallet', path: '/owner/payments' },
     { name: 'Messages', icon: 'lucide:message-square', path: '/owner/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
-    { name: 'Lawyer Requests', icon: 'lucide:users', path: '/owner/lawyer-requests', badge: counts.newLawyerRequests > 0 ? counts.newLawyerRequests : null },
-    { name: 'Contracts', icon: 'lucide:file-text', path: '/owner/contracts', badge: counts.newOwnerContracts > 0 ? counts.newOwnerContracts : null },
+    // { name: 'Lawyer Requests', icon: 'lucide:users', path: '/owner/lawyer-requests', badge: counts.newLawyerRequests > 0 ? counts.newLawyerRequests : null },
+    // { name: 'Contracts', icon: 'lucide:file-text', path: '/owner/contracts', badge: counts.newOwnerContracts > 0 ? counts.newOwnerContracts : null },
     { name: 'Reports', icon: 'lucide:bar-chart-3', path: '/owner/reports' },
   ];
 

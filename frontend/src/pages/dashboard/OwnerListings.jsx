@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
-import EditPropertyForm from '../../components/dashboard/EditPropertyForm';
 import OwnerPropertyDetails from '../../components/dashboard/OwnerPropertyDetails';
 
 const OwnerListings = () => {
@@ -12,7 +11,6 @@ const OwnerListings = () => {
   const [viewType, setViewType] = useState('grid');
   const [listings, setListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingPropertyId, setEditingPropertyId] = useState(null);
   const [viewingPropertyId, setViewingPropertyId] = useState(null);
 
   const fetchProperties = useCallback(async () => {
@@ -77,31 +75,12 @@ const OwnerListings = () => {
     return <div className="animate-fadeIn py-12 flex justify-center"><Icon icon="lucide:loader-2" className="w-8 h-8 animate-spin text-brand-teal" /></div>;
   }
 
-  if (editingPropertyId) {
-    return (
-      <div className="animate-fadeIn">
-        <EditPropertyForm
-          propertyId={editingPropertyId}
-          onClose={() => setEditingPropertyId(null)}
-          onSuccess={() => {
-            setEditingPropertyId(null);
-            fetchProperties();
-          }}
-        />
-      </div>
-    );
-  }
-
   if (viewingPropertyId) {
     return (
       <div className="animate-fadeIn">
         <OwnerPropertyDetails
           propertyId={viewingPropertyId}
           onClose={() => setViewingPropertyId(null)}
-          onEdit={() => {
-            setViewingPropertyId(null);
-            setEditingPropertyId(viewingPropertyId);
-          }}
         />
       </div>
     );
@@ -314,13 +293,6 @@ const OwnerListings = () => {
                         <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
                         View
                       </button>
-                      <button
-                        onClick={() => setEditingPropertyId(rawListing._id)}
-                        className="flex-1 bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-slate-600 hover:text-blue-600 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
-                      >
-                        <Icon icon="lucide:pencil" className="w-3.5 h-3.5" />
-                        Edit
-                      </button>
                       <button onClick={() => handleDelete(rawListing._id)} className="flex-1 bg-white border border-slate-200 hover:border-red-500 hover:bg-red-50 text-slate-600 hover:text-red-600 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm">
                         <Icon icon="lucide:trash-2" className="w-3.5 h-3.5" />
                         Delete
@@ -418,9 +390,6 @@ const OwnerListings = () => {
                 <div className="flex items-center gap-1.5 sm:border-l sm:border-slate-100 sm:pl-4 shrink-0 justify-end mt-2 sm:mt-0">
                   <button onClick={() => setViewingPropertyId(rawListing._id)} className="cursor-pointer w-8 h-8 rounded-lg text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-all" title="View">
                     <Icon icon="lucide:eye" className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setEditingPropertyId(rawListing._id)} className="w-8 h-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 flex items-center justify-center transition-all" title="Edit">
-                    <Icon icon="lucide:pencil" className="w-4 h-4" />
                   </button>
                   <button onClick={() => handleDelete(rawListing._id)} className="w-8 h-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all" title="Delete">
                     <Icon icon="lucide:trash-2" className="w-4 h-4" />

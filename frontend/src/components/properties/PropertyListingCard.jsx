@@ -102,8 +102,18 @@ const PropertyListingCard = ({ property }) => {
     }
   };
 
+  const handleCardClick = (e) => {
+    const token = localStorage.getItem('accessToken');
+    const userStr = localStorage.getItem('user');
+    if (!token || !userStr) {
+      e.preventDefault();
+      toast.error('Please login to view property details');
+      navigate('/login');
+    }
+  };
+
   return (
-    <Link to={`/properties/${property.id}`} className="bg-white rounded-lg overflow-hidden border border-slate-100 shadow-sm hover:shadow-[0_15px_40px_rgba(4,71,58,0.08)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer flex flex-col group h-full">
+    <Link to={`/properties/${property.id}`} onClick={handleCardClick} className="bg-white rounded-lg overflow-hidden border border-slate-100 shadow-sm hover:shadow-[0_15px_40px_rgba(4,71,58,0.08)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer flex flex-col group h-full">
       {/* Image */}
       <div className="relative h-[200px] overflow-hidden bg-slate-200">
         <div

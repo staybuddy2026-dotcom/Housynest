@@ -1,7 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useFieldArray } from 'react-hook-form';
 import CustomDropdown from './CustomDropdown';
+
+const InputField = ({ label, required, error, ...props }) => (
+  <div className="flex flex-col gap-1.5 flex-1">
+    <label className="text-sm font-bold text-[#062F26]">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+      <input
+        className={`w-full px-4 py-3 bg-white border ${error ? 'border-red-500' : 'border-slate-200'} rounded-lg text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300 placeholder:font-normal placeholder:text-slate-400`}
+        {...props}
+      />
+    </div>
+    {error && <span className="text-red-500 text-[10px] sm:text-xs">{error}</span>}
+  </div>
+);
 
 const CheckboxGrid = ({ label, options, selected, onChange, onAddCustom }) => {
   const [isAdding, setIsAdding] = useState(false);
@@ -86,7 +101,17 @@ const CheckboxGrid = ({ label, options, selected, onChange, onAddCustom }) => {
 };
 
 const TenantAdditionalDetails = ({ onNext, onPrev }) => {
-  const { register, watch, setValue, formState: { errors } } = useFormContext();
+  const { register, watch, setValue, formState: { errors }, control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "nearbyPlaces"
+  });
+
+  useEffect(() => {
+    if (fields.length === 0) {
+      append({ place: '', distance: '' });
+    }
+  }, [fields.length, append]);
 
   const handleUpdate = (field, value) => {
     setValue(field, value, { shouldValidate: true });
@@ -154,7 +179,53 @@ const TenantAdditionalDetails = ({ onNext, onPrev }) => {
           />
         </div>
 
+        {/* Divider */}
+        <div className="flex items-center gap-4 mt-2">
+          <div className="flex-1 h-px bg-slate-100"></div>
+          <span className="text-xs font-bold text-brand-teal uppercase tracking-wider">Nearby Places</span>
+          <div className="flex-1 h-px bg-slate-100"></div>
+        </div>
 
+        <div className="flex flex-col gap-4">
+          {fields.map((field, index) => (
+            <div key={field.id} className="relative flex gap-4 items-start p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-xl transition-all hover:border-brand-teal/30 hover:shadow-sm">
+              <div className="absolute -left-2.5 -top-2.5 w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm z-10">
+                {index + 1}
+              </div>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InputField
+                  label="Place Name"
+                  placeholder="e.g. Metro Station, Hospital"
+                  {...register(`nearbyPlaces.${index}.place`)}
+                  error={errors.nearbyPlaces?.[index]?.place?.message}
+                />
+                <InputField
+                  label="Distance"
+                  placeholder="e.g. 500m, 2.5km"
+                  {...register(`nearbyPlaces.${index}.distance`)}
+                  error={errors.nearbyPlaces?.[index]?.distance?.message}
+                />
+              </div>
+              {index > 0 && (
+                <button
+                  type="button"
+                  onClick={() => remove(index)}
+                  className="mt-6 p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                  title="Remove this place"
+                >
+                  <Icon icon="lucide:trash-2" width="20" />
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => append({ place: '', distance: '' })}
+            className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-brand-teal font-bold text-sm hover:border-brand-teal hover:bg-[#EAF5F2] transition-all flex items-center justify-center gap-2"
+          >
+            <Icon icon="lucide:plus" width="18" /> Add Nearby Place
+          </button>
+        </div>
 
       </div>
 

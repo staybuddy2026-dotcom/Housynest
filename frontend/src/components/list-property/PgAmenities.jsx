@@ -36,7 +36,7 @@ const PgAmenities = ({ onNext, onPrev }) => {
 
   const allSelected = [...commonAmenities, ...extraCommonAmenities];
 
-  const amenityOptions = ['Bed', 'Study Table', 'Wardrobe', 'Ac', 'Wifi', 'Heater', 'Geyser', 'Separate Washroom', 'Private Balcony', 'Inhouse Kitchen', 'Gym', 'Library', 'Indoor Games', 'Swimming Pool', 'Work Cabin'];
+  const amenityOptions = ['Bed', 'Study Table', 'Wardrobe', 'Ac', 'Wifi', 'Heater', 'Geyser', 'Separate Washroom', 'Private Balcony', 'Inhouse Kitchen', 'Gym', 'Library', 'Indoor Games', 'Swimming Pool', 'Work Cabin', 'TV'];
 
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] flex flex-col h-full">

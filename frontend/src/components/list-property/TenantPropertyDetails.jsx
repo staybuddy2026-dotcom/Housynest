@@ -43,10 +43,6 @@ const ButtonGroup = ({ label, required, options, value, onChange, error }) => (
 
 const TenantPropertyDetails = ({ onNext, onPrev }) => {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
-  const [newPlace, setNewPlace] = useState('');
-  const [newDistance, setNewDistance] = useState('');
-
-  const nearbyPlaces = watch('nearbyPlaces') || [];
   const numberOfVillas = watch('numberOfVillas');
   const bhkType = watch('bhkType');
   const bathrooms = watch('bathrooms');
@@ -57,19 +53,6 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
 
   const handleUpdate = (field, value) => {
     setValue(field, value, { shouldValidate: true });
-  };
-
-  const handleAddPlace = (e) => {
-    e.preventDefault();
-    if (newPlace.trim() && newDistance.trim()) {
-      setValue('nearbyPlaces', [...nearbyPlaces, { place: newPlace.trim(), distance: newDistance.trim() }], { shouldValidate: true });
-      setNewPlace('');
-      setNewDistance('');
-    }
-  };
-
-  const handleRemovePlace = (index) => {
-    setValue('nearbyPlaces', nearbyPlaces.filter((_, i) => i !== index), { shouldValidate: true });
   };
 
   const [dragActive, setDragActive] = useState(false);
@@ -168,52 +151,6 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
           </p>
         </div>
 
-        {/* Nearby Places */}
-        <div className="flex flex-col gap-2 sm:gap-3">
-          <label className="text-xs sm:text-sm font-bold text-[#062F26]">Nearby Places</label>
-          <p className="text-[10px] text-slate-400 -mt-1.5 sm:-mt-2">Type a place and distance, press Add</p>
-
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-start">
-            <div className="flex-1 flex gap-2 sm:gap-3">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={newPlace}
-                  onChange={(e) => setNewPlace(e.target.value)}
-                  placeholder="e.g. Metro Station"
-                  className="w-full px-3 sm:px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300"
-                />
-              </div>
-              <div className="w-25 sm:w-30">
-                <input
-                  type="text"
-                  value={newDistance}
-                  onChange={(e) => setNewDistance(e.target.value)}
-                  placeholder="e.g. 500m"
-                  className="w-full px-3 sm:px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm sm:text-sm font-medium focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all duration-200 focus:shadow-sm hover:border-slate-300"
-                />
-              </div>
-            </div>
-            <button type="button" onClick={handleAddPlace} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-brand-teal text-white text-sm sm:text-sm font-bold rounded-lg hover:bg-[#062F26] transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-md shadow-brand-teal/20">
-              Add
-            </button>
-          </div>
-
-          {/* List of Nearby Places */}
-          {nearbyPlaces?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {nearbyPlaces.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full text-xs font-bold text-slate-600">
-                  <span>{item.place}</span>
-                  <span className="text-brand-teal">{item.distance}</span>
-                  <button type="button" onClick={() => handleRemovePlace(idx)} className="text-slate-400 hover:text-red-500 transition-colors ml-1">
-                    <Icon icon="lucide:x" width="14" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Specs */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">

@@ -168,13 +168,13 @@ const ListProperty = () => {
       fieldsToValidate = ['propertyType', 'postingAs', ...(pType === 'PG' ? ['pgPresentIn', 'operationalSince', 'pgName', 'preferredGender', 'tenantPreference'] : ['propertyCategory', 'societyName'])];
     } else if (activeStep === 2) {
       if (pType === 'PG') fieldsToValidate = ['address', 'locality', 'city', 'state', 'pincode', 'landmark', 'mapLink', 'verificationDocs'];
-      else fieldsToValidate = ['address', 'locality', 'city', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor', 'ageOfProperty', 'verificationDocs'];
+      else fieldsToValidate = ['address', 'locality', 'city', 'state', 'pincode', 'landmark', 'mapLink', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor', 'ageOfProperty', 'verificationDocs'];
     } else if (activeStep === 3) {
       if (pType === 'PG') fieldsToValidate = ['buildingName', 'floors', 'pgPricing'];
       else fieldsToValidate = ['monthlyRent', 'maxPeople', 'securityAmount', 'maintenanceCharges', 'maintenancePeriod', 'availableFromType', 'availableDate'];
     } else if (activeStep === 4) {
       if (pType === 'PG') fieldsToValidate = ['paymentModel', 'rentalPeriod', 'noticePeriod', 'bookingType'];
-      else fieldsToValidate = ['additionalRooms', 'overlooking', 'facing'];
+      else fieldsToValidate = ['additionalRooms', 'overlooking', 'facing', 'nearbyPlaces'];
     } else if (activeStep === 5) {
       if (pType === 'PG') fieldsToValidate = ['commonAmenities', 'extraCommonAmenities', 'parking'];
       else fieldsToValidate = ['societyAmenities'];
@@ -364,9 +364,9 @@ const ListProperty = () => {
         if (['virtualTour', 'photos'].includes(field)) return 8;
       } else {
         if (['propertyType', 'postingAs', 'city', 'propertyCategory', 'societyName', 'ageOfProperty', 'preferredTenants'].includes(field)) return 1;
-        if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'nearbyPlaces', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor'].includes(field)) return 2;
+        if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor'].includes(field)) return 2;
         if (['monthlyRent', 'maxPeople', 'securityAmount', 'maintenanceCharges', 'maintenancePeriod', 'availableFromType', 'availableDate'].includes(field)) return 3;
-        if (['additionalRooms', 'overlooking', 'facing'].includes(field)) return 4;
+        if (['additionalRooms', 'overlooking', 'facing', 'nearbyPlaces'].includes(field)) return 4;
         if (['societyAmenities'].includes(field)) return 5;
         if (['virtualTour', 'photos'].includes(field)) return 6;
       }

@@ -12,7 +12,7 @@ import { sendGenericEmail } from '../utils/emailService.js';
 export const createProperty = async (req, res) => {
   try {
     const propertyData = req.body;
-    
+
     // Convert complex objects/arrays from stringified JSON if needed (multipart/form-data sends complex objects as strings)
     const jsonFields = ['rooms', 'floors', 'pgPricing'];
     jsonFields.forEach(field => {
@@ -25,10 +25,10 @@ export const createProperty = async (req, res) => {
         }
       }
     });
-    
+
     // Convert array fields from strings if needed
     const arrayFields = ['nearbyPlaces', 'services', 'extraServices', 'meals', 'commonAmenities', 'extraCommonAmenities', 'parking', 'pgRules', 'extraRules', 'additionalRooms', 'overlooking', 'societyAmenities', 'preferredTenants', 'usps', 'customUsps'];
-    
+
     arrayFields.forEach(field => {
       if (propertyData[field] && typeof propertyData[field] === 'string') {
         try {
@@ -83,7 +83,7 @@ export const createProperty = async (req, res) => {
           <br>
           <p>Thanks,<br>The Housynest Team</p>
         `;
-        
+
         // Blast emails (asynchronous, don't wait for all to finish to prevent slow response)
         subscribers.forEach(sub => {
           sendGenericEmail(sub.email, subject, '', html).catch(e => console.error('Newsletter email failed for', sub.email));
@@ -97,7 +97,7 @@ export const createProperty = async (req, res) => {
   } catch (error) {
     console.error('Error creating property details:', error);
     if (error.name === 'ValidationError') {
-       return res.status(400).json({ message: 'Validation Error', error: error.message, details: error.errors });
+      return res.status(400).json({ message: 'Validation Error', error: error.message, details: error.errors });
     }
     res.status(500).json({ message: 'Failed to create property', error: error.message, stack: error.stack });
   }
@@ -112,7 +112,7 @@ export const getProperties = async (req, res) => {
     if (req.query.type) {
       query.propertyType = req.query.type;
     }
-    
+
     const properties = await Property.find(query).populate('owner', 'fullName email profilePic');
     res.status(200).json(properties);
   } catch (error) {
@@ -158,13 +158,13 @@ export const getPendingPropertyCount = async (req, res) => {
 export const getOwnerProperties = async (req, res) => {
   try {
     const properties = await Property.find({ owner: req.user._id }).lean();
-    
+
     // Dynamically calculate accurate inquiries count for perfect sync with DB
     const propertiesWithCounts = await Promise.all(properties.map(async (prop) => {
       const inquiryCount = await Inquiry.countDocuments({ propertyId: prop._id });
       return { ...prop, inquiries: inquiryCount };
     }));
-    
+
     res.json(propertiesWithCounts);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch owner properties' });
@@ -190,87 +190,6 @@ export const getPropertyById = async (req, res) => {
   }
 };
 
-// @desc    Update a property
-// @route   PUT /api/properties/:id
-// @access  Private
-export const updateProperty = async (req, res) => {
-  try {
-    const property = await Property.findById(req.params.id);
-
-    if (property) {
-      // Check if user is owner or admin
-      if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-        return res.status(401).json({ message: 'Not authorized to update this property' });
-      }
-
-      const updateData = req.body;
-      
-      // Parse JSON strings if necessary
-      if (updateData.rooms && typeof updateData.rooms === 'string') {
-        updateData.rooms = JSON.parse(updateData.rooms);
-      }
-      
-      Object.assign(property, updateData);
-      
-      if (req.files && req.files.images && req.files.images.length > 0) {
-        const newImages = req.files.images.map(file => ({
-          url: file.path,
-          public_id: file.filename
-        }));
-        property.images = [...property.images, ...newImages];
-      }
-      
-      if (req.files && req.files.documents && req.files.documents.length > 0) {
-        const newDocs = req.files.documents.map(file => ({
-          url: file.path,
-          public_id: file.filename
-        }));
-        property.verificationDocs = [...(property.verificationDocs || []), ...newDocs];
-      }
-
-      // Calculate old total available beds (for PGs)
-      const getAvailableBeds = (rooms = []) => {
-        return rooms.reduce((sum, room) => sum + (parseInt(room.availableBeds) || 0), 0);
-      };
-      
-      const oldAvailableBeds = getAvailableBeds(property.rooms);
-
-      const updatedProperty = await property.save();
-
-      // Check if availability increased
-      const newAvailableBeds = getAvailableBeds(updatedProperty.rooms);
-      if (newAvailableBeds > oldAvailableBeds) {
-        try {
-          const subscribers = await Newsletter.find({ active: true });
-          if (subscribers.length > 0) {
-            const title = updatedProperty.pgName || updatedProperty.propertyCategory || 'Property';
-            const location = updatedProperty.city ? `${updatedProperty.locality || ''}, ${updatedProperty.city}` : 'a great location';
-            const subject = `Room Availability Increased for ${title}!`;
-            const html = `
-              <h2>Good News! More beds are available on Housynest!</h2>
-              <p>The property <strong>${title}</strong> in ${location} just increased its room availability.</p>
-              <p>If you were waiting for a spot to open up, now is your chance to book!</p>
-              <br>
-              <p>Thanks,<br>The Housynest Team</p>
-            `;
-            
-            subscribers.forEach(sub => {
-              sendGenericEmail(sub.email, subject, '', html).catch(e => console.error('Newsletter email failed for', sub.email));
-            });
-          }
-        } catch (newsErr) {
-          console.error('Failed to process newsletter availability alerts:', newsErr);
-        }
-      }
-
-      res.json(updatedProperty);
-    } else {
-      res.status(404).json({ message: 'Property not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to update property' });
-  }
-};
 
 // @desc    Delete a property
 // @route   DELETE /api/properties/:id
@@ -362,7 +281,7 @@ export const updatePropertyStatus = async (req, res) => {
     if (isVerified !== undefined) property.isVerified = isVerified;
 
     const updatedProperty = await property.save();
-    
+
     // Emit event to update pending counts
     try {
       const io = getIo();
@@ -389,9 +308,9 @@ export const getSavedProperties = async (req, res) => {
 
     const savedPropertyIds = user.savedProperties || [];
     const validIds = savedPropertyIds.filter(id => /^[0-9a-fA-F]{24}$/.test(String(id)));
-    
+
     // Find all properties whose ID is in the savedPropertyIds array
-    const properties = await Property.find({ 
+    const properties = await Property.find({
       _id: { $in: validIds },
       status: { $in: ['Approved', 'Active'] }
     }).populate('owner', 'fullName email');
@@ -442,21 +361,21 @@ export const getSimilarProperties = async (req, res) => {
 
     // If less than 4, find just by city
     if (similarProperties.length < 4) {
-        const moreProps = await Property.find({
-            _id: { $ne: propertyId, $nin: similarProperties.map(p => p._id) },
-            status: { $in: ['Approved', 'Active'] },
-            city: property.city
-        }).limit(4 - similarProperties.length).populate('owner', 'fullName email profilePic');
-        similarProperties = [...similarProperties, ...moreProps];
+      const moreProps = await Property.find({
+        _id: { $ne: propertyId, $nin: similarProperties.map(p => p._id) },
+        status: { $in: ['Approved', 'Active'] },
+        city: property.city
+      }).limit(4 - similarProperties.length).populate('owner', 'fullName email profilePic');
+      similarProperties = [...similarProperties, ...moreProps];
     }
 
     // If still less than 4, find any active properties
     if (similarProperties.length < 4) {
-        const moreProps = await Property.find({
-            _id: { $ne: propertyId, $nin: similarProperties.map(p => p._id) },
-            status: { $in: ['Approved', 'Active'] }
-        }).limit(4 - similarProperties.length).populate('owner', 'fullName email profilePic');
-        similarProperties = [...similarProperties, ...moreProps];
+      const moreProps = await Property.find({
+        _id: { $ne: propertyId, $nin: similarProperties.map(p => p._id) },
+        status: { $in: ['Approved', 'Active'] }
+      }).limit(4 - similarProperties.length).populate('owner', 'fullName email profilePic');
+      similarProperties = [...similarProperties, ...moreProps];
     }
 
     res.status(200).json(similarProperties);
@@ -501,7 +420,7 @@ export const createReview = async (req, res) => {
     });
 
     await review.save();
-    
+
     // Populate tenant info to send back to frontend
     const populatedReview = await Review.findById(review._id).populate('tenant', 'fullName profilePic');
 
@@ -519,7 +438,7 @@ export const getPropertyReviews = async (req, res) => {
     const reviews = await Review.find({ property: req.params.id })
       .populate('tenant', 'fullName profilePic')
       .sort({ createdAt: -1 });
-    
+
     res.status(200).json(reviews);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

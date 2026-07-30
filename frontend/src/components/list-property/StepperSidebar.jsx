@@ -21,13 +21,13 @@ const tenantSteps = [
   { id: 6, title: 'Photos & Videos', subtitle: 'Add photos, floor plan & video' }
 ];
 
-const StepperSidebar = ({ activeStep, propertyType = 'PG' }) => {
+const StepperSidebar = ({ activeStep, propertyType = 'PG', layout = 'sidebar' }) => {
   const steps = propertyType === 'Tenant' ? tenantSteps : pgSteps;
   const containerRef = useRef(null);
   const activeStepRef = useRef(null);
 
   useEffect(() => {
-    if (activeStepRef.current && containerRef.current && window.innerWidth < 1024) {
+    if (activeStepRef.current && containerRef.current && (window.innerWidth < 1024 || layout === 'horizontal')) {
       const container = containerRef.current;
       const element = activeStepRef.current;
       const scrollLeft = element.offsetLeft - (container.offsetWidth / 2) + (element.offsetWidth / 2);
@@ -37,26 +37,33 @@ const StepperSidebar = ({ activeStep, propertyType = 'PG' }) => {
         behavior: 'smooth'
       });
     }
-  }, [activeStep]);
+  }, [activeStep, layout]);
 
   return (
-    <div className="w-full flex flex-col lg:flex-col gap-4 lg:gap-6">
-      <div className="bg-[#F8FBFA] rounded-xl lg:rounded-xl p-4 lg:pb-8 border border-slate-100">
-        <h2 className="hidden lg:block text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 ml-2">List Property</h2>
+    <div className={`w-full flex flex-col ${layout === 'sidebar' ? 'gap-4 lg:gap-6' : 'gap-4'}`}>
+      <div className={`bg-[#F8FBFA] rounded-xl border border-slate-100 ${layout === 'sidebar' ? 'p-4 lg:pb-8' : 'p-4'}`}>
+        {layout === 'sidebar' && (
+          <h2 className="hidden lg:block text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 ml-2">
+            List Property
+          </h2>
+        )}
 
-        <div ref={containerRef} className="overflow-x-auto lg:overflow-visible pt-2 pb-4 lg:pt-0 lg:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none -mx-4 px-4 lg:mx-0 lg:px-0 scroll-smooth">
-          <div className="flex flex-row lg:flex-col gap-4 lg:gap-6 relative w-max lg:w-auto snap-x">
+        <div ref={containerRef} className={`overflow-x-auto pt-2 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none scroll-smooth ${layout === 'sidebar' ? '-mx-4 px-4 lg:overflow-visible lg:pt-0 lg:pb-0 lg:mx-0 lg:px-0' : ''}`}>
+          <div className={`flex flex-row gap-4 relative snap-x ${layout === 'sidebar' ? 'lg:flex-col lg:gap-6 w-max lg:w-auto' : 'w-max'}`}>
             {/* Vertical Track Line (Desktop) */}
-            <div className="hidden lg:block absolute left-4 top-2 bottom-6 w-0.5 bg-slate-200 z-0"></div>
-            {/* Horizontal Track Line (Mobile) */}
-            <div className="block lg:hidden absolute top-4 left-15 right-15 h-0.5 bg-slate-200 z-0"></div>
+            {layout === 'sidebar' && (
+              <div className="hidden lg:block absolute left-4 top-2 bottom-6 w-0.5 bg-slate-200 z-0"></div>
+            )}
+            
+            {/* Horizontal Track Line */}
+            <div className={`absolute top-4 left-15 right-15 h-0.5 bg-slate-200 z-0 ${layout === 'sidebar' ? 'block lg:hidden' : 'block'}`}></div>
 
             {steps.map((step) => {
               const isActive = step.id === activeStep;
               const isCompleted = step.id < activeStep;
 
               return (
-                <div ref={isActive ? activeStepRef : null} key={step.id} className="relative z-10 flex flex-col lg:flex-row gap-2 lg:gap-4 group cursor-pointer shrink-0 snap-start w-30 lg:w-auto items-center lg:items-start text-center lg:text-left">
+                <div ref={isActive ? activeStepRef : null} key={step.id} className={`relative z-10 flex flex-col gap-2 group cursor-pointer shrink-0 snap-start items-center text-center ${layout === 'sidebar' ? 'lg:flex-row lg:gap-4 w-30 lg:w-auto lg:items-start lg:text-left' : 'w-30'}`}>
                   {/* Step Circle */}
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 transition-all duration-300
@@ -71,13 +78,15 @@ const StepperSidebar = ({ activeStep, propertyType = 'PG' }) => {
                   </div>
 
                   {/* Step Text */}
-                  <div className={`flex flex-col pt-0.5 lg:pt-0.5 ${isActive ? '' : 'opacity-60 group-hover:opacity-100 transition-opacity'}`}>
-                    <h3 className={`text-xs lg:text-base font-bold ${isActive ? 'text-[#062F26]' : 'text-slate-700'}`}>
+                  <div className={`flex flex-col pt-0.5 ${layout === 'sidebar' ? 'lg:pt-0.5' : ''} ${isActive ? '' : 'opacity-60 group-hover:opacity-100 transition-opacity'}`}>
+                    <h3 className={`font-bold ${layout === 'sidebar' ? 'text-xs lg:text-base' : 'text-xs'} ${isActive ? 'text-[#062F26]' : 'text-slate-700'}`}>
                       {step.title}
                     </h3>
-                    <p className="hidden lg:block text-xs font-medium text-slate-500 mt-0.5 leading-snug">
-                      {step.subtitle}
-                    </p>
+                    {layout === 'sidebar' && (
+                      <p className="hidden lg:block text-xs font-medium text-slate-500 mt-0.5 leading-snug">
+                        {step.subtitle}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -87,16 +96,18 @@ const StepperSidebar = ({ activeStep, propertyType = 'PG' }) => {
       </div>
 
       {/* Need Help Card */}
-      <div className="hidden lg:flex bg-white rounded-[20px] p-6 border border-slate-100 flex-col items-center text-center shadow-sm">
-        <div className="w-12 h-12 rounded-full bg-[#EAF5F2] flex items-center justify-center text-brand-teal mb-3">
-          <Icon icon="lucide:headphones" className="w-6 h-6 stroke-2" />
+      {layout === 'sidebar' && (
+        <div className="hidden lg:flex bg-white rounded-[20px] p-6 border border-slate-100 flex-col items-center text-center shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-[#EAF5F2] flex items-center justify-center text-brand-teal mb-3">
+            <Icon icon="lucide:headphones" className="w-6 h-6 stroke-2" />
+          </div>
+          <h4 className="text-[15px] font-bold text-[#062F26] mb-1">Need Help?</h4>
+          <p className="text-xs font-medium text-slate-500 mb-4 px-2">Our team is here to help you</p>
+          <button className="w-full py-2.5 rounded-lg border border-brand-teal text-brand-teal font-bold text-sm hover:bg-[#EAF5F2] transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm">
+            Contact Support
+          </button>
         </div>
-        <h4 className="text-[15px] font-bold text-[#062F26] mb-1">Need Help?</h4>
-        <p className="text-xs font-medium text-slate-500 mb-4 px-2">Our team is here to help you</p>
-        <button className="w-full py-2.5 rounded-lg border border-brand-teal text-brand-teal font-bold text-sm hover:bg-[#EAF5F2] transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm">
-          Contact Support
-        </button>
-      </div>
+      )}
     </div>
   );
 };

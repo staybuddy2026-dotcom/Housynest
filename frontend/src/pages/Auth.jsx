@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import loginImg from '../assets/loginimg.png';
@@ -28,6 +28,9 @@ const Auth = () => {
   const currentFace = isEvenActive ? evenFace : oddFace;
   const isSignupOrOtp = currentFace === 'signup' || currentFace === 'otp';
 
+  const currentFaceRef = React.useRef(currentFace);
+  currentFaceRef.current = currentFace;
+
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(timer);
@@ -35,30 +38,32 @@ const Auth = () => {
 
   const toggleFlip = useCallback((e, targetFace = null) => {
     e?.preventDefault();
-    const nextFaceName = targetFace || (currentFace === 'login' ? 'signup' : 'login');
+    let nextFaceName = typeof targetFace === 'string' ? targetFace : null;
+    if (!nextFaceName) {
+      nextFaceName = currentFace === 'login' ? 'signup' : 'login';
+    }
+    
     if (currentFace === nextFaceName) return;
 
-    const nextCount = flipCount + 1;
-    const nextIsEven = nextCount % 2 === 0;
-
-    setFaces(prev => ({
-      ...prev,
-      [nextIsEven ? 'even' : 'odd']: nextFaceName
-    }));
-    setFlipCount(nextCount);
-    navigate(`/${nextFaceName}`, { replace: true });
-  }, [currentFace, flipCount, navigate]);
+    if (nextFaceName === 'login' || nextFaceName === 'signup') {
+      navigate(`/${nextFaceName}`, { replace: true });
+    }
+  }, [currentFace, navigate]);
 
   useEffect(() => {
-    // Sync with URL if user uses browser back/forward
-    if (location.pathname === '/signup' && currentFace !== 'signup') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      toggleFlip(null, 'signup');
-    } else if (location.pathname === '/login' && currentFace !== 'login') {
-       
-      toggleFlip(null, 'login');
+    const expectedFace = location.pathname === '/signup' ? 'signup' : 'login';
+    if (currentFaceRef.current !== expectedFace) {
+      setFlipCount(prevCount => {
+        const nextCount = prevCount + 1;
+        const nextIsEven = nextCount % 2 === 0;
+        setFaces(prevFaces => ({
+          ...prevFaces,
+          [nextIsEven ? 'even' : 'odd']: expectedFace
+        }));
+        return nextCount;
+      });
     }
-  }, [location.pathname, currentFace, toggleFlip]);
+  }, [location.pathname]);
 
   const handleOtpSent = (data) => {
     setRegistrationData(data);
