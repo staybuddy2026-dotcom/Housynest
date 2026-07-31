@@ -103,6 +103,109 @@ export const createProperty = async (req, res) => {
   }
 };
 
+// @desc    Update property details
+// @route   PUT /api/properties/:id
+// @access  Private
+export const updateProperty = async (req, res) => {
+  try {
+    const propertyId = req.params.id;
+    const property = await Property.findById(propertyId);
+
+    if (!property) {
+      return res.status(404).json({ message: 'Property not found' });
+    }
+
+    if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(401).json({ message: 'Not authorized to update this property' });
+    }
+
+    const propertyData = req.body;
+
+    // Convert complex objects/arrays from stringified JSON if needed
+    const jsonFields = ['rooms', 'floors', 'pgPricing'];
+    jsonFields.forEach(field => {
+      if (propertyData[field] && typeof propertyData[field] === 'string') {
+        try {
+          propertyData[field] = JSON.parse(propertyData[field]);
+        } catch (e) {
+          console.error(`Failed to parse ${field}:`, propertyData[field]);
+        }
+      }
+    });
+
+    // Convert array fields from strings if needed
+    const arrayFields = ['nearbyPlaces', 'services', 'extraServices', 'meals', 'commonAmenities', 'extraCommonAmenities', 'parking', 'pgRules', 'extraRules', 'additionalRooms', 'overlooking', 'societyAmenities', 'preferredTenants', 'usps', 'customUsps'];
+
+    arrayFields.forEach(field => {
+      if (propertyData[field] && typeof propertyData[field] === 'string') {
+        try {
+          propertyData[field] = JSON.parse(propertyData[field]);
+        } catch (e) {
+          propertyData[field] = propertyData[field].split(',');
+        }
+      }
+    });
+
+    // Handle new image uploads (append to existing)
+    if (req.files && req.files.images) {
+      const newImages = req.files.images.map(file => ({
+        url: file.path,
+        public_id: file.filename
+      }));
+      propertyData.images = [...(property.images || []), ...newImages];
+    }
+    
+    // Handle new document uploads
+    if (req.files && req.files.documents) {
+        const newDocs = req.files.documents.map(file => ({
+            url: file.path,
+            public_id: file.filename
+        }));
+        propertyData.verificationDocs = [...(property.verificationDocs || []), ...newDocs];
+    }
+    
+    // Allow deleting existing images/docs via frontend by sending an array of public_ids to remove
+    if (propertyData.removeImages) {
+        let removeIds = [];
+        try {
+            removeIds = JSON.parse(propertyData.removeImages);
+        } catch(e) {
+            removeIds = typeof propertyData.removeImages === 'string' ? propertyData.removeImages.split(',') : propertyData.removeImages;
+        }
+        if (Array.isArray(removeIds) && removeIds.length > 0) {
+            propertyData.images = (propertyData.images || property.images).filter(img => !removeIds.includes(img.public_id));
+        }
+    }
+
+    if (propertyData.removeDocs) {
+        let removeIds = [];
+        try {
+            removeIds = JSON.parse(propertyData.removeDocs);
+        } catch(e) {
+            removeIds = typeof propertyData.removeDocs === 'string' ? propertyData.removeDocs.split(',') : propertyData.removeDocs;
+        }
+        if (Array.isArray(removeIds) && removeIds.length > 0) {
+            propertyData.verificationDocs = (propertyData.verificationDocs || property.verificationDocs).filter(doc => !removeIds.includes(doc.public_id));
+        }
+    }
+
+    // Update property
+    const updatedProperty = await Property.findByIdAndUpdate(
+      propertyId,
+      { $set: propertyData },
+      { new: true, runValidators: true }
+    );
+
+    res.json(updatedProperty);
+  } catch (error) {
+    console.error('Error updating property:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Validation Error', error: error.message, details: error.errors });
+    }
+    res.status(500).json({ message: 'Failed to update property', error: error.message });
+  }
+};
+
 // @desc    Get all properties (with filters)
 // @route   GET /api/properties
 // @access  Public

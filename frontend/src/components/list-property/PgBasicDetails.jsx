@@ -186,7 +186,7 @@ const CheckboxGrid = ({ label, options, selected, onChange, onAddCustom }) => {
   );
 };
 
-const PgBasicDetails = ({ onNext }) => {
+const PgBasicDetails = ({ onNext, isEditMode = false }) => {
   const { register, watch, setValue, control, formState: { errors } } = useFormContext();
 
   const propertyType = watch('propertyType');
@@ -219,25 +219,29 @@ const PgBasicDetails = ({ onNext }) => {
         {/* I want to list (Property Type) */}
         <div className="flex flex-col gap-2 sm:gap-3">
           <label className="text-xs sm:text-sm font-bold text-[#062F26]">I want to list <span className="text-red-500">*</span></label>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setValue('propertyType', 'PG', { shouldValidate: true })}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 text-center ${propertyType === 'PG' ? 'border-brand-teal bg-[#EAF5F2] text-brand-teal shadow-sm' : 'border-slate-100 hover:border-brand-teal/30 hover:bg-slate-50'
-                }`}
-            >
-              <Icon icon="lucide:building" className={`w-5 h-5 sm:w-6 sm:h-6 ${propertyType === 'PG' ? 'text-brand-teal' : 'text-slate-400'}`} />
-              <span className={`font-bold text-xs sm:text-sm leading-tight ${propertyType === 'PG' ? 'text-[#062F26]' : 'text-slate-600'}`}>PG / Paying Guest</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setValue('propertyType', 'Tenant', { shouldValidate: true })}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 text-center ${propertyType === 'Tenant' ? 'border-brand-teal bg-[#EAF5F2] text-brand-teal shadow-sm' : 'border-slate-100 hover:border-brand-teal/30 hover:bg-slate-50'
-                }`}
-            >
-              <Icon icon="lucide:home" className={`w-5 h-5 sm:w-6 sm:h-6 ${propertyType === 'Tenant' ? 'text-brand-teal' : 'text-slate-400'}`} />
-              <span className={`font-bold text-xs sm:text-sm leading-tight ${propertyType === 'Tenant' ? 'text-[#062F26]' : 'text-slate-600'}`}>Tenant / Rental</span>
-            </button>
+          <div className={`grid ${isEditMode ? 'grid-cols-1 max-w-sm' : 'grid-cols-2'} gap-2 sm:gap-3`}>
+            {(!isEditMode || propertyType === 'PG') && (
+              <button
+                type="button"
+                onClick={() => !isEditMode && setValue('propertyType', 'PG', { shouldValidate: true })}
+                className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 text-center ${propertyType === 'PG' ? 'border-brand-teal bg-[#EAF5F2] text-brand-teal shadow-sm' : 'border-slate-100 hover:border-brand-teal/30 hover:bg-slate-50'
+                  } ${isEditMode ? 'cursor-default opacity-90' : 'hover:-translate-y-0.5 active:scale-95'}`}
+              >
+                <Icon icon="lucide:building" className={`w-5 h-5 sm:w-6 sm:h-6 ${propertyType === 'PG' ? 'text-brand-teal' : 'text-slate-400'}`} />
+                <span className={`font-bold text-xs sm:text-sm leading-tight ${propertyType === 'PG' ? 'text-[#062F26]' : 'text-slate-600'}`}>PG / Paying Guest</span>
+              </button>
+            )}
+            {(!isEditMode || propertyType === 'Tenant') && (
+              <button
+                type="button"
+                onClick={() => !isEditMode && setValue('propertyType', 'Tenant', { shouldValidate: true })}
+                className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 text-center ${propertyType === 'Tenant' ? 'border-brand-teal bg-[#EAF5F2] text-brand-teal shadow-sm' : 'border-slate-100 hover:border-brand-teal/30 hover:bg-slate-50'
+                  } ${isEditMode ? 'cursor-default opacity-90' : 'hover:-translate-y-0.5 active:scale-95'}`}
+              >
+                <Icon icon="lucide:home" className={`w-5 h-5 sm:w-6 sm:h-6 ${propertyType === 'Tenant' ? 'text-brand-teal' : 'text-slate-400'}`} />
+                <span className={`font-bold text-xs sm:text-sm leading-tight ${propertyType === 'Tenant' ? 'text-[#062F26]' : 'text-slate-600'}`}>Tenant / Rental</span>
+              </button>
+            )}
           </div>
           {errors.propertyType && <span className="text-red-500 text-[10px] sm:text-xs">{errors.propertyType.message}</span>}
         </div>

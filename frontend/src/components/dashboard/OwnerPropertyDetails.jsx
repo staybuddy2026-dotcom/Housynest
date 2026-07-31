@@ -757,42 +757,64 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
               <tr>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Room</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Bed</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent & Deposit</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Status</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Room / Bed</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move-in</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">KYC</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredTenants.map((t) => (
-                <tr key={t.id} className="hover:bg-[#F8F9FA] transition-colors group cursor-pointer">
+                <tr
+                  key={t.id}
+                  className="hover:bg-[#F8F9FA] transition-colors group cursor-pointer"
+                >
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                      <Icon icon="lucide:door-open" className="w-4 h-4 text-slate-400" />
-                      {t.room}
-                    </div>
+                    <div className="font-bold text-slate-800 text-sm group-hover:text-brand-teal transition-colors">{t.name}</div>
+                    <div className="text-[11px] font-medium text-slate-400 mt-1">{t.email}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                      <Icon icon="lucide:bed" className="w-4 h-4 text-slate-400" />
-                      {t.bed}
-                    </div>
+                    <div className="font-bold text-slate-800 text-sm">{t.room}</div>
+                    <div className="text-[11px] font-medium text-slate-400 mt-1">{t.bed}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-brand-teal text-sm">{t.rent}</div>
+                    <div className="font-bold text-slate-800 text-sm">{t.rent}</div>
                     <div className="text-[11px] font-medium text-slate-400 mt-1 tracking-wide">{t.deposit}</div>
                   </td>
-                  <td className="py-4 px-5 align-middle text-right">
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm inline-flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                      Occupied
+                  <td className="py-4 px-5 align-middle">
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getPaymentStyle(t.payment)} shadow-sm`}>
+                      {t.payment}
                     </span>
+                  </td>
+                  <td className="py-4 px-5 align-middle">
+                    <div className="text-sm font-semibold text-slate-700">{t.moveIn}</div>
+                  </td>
+                  <td className="py-4 px-5 align-middle">
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getKycStyle(t.kyc)} shadow-sm`}>
+                      {t.kyc}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 align-middle text-right">
+                    <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
+                      {t.payment === 'DUE' && (
+                        <button className="text-[11px] font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-md transition-colors uppercase tracking-wide">
+                          Remind Now
+                        </button>
+                      )}
+                      <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                        <Icon icon="lucide:more-vertical" className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
+
               {filteredTenants.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="py-12 text-center">
+                  <td colSpan="7" className="py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-slate-400">
                       <Icon icon="lucide:search-x" className="w-10 h-10 mb-3 text-slate-300" />
                       <p className="text-sm font-medium text-slate-500">No tenants found.</p>

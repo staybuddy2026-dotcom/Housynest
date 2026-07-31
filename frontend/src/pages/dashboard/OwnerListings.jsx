@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import OwnerPropertyDetails from '../../components/dashboard/OwnerPropertyDetails';
+import OwnerPropertyEdit from '../../components/dashboard/OwnerPropertyEdit';
 
 const OwnerListings = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,6 +13,8 @@ const OwnerListings = () => {
   const [listings, setListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewingPropertyId, setViewingPropertyId] = useState(null);
+  const [editingPropertyId, setEditingPropertyId] = useState(null);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
 
   const fetchProperties = useCallback(async () => {
     try {
@@ -43,26 +46,32 @@ const OwnerListings = () => {
     fetchProperties();
   }, [fetchProperties]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this property?")) return;
+  const handleDelete = (id) => {
+    setPropertyToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!propertyToDelete) return;
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/properties/${id}`, {
+      const response = await fetch(`/api/properties/${propertyToDelete}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        setListings(listings.filter(listing => listing._id !== id));
+        setListings(listings.filter(listing => listing._id !== propertyToDelete));
       } else {
         alert("Failed to delete property");
       }
     } catch (error) {
       console.error("Error deleting property:", error);
+    } finally {
+      setPropertyToDelete(null);
     }
   };
 
   const filteredListings = listings.filter(listing => {
-    const title = listing.pgName || listing.propertyCategory || 'Property';
+    const title = listing.pgName || listing.societyName || listing.propertyCategory || 'Property';
     const location = listing.address || listing.locality || 'Location';
 
     const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,6 +90,24 @@ const OwnerListings = () => {
         <OwnerPropertyDetails
           propertyId={viewingPropertyId}
           onClose={() => setViewingPropertyId(null)}
+          onEdit={() => {
+            setEditingPropertyId(viewingPropertyId);
+            setViewingPropertyId(null);
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (editingPropertyId) {
+    return (
+      <div className="animate-fadeIn">
+        <OwnerPropertyEdit
+          propertyId={editingPropertyId}
+          onClose={(shouldRefresh) => {
+            setEditingPropertyId(null);
+            if (shouldRefresh) fetchProperties();
+          }}
         />
       </div>
     );
@@ -174,7 +201,7 @@ const OwnerListings = () => {
       {filteredListings.length > 0 ? (
         <div className={viewType === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4! gap-4" : "flex flex-col gap-4"}>
           {filteredListings.map((rawListing) => {
-            const title = rawListing.pgName || rawListing.propertyCategory || 'Property';
+            const title = rawListing.pgName || rawListing.societyName || rawListing.propertyCategory || 'Property';
             const type = rawListing.propertyType === 'PG' ? 'PG / Co-living' : 'Flat / Apartment';
             const location = rawListing.locality ? `${rawListing.locality}, ${rawListing.city || ''}` : (rawListing.address || 'Unknown Location');
             let pgPrices = [];
@@ -210,7 +237,8 @@ const OwnerListings = () => {
               return (
                 <div
                   key={rawListing._id}
-                  className="bg-white rounded-xl border border-slate-100 overflow-hidden group hover:border-brand-teal/30 hover:shadow-[0_12px_40px_rgba(10,168,125,0.08)] transition-all duration-300 flex flex-col"
+                  onClick={() => setViewingPropertyId(rawListing._id)}
+                  className="bg-white rounded-xl border border-slate-100 overflow-hidden group hover:border-brand-teal/30 hover:shadow-[0_12px_40px_rgba(10,168,125,0.08)] transition-all duration-300 flex flex-col cursor-pointer"
                 >
                   {/* Image Container */}
                   <div className="relative h-35 w-full overflow-hidden shrink-0">
@@ -289,11 +317,15 @@ const OwnerListings = () => {
                     </div>
 
                     <div className="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-slate-100">
-                      <button onClick={() => setViewingPropertyId(rawListing._id)} className="flex-1 cursor-pointer bg-white border border-slate-200 hover:border-brand-teal hover:bg-brand-teal/5 text-slate-600 hover:text-brand-teal py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm">
+                      <button onClick={(e) => { e.stopPropagation(); setViewingPropertyId(rawListing._id); }} className="flex-1 cursor-pointer bg-white border border-slate-200 hover:border-brand-teal hover:bg-brand-teal/5 text-slate-600 hover:text-brand-teal py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm">
                         <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
                         View
                       </button>
-                      <button onClick={() => handleDelete(rawListing._id)} className="flex-1 bg-white border border-slate-200 hover:border-red-500 hover:bg-red-50 text-slate-600 hover:text-red-600 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm">
+                      <button onClick={(e) => { e.stopPropagation(); setEditingPropertyId(rawListing._id); }} className="flex-1 cursor-pointer bg-white border border-slate-200 hover:border-brand-teal hover:bg-brand-teal/5 text-slate-600 hover:text-brand-teal py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm">
+                        <Icon icon="lucide:edit" className="w-3.5 h-3.5" />
+                        Edit
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(rawListing._id); }} className="flex-1 bg-white border border-slate-200 hover:border-red-500 hover:bg-red-50 text-slate-600 hover:text-red-600 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm">
                         <Icon icon="lucide:trash-2" className="w-3.5 h-3.5" />
                         Delete
                       </button>
@@ -309,7 +341,8 @@ const OwnerListings = () => {
             return (
               <div
                 key={rawListing._id}
-                className="bg-white rounded-xl border border-slate-100 p-3 group hover:border-brand-teal/30 hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row sm:items-center gap-4"
+                onClick={() => setViewingPropertyId(rawListing._id)}
+                className="bg-white rounded-xl border border-slate-100 p-3 group hover:border-brand-teal/30 hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row sm:items-center gap-4 cursor-pointer"
               >
                 {/* Thumbnail & Core Info */}
                 <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -388,10 +421,13 @@ const OwnerListings = () => {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 sm:border-l sm:border-slate-100 sm:pl-4 shrink-0 justify-end mt-2 sm:mt-0">
-                  <button onClick={() => setViewingPropertyId(rawListing._id)} className="cursor-pointer w-8 h-8 rounded-lg text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-all" title="View">
+                  <button onClick={(e) => { e.stopPropagation(); setViewingPropertyId(rawListing._id); }} className="cursor-pointer w-8 h-8 rounded-lg text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-all" title="View">
                     <Icon icon="lucide:eye" className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(rawListing._id)} className="w-8 h-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all" title="Delete">
+                  <button onClick={(e) => { e.stopPropagation(); setEditingPropertyId(rawListing._id); }} className="cursor-pointer w-8 h-8 rounded-lg text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-all" title="Edit">
+                    <Icon icon="lucide:edit" className="w-4 h-4" />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(rawListing._id); }} className="w-8 h-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all" title="Delete">
                     <Icon icon="lucide:trash-2" className="w-4 h-4" />
                   </button>
                 </div>
@@ -415,6 +451,35 @@ const OwnerListings = () => {
           >
             Clear Filters
           </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {propertyToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-4 text-red-500">
+              <Icon icon="lucide:alert-triangle" className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-[#062F26] mb-2">Delete Property</h3>
+            <p className="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
+              Are you sure you want to delete this property? This action cannot be undone and will permanently remove the listing and all its data.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setPropertyToDelete(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 shadow-lg shadow-red-500/25 transition-all active:scale-95"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

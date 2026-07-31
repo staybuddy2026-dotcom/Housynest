@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
 
-const PgPhotos = ({ onNext, onPrev, isSubmitting }) => {
+const PgPhotos = ({ onNext, onPrev, isSubmitting, isEditMode }) => {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
 
   const fileInputRef = useRef(null);
@@ -15,6 +15,8 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting }) => {
   const usps = watch('usps') || [];
   const customUsps = watch('customUsps') || [];
   const uploadedImages = watch('photos') || [];
+  const existingImages = watch('existingImages') || [];
+  const removeImagesList = watch('removeImages') || [];
 
   const handleUpdate = (field, value) => {
     setValue(field, value, { shouldValidate: true });
@@ -27,6 +29,11 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting }) => {
       URL.revokeObjectURL(img.url);
     }
     handleUpdate('photos', updatedImages);
+  };
+
+  const handleRemoveExistingImage = (public_id) => {
+    handleUpdate('removeImages', [...removeImagesList, public_id]);
+    handleUpdate('existingImages', existingImages.filter(img => img.public_id !== public_id));
   };
 
   const processFiles = (files) => {
@@ -234,11 +241,33 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting }) => {
           </div>
 
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h4 className="text-xs sm:text-sm font-bold text-[#062F26]">Image Preview ({uploadedImages.length}/30)</h4>
+            <h4 className="text-xs sm:text-sm font-bold text-[#062F26]">Image Preview ({uploadedImages.length + existingImages.length}/30)</h4>
             <button type="button" className="text-xs sm:text-xs font-bold text-slate-600 hover:text-brand-teal transition-colors">Reorder Images</button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            {/* Existing Images */}
+            {isEditMode && existingImages.map((img, idx) => (
+              <div
+                key={img.public_id || idx}
+                className="relative rounded-xl border border-slate-200 bg-white overflow-hidden group flex flex-col hover:border-brand-teal/50 transition-colors"
+              >
+                <div className="relative h-28 sm:h-32 w-full overflow-hidden">
+                  <img src={img.url} alt="Existing property" className="w-full h-full object-cover" />
+                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-brand-teal/90 text-[10px] font-bold text-white shadow-sm">
+                    Existing
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveExistingImage(img.public_id)}
+                    className="absolute top-2 right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 hover:text-red-500 hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+                  >
+                    <Icon icon="lucide:x" className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth="3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+
             {uploadedImages.map((img, idx) => (
               <div
                 key={img.id}
@@ -252,9 +281,10 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting }) => {
                 <div className="relative h-28 sm:h-32 w-full overflow-hidden">
                   <img src={img.url} alt={img.label} className="w-full h-full object-cover" />
                   <div className="absolute top-2 left-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-md">
-                    <span className="text-[9px] sm:text-[10px] font-bold text-white">{idx + 1}</span>
+                    <span className="text-[9px] sm:text-[10px] font-bold text-white">{isEditMode ? existingImages.length + idx + 1 : idx + 1}</span>
                   </div>
                   <button
+                    type="button"
                     onClick={() => removeImage(img.id)}
                     className="absolute top-2 right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white flex items-center justify-center shadow-sm text-slate-600 hover:text-red-500 hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
                   >
@@ -298,11 +328,28 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting }) => {
       </div>
 
       {/* Form Actions */}
-      <div className="flex justify-end items-center mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-slate-100">
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={isSubmitting}
+      <div className="flex justify-end items-center mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-slate-100 gap-4">
+        {isEditMode ? (
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={isSubmitting}
+            className={`w-full sm:w-auto px-8 py-3 rounded-xl bg-brand-teal text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-brand-teal/20 flex items-center justify-center gap-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'hover:bg-[#062F26] hover:-translate-y-0.5 active:scale-95'}`}
+          >
+            {isSubmitting ? (
+              <>
+                <Icon icon="lucide:loader-2" className="animate-spin w-4 h-4" />
+                Updating...
+              </>
+            ) : (
+              'Save Changes'
+            )}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={isSubmitting}
           className={`w-full sm:w-auto px-8 py-3 rounded-xl bg-brand-teal text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-brand-teal/20 flex items-center justify-center gap-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'hover:bg-[#062F26] hover:-translate-y-0.5 active:scale-95'}`}
         >
           {isSubmitting ? (
@@ -311,9 +358,10 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting }) => {
               Submitting...
             </>
           ) : (
-            'Continue'
-          )}
-        </button>
+              'Continue'
+            )}
+          </button>
+        )}
       </div>
 
     </div>

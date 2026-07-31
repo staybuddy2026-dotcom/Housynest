@@ -64,7 +64,7 @@ const PgServices = ({ onNext, onPrev }) => {
 
         {/* 3-Column Grid for Default Services */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {['RO Water', 'Security', 'CCTV', 'Fire Safety', 'Washing Area', 'Housekeeping', 'Breakfast', 'Lunch', 'Dinner'].map(opt => (
+          {['RO Water', 'Security', 'CCTV', 'Fire Safety', 'Washing Area', 'Housekeeping', 'Breakfast', 'Lunch', 'Dinner', 'Laundry', 'Warden', 'Room Cleaning'].map(opt => (
             <label key={opt} className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${services.includes(opt) ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' : 'border-slate-200 bg-white hover:border-brand-teal/30 hover:bg-slate-50 hover:shadow-sm'
               }`}>
               <span className={`text-sm font-semibold ${services.includes(opt) ? 'text-[#062F26]' : 'text-slate-600'}`}>{opt}</span>
