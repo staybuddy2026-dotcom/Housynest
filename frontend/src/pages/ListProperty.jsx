@@ -24,6 +24,7 @@ import TenantPropertyDetails from '../components/list-property/TenantPropertyDet
 import TenantPricingPreferences from '../components/list-property/TenantPricingPreferences';
 import TenantAdditionalDetails from '../components/list-property/TenantAdditionalDetails';
 import TenantAmenities from '../components/list-property/TenantAmenities';
+import OwnerContractStep from '../components/list-property/OwnerContractStep';
 
 const ListProperty = () => {
   const savedStateStr = sessionStorage.getItem('listPropertyState');
@@ -190,7 +191,7 @@ const ListProperty = () => {
     const isStepValid = await methods.trigger(fieldsToValidate);
 
     if (isStepValid) {
-      setActiveStep(prev => Math.min(prev + 1, pType === 'Tenant' ? 6 : 8));
+      setActiveStep(prev => Math.min(prev + 1, pType === 'Tenant' ? 7 : 9));
     } else {
       setTimeout(() => {
         // Find all inputs with red borders
@@ -278,7 +279,7 @@ const ListProperty = () => {
 
       // Append standard fields
       Object.keys(data).forEach(key => {
-        if (key === 'photos' || key === 'verificationDocs') return; // Handled separately
+        if (key === 'photos' || key === 'verificationDocs' || key === 'ownerContract') return; // Handled separately
         
         // Skip empty strings to avoid backend CastErrors for Number fields
         if (data[key] === '') return;
@@ -306,6 +307,11 @@ const ListProperty = () => {
             formData.append('documents', doc.file);
           }
         });
+      }
+
+      // Append owner contract PDF
+      if (data.ownerContract && data.ownerContract.file) {
+        formData.append('ownerContract', data.ownerContract.file);
       }
 
       const response = await fetch('/api/properties', {
@@ -362,6 +368,7 @@ const ListProperty = () => {
         if (['services', 'extraServices', 'foodProvided', 'meals', 'vegNonVeg', 'foodCharges'].includes(field)) return 6;
         if (['pgRules', 'extraRules', 'nearbyPlaces'].includes(field)) return 7;
         if (['virtualTour', 'photos'].includes(field)) return 8;
+        if (['ownerContract'].includes(field)) return 9;
       } else {
         if (['propertyType', 'postingAs', 'city', 'propertyCategory', 'societyName', 'ageOfProperty', 'preferredTenants'].includes(field)) return 1;
         if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor'].includes(field)) return 2;
@@ -369,6 +376,7 @@ const ListProperty = () => {
         if (['additionalRooms', 'overlooking', 'facing', 'nearbyPlaces'].includes(field)) return 4;
         if (['societyAmenities'].includes(field)) return 5;
         if (['virtualTour', 'photos'].includes(field)) return 6;
+        if (['ownerContract'].includes(field)) return 7;
       }
       return null;
     };
@@ -413,9 +421,10 @@ const ListProperty = () => {
       case 3: return propertyType === 'Tenant' ? <TenantPricingPreferences onNext={handleNext} onPrev={handlePrev} /> : <PgRoomOptions onNext={handleNext} onPrev={handlePrev} />;
       case 4: return propertyType === 'Tenant' ? <TenantAdditionalDetails onNext={handleNext} onPrev={handlePrev} /> : <PgBooking onNext={handleNext} onPrev={handlePrev} />;
       case 5: return propertyType === 'Tenant' ? <TenantAmenities onNext={handleNext} onPrev={handlePrev} /> : <PgAmenities onNext={handleNext} onPrev={handlePrev} />;
-      case 6: return propertyType === 'Tenant' ? <PgPhotos onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgServices onNext={handleNext} onPrev={handlePrev} />;
-      case 7: return propertyType === 'Tenant' ? null : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
-      case 8: return propertyType === 'Tenant' ? null : <PgPhotos onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
+      case 6: return propertyType === 'Tenant' ? <PgPhotos onNext={handleNext} onPrev={handlePrev} /> : <PgServices onNext={handleNext} onPrev={handlePrev} />;
+      case 7: return propertyType === 'Tenant' ? <OwnerContractStep onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
+      case 8: return propertyType === 'Tenant' ? null : <PgPhotos onNext={handleNext} onPrev={handlePrev} />;
+      case 9: return propertyType === 'Tenant' ? null : <OwnerContractStep onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
       default: return null;
     }
   };
@@ -455,7 +464,7 @@ const ListProperty = () => {
 
             {/* Right Column - Live Preview */}
             <div className="w-full lg:w-[320px] xl:w-90 shrink-0 hidden lg:block">
-              <PropertyPreview />
+              <PropertyPreview activeStep={activeStep} totalSteps={propertyType === 'Tenant' ? 7 : 9} />
             </div>
           </form>
         </FormProvider>

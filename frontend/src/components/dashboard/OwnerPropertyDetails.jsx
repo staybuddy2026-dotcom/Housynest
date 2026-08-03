@@ -340,6 +340,43 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
               )}
             </div>
           </div>
+
+          {/* Owner Contract PDF Card */}
+          {property.ownerContract?.url && (
+            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-100 shadow-sm h-fit">
+              <h3 className="text-lg font-bold text-[#062F26] mb-3 shrink-0 flex items-center gap-2">
+                <Icon icon="lucide:file-text" className="w-5 h-5 text-brand-teal" />
+                Owner Contract PDF
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mb-4">
+                Official owner contract stored in Cloudinary
+              </p>
+              <div className="bg-[#EAF5F2]/50 border border-brand-teal/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center font-bold shrink-0">
+                    <Icon icon="lucide:file-type-2" width="22" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#062F26] truncate max-w-[180px] sm:max-w-xs">
+                      {property.ownerContract.fileName || 'Owner Contract Agreement.pdf'}
+                    </p>
+                    <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                      <Icon icon="lucide:cloud-check" width="12" className="text-brand-teal" /> Stored in Cloudinary
+                    </span>
+                  </div>
+                </div>
+                <a
+                  href={property.ownerContract.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0"
+                >
+                  <Icon icon="lucide:external-link" width="14" />
+                  View PDF
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

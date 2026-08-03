@@ -58,9 +58,9 @@ const pgSchema = z.object({
     Other_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
   }).optional(),
 
-  paymentModel: z.string().min(1, "Payment Model is required").optional(),
-  rentalPeriod: z.string().min(1, "Rental Period is required").optional(),
-  bookingType: z.string().min(1, "Booking Type is required").optional(),
+  paymentModel: z.string().min(1, "Payment Model is required"),
+  rentalPeriod: z.string().min(1, "Rental Period (Months) is required"),
+  bookingType: z.string().min(1, "Booking Type is required"),
 
   services: z.array(z.string()).optional(),
   extraServices: z.array(z.string()).optional(),
@@ -87,6 +87,7 @@ const pgSchema = z.object({
   virtualTour: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   photos: z.any().optional(),
   verificationDocs: z.any().optional(),
+  ownerContract: z.any().optional(),
 });
 
 const tenantSchema = z.object({
@@ -137,6 +138,7 @@ const tenantSchema = z.object({
   virtualTour: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   photos: z.any().optional(),
   verificationDocs: z.any().optional(),
+  ownerContract: z.any().optional(),
 });
 
 export const listPropertySchema = z.discriminatedUnion("propertyType", [

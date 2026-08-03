@@ -31,7 +31,7 @@ router.get('/popular-cities', getPopularCities);
 
 router.route('/')
   .get(getProperties)
-  .post(protect, upload.fields([{ name: 'images', maxCount: 10 }, { name: 'documents', maxCount: 5 }]), createProperty);
+  .post(protect, upload.fields([{ name: 'images', maxCount: 10 }, { name: 'documents', maxCount: 5 }, { name: 'ownerContract', maxCount: 1 }, { name: 'contract', maxCount: 1 }]), createProperty);
 
 router.get('/saved', protect, getSavedProperties);
 
@@ -46,7 +46,7 @@ router.route('/:id/reviews')
 
 router.route('/:id')
   .get(getPropertyById)
-  .put(protect, upload.fields([{ name: 'images', maxCount: 10 }, { name: 'documents', maxCount: 5 }]), updateProperty)
+  .put(protect, upload.fields([{ name: 'images', maxCount: 10 }, { name: 'documents', maxCount: 5 }, { name: 'ownerContract', maxCount: 1 }, { name: 'contract', maxCount: 1 }]), updateProperty)
   .delete(protect, deleteProperty);
 
 export default router;

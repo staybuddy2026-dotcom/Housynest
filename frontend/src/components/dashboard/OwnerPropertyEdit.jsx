@@ -21,6 +21,7 @@ import TenantPropertyDetails from '../list-property/TenantPropertyDetails';
 import TenantPricingPreferences from '../list-property/TenantPricingPreferences';
 import TenantAdditionalDetails from '../list-property/TenantAdditionalDetails';
 import TenantAmenities from '../list-property/TenantAmenities';
+import OwnerContractStep from '../list-property/OwnerContractStep';
 
 const OwnerPropertyEdit = ({ propertyId, onClose }) => {
   const [activeStep, setActiveStep] = useState(1);
@@ -109,7 +110,8 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
             localityDescription: data.localityDescription || '',
 
             existingImages: data.images || [],
-            existingDocs: data.verificationDocs || []
+            existingDocs: data.verificationDocs || [],
+            ownerContract: data.ownerContract || null
           };
 
           methods.reset(formValues);
@@ -170,7 +172,7 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
     const isStepValid = await methods.trigger(fieldsToValidate);
 
     if (isStepValid) {
-      setActiveStep(prev => Math.min(prev + 1, pType === 'Tenant' ? 6 : 8));
+      setActiveStep(prev => Math.min(prev + 1, pType === 'Tenant' ? 7 : 9));
     } else {
       toast.error('Please fix the errors before proceeding');
     }
@@ -190,7 +192,7 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
       const formData = new FormData();
 
       Object.keys(data).forEach(key => {
-        if (key === 'photos' || key === 'verificationDocs' || key === 'existingImages' || key === 'existingDocs' || key === 'removeImages' || key === 'removeDocs') return;
+        if (key === 'photos' || key === 'verificationDocs' || key === 'ownerContract' || key === 'existingImages' || key === 'existingDocs' || key === 'removeImages' || key === 'removeDocs') return;
 
         if (data[key] === '') return;
 
@@ -217,6 +219,11 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
             formData.append('documents', doc.file);
           }
         });
+      }
+
+      // Handle owner contract PDF
+      if (data.ownerContract && data.ownerContract.file) {
+        formData.append('ownerContract', data.ownerContract.file);
       }
 
       // Append remove requests
@@ -262,9 +269,10 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
       case 3: return propertyType === 'Tenant' ? <TenantPricingPreferences onNext={handleNext} onPrev={handlePrev} /> : <PgRoomOptions onNext={handleNext} onPrev={handlePrev} />;
       case 4: return propertyType === 'Tenant' ? <TenantAdditionalDetails onNext={handleNext} onPrev={handlePrev} /> : <PgBooking onNext={handleNext} onPrev={handlePrev} />;
       case 5: return propertyType === 'Tenant' ? <TenantAmenities onNext={handleNext} onPrev={handlePrev} /> : <PgAmenities onNext={handleNext} onPrev={handlePrev} />;
-      case 6: return propertyType === 'Tenant' ? <PgPhotos onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} isEditMode={true} /> : <PgServices onNext={handleNext} onPrev={handlePrev} />;
-      case 7: return propertyType === 'Tenant' ? null : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
-      case 8: return propertyType === 'Tenant' ? null : <PgPhotos onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} isEditMode={true} />;
+      case 6: return propertyType === 'Tenant' ? <PgPhotos onNext={handleNext} onPrev={handlePrev} isEditMode={true} /> : <PgServices onNext={handleNext} onPrev={handlePrev} />;
+      case 7: return propertyType === 'Tenant' ? <OwnerContractStep onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
+      case 8: return propertyType === 'Tenant' ? null : <PgPhotos onNext={handleNext} onPrev={handlePrev} isEditMode={true} />;
+      case 9: return propertyType === 'Tenant' ? null : <OwnerContractStep onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
       default: return null;
     }
   };

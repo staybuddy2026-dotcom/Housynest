@@ -40,6 +40,16 @@ export const createProperty = async (req, res) => {
       }
     });
 
+    let ownerContractData = null;
+    const contractFile = (req.files && req.files.ownerContract && req.files.ownerContract[0]) || (req.files && req.files.contract && req.files.contract[0]);
+    if (contractFile) {
+      ownerContractData = {
+        url: contractFile.path,
+        public_id: contractFile.filename,
+        fileName: contractFile.originalname
+      };
+    }
+
     const property = new Property({
       ...propertyData,
       owner: req.user._id,
@@ -50,7 +60,8 @@ export const createProperty = async (req, res) => {
       verificationDocs: req.files && req.files.documents ? req.files.documents.map(file => ({
         url: file.path,
         public_id: file.filename
-      })) : []
+      })) : [],
+      ownerContract: ownerContractData
     });
 
     const createdProperty = await property.save();
@@ -162,6 +173,16 @@ export const updateProperty = async (req, res) => {
             public_id: file.filename
         }));
         propertyData.verificationDocs = [...(property.verificationDocs || []), ...newDocs];
+    }
+
+    // Handle owner contract upload
+    const updatedContractFile = (req.files && req.files.ownerContract && req.files.ownerContract[0]) || (req.files && req.files.contract && req.files.contract[0]);
+    if (updatedContractFile) {
+      propertyData.ownerContract = {
+        url: updatedContractFile.path,
+        public_id: updatedContractFile.filename,
+        fileName: updatedContractFile.originalname
+      };
     }
     
     // Allow deleting existing images/docs via frontend by sending an array of public_ids to remove

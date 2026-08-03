@@ -129,17 +129,16 @@ const propertySchema = new mongoose.Schema({
   }],
   
   // Verification documents
-  verificationDocs: {
-    type: [{
-      url: String,
-      public_id: String
-    }],
-    validate: {
-      validator: function(v) {
-        return v && v.length > 0;
-      },
-      message: 'At least one verification document is required.'
-    }
+  verificationDocs: [{
+    url: String,
+    public_id: String
+  }],
+
+  // Owner contract PDF uploaded to Cloudinary
+  ownerContract: {
+    url: String,
+    public_id: String,
+    fileName: String
   },
   
   status: {

@@ -108,6 +108,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
   const navItems = [
     { name: 'Saved Properties', icon: 'lucide:heart', path: '/tenant/dashboard' },
     { name: 'My Visits', icon: 'lucide:calendar-days', path: '/tenant/visits' },
+    { name: 'My Bookings', icon: 'lucide:bookmark', path: '/tenant/bookings' },
     { name: 'My Requests', icon: 'lucide:message-circle', path: '/tenant/requests', badge: counts.newRequests > 0 ? counts.newRequests : null },
     { name: 'Messages', icon: 'lucide:message-square', path: '/tenant/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
     // { name: 'Contracts', icon: 'lucide:file-text', path: '/tenant/contracts', badge: counts.newTenantContracts > 0 ? counts.newTenantContracts : null },

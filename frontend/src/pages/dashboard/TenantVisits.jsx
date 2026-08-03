@@ -1,187 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
-
-const VisitCard = ({ visit }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Status-based styling
-  const getStatusStyles = (status) => {
-    switch (status) {
-      case 'Accepted':
-        return {
-          border: 'border-l-brand-teal',
-          badge: 'bg-[#EAF5F2] text-[#062F26]',
-          icon: 'lucide:check-circle-2',
-        };
-      case 'Pending':
-        return {
-          border: 'border-l-amber-500',
-          badge: 'bg-amber-50 text-amber-700',
-          icon: 'lucide:clock',
-        };
-      case 'Rejected':
-        return {
-          border: 'border-l-red-500',
-          badge: 'bg-red-50 text-red-700',
-          icon: 'lucide:x-circle',
-        };
-      case 'Rescheduled':
-        return {
-          border: 'border-l-blue-500',
-          badge: 'bg-blue-50 text-blue-700',
-          icon: 'lucide:calendar-clock',
-        };
-      case 'Completed':
-        return {
-          border: 'border-l-purple-500',
-          badge: 'bg-purple-50 text-purple-700',
-          icon: 'lucide:flag',
-        };
-      default:
-        return {
-          border: 'border-l-slate-400',
-          badge: 'bg-slate-100 text-slate-700',
-          icon: 'lucide:circle',
-        };
-    }
-  };
-
-  const styles = getStatusStyles(visit.status);
-  const propertyImage = visit.property?.images?.[0]?.url || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80';
-  const propertyName = !visit.property ? 'Deleted Property' : (visit.property.pgName || (visit.property.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property.propertyCategory) || 'Unknown Property');
-  const location = visit.property?.locality ? `${visit.property.locality}, ${visit.property.city}` : (visit.property?.city || 'Location unavailable');
-
-  return (
-    <div className={`bg-white rounded-xl border border-slate-200 border-l-4 ${styles.border} shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_30px_-4px_rgba(6,81,237,0.15)] transition-all duration-300 overflow-hidden mb-5 group`}>
-      <div
-        className="px-3 py-2 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-5 relative"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 w-full">
-          {/* Property Image */}
-          <div className="relative w-full sm:w-32 h-24 rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-100 group-hover:shadow-md transition-shadow">
-            <img src={propertyImage} alt={propertyName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 to-transparent"></div>
-          </div>
-
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${styles.badge} flex items-center gap-1.5 w-fit shadow-sm`}>
-                <Icon icon={styles.icon} className="w-3.5 h-3.5" />
-                {visit.status}
-              </span>
-            </div>
-
-            <h3 className="text-base md:text-lg font-bold text-[#062F26] leading-tight mb-1.5 group-hover:text-brand-teal transition-colors">
-              {propertyName}
-            </h3>
-
-            <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500">
-              <Icon icon="lucide:map-pin" className="w-4 h-4 text-slate-400" />
-              <span className="truncate">{location}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Date & Time Badge */}
-        <div className="flex items-center gap-4 w-full md:w-auto md:shrink-0 justify-between md:justify-end border-t md:border-t-0 border-slate-100 pt-4 md:pt-0">
-          <div className="flex items-center gap-4 bg-slate-50/80 px-4 py-2.5 rounded-xl border border-slate-200">
-            <div className="flex flex-col items-end border-r border-slate-200 pr-4">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Date</span>
-              <span className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
-                <Icon icon="lucide:calendar" className="w-3.5 h-3.5 text-slate-400" />
-                {visit.date}
-              </span>
-            </div>
-            <div className="flex flex-col items-start pl-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Time</span>
-              <span className="text-sm font-bold text-slate-700 capitalize flex items-center gap-1.5">
-                <Icon icon="lucide:clock" className="w-3.5 h-3.5 text-slate-400" />
-                {visit.time}
-              </span>
-            </div>
-          </div>
-
-          <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 border ${isExpanded ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-white border-slate-200 text-slate-400 group-hover:border-brand-teal group-hover:bg-brand-teal/5 group-hover:text-brand-teal'}`}>
-            <Icon
-              icon="lucide:chevron-down"
-              className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
-            />
-          </button>
-        </div>
-      </div>
-
-      <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-        <div className="overflow-hidden">
-          <div className="px-5 pb-5 pt-0">
-            <div className="border-t border-slate-100 pt-5 mt-2 flex flex-col lg:flex-row gap-6">
-
-              {/* Contact Info */}
-              <div className="flex-1 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200 shadow-sm">
-                    <Icon icon="lucide:user" className="w-5 h-5 text-slate-500" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Property Owner</p>
-                    <p className="text-[15px] font-bold text-[#062F26]">{visit.owner?.fullName || 'Unknown Owner'}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <a href={`tel:${visit.owner?.phone}`} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:shadow-sm transition-all text-sm font-bold border border-emerald-100/50">
-                    <Icon icon="lucide:phone" className="w-4 h-4" />
-                    {visit.owner?.phone || 'N/A'}
-                  </a>
-                  <a href={`mailto:${visit.owner?.email}`} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 hover:shadow-sm transition-all text-sm font-bold border border-blue-100/50">
-                    <Icon icon="lucide:mail" className="w-4 h-4" />
-                    Email Owner
-                  </a>
-                </div>
-              </div>
-
-              {/* Message Details */}
-              <div className="flex-1 flex flex-col gap-3">
-                {visit.status === 'Rescheduled' && visit.suggestedTime && (
-                  <div className="bg-blue-50/50 px-4 py-3 rounded-xl border border-blue-100 flex items-start gap-3">
-                    <Icon icon="lucide:info" className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold text-blue-800 uppercase tracking-wider mb-0.5">Owner Suggested Time</p>
-                      <p className="text-sm font-bold text-[#062F26]">{visit.suggestedTime}</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex-1 shadow-inner shadow-slate-100/50">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                    <Icon icon="lucide:message-square" className="w-3.5 h-3.5" />
-                    Your Message
-                  </h4>
-                  <p className="text-sm text-slate-600 font-medium leading-relaxed italic border-l-2 border-slate-300 pl-3 py-0.5">{visit.message || 'No message provided.'}</p>
-                </div>
-              </div>
-
-            </div>
-
-            {visit.status === 'Completed' && (
-              <div className="flex justify-end mt-6 border-t border-slate-100 pt-5">
-                <button className="flex items-center justify-center gap-2 bg-[#062F26] text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#05261e] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto">
-                  <Icon icon="lucide:home" className="w-4 h-4" />
-                  Proceed to Book Property
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const TenantVisits = () => {
   const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedMessageId, setExpandedMessageId] = useState(null);
 
   useEffect(() => {
     const fetchVisits = async () => {
@@ -206,33 +30,220 @@ const TenantVisits = () => {
     fetchVisits();
   }, []);
 
+  // Status-based styling for badges
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Accepted':
+        return { bg: 'bg-[#EAF5F2]', text: 'text-[#062F26]', border: 'border-[#062F26]/20', icon: 'lucide:check-circle-2' };
+      case 'Pending':
+        return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: 'lucide:clock' };
+      case 'Rejected':
+        return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: 'lucide:x-circle' };
+      case 'Rescheduled':
+        return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'lucide:calendar-clock' };
+      case 'Completed':
+        return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', icon: 'lucide:flag' };
+      default:
+        return { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', icon: 'lucide:circle' };
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Icon icon="lucide:loader-2" className="w-8 h-8 animate-spin text-brand-teal" />
+        <Icon icon="lucide:loader-2" className="w-8 h-8 animate-spin text-[#0AA87D]" />
       </div>
     );
   }
 
   return (
-    <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10">
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-2xl font-bold text-[#062F26] tracking-tight">My Property Visits</h1>
-        <span className="bg-slate-100 text-slate-600 font-bold text-sm px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
-          {visits.length} visits
-        </span>
+    <div className="animate-fadeIn mx-auto pb-10 space-y-4">
+
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold text-[#062F26]">My Property Visits</h1>
+          <p className="text-sm text-slate-500 mt-1">Track and manage your scheduled property viewings</p>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700">
+          <Icon icon="lucide:calendar-days" className="w-4 h-4 text-[#0AA87D]" />
+          Total Visits: <span className="text-[#062F26]">{visits.length}</span>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {visits.map(visit => (
-          <VisitCard key={visit._id} visit={visit} />
-        ))}
+      {/* Visits Data Table */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
 
-        {visits.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-2xl border border-slate-200">
-            <Icon icon="lucide:calendar-x" className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-            <h3 className="text-lg font-bold text-slate-800 mb-1">No Visits Yet</h3>
-            <p className="text-sm text-slate-500">You haven't scheduled any property visits yet.</p>
+        {visits.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+              <Icon icon="lucide:calendar-x" className="w-8 h-8 text-slate-300" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 mb-1">No Visits Scheduled</h3>
+            <p className="text-sm text-slate-500 max-w-md mx-auto">
+              You haven't scheduled any property visits yet. Once you do, they will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 font-extrabold">
+                  <th className="px-6 py-4 whitespace-nowrap w-2/5">Property Details</th>
+                  <th className="px-6 py-4 whitespace-nowrap">Schedule</th>
+                  <th className="px-6 py-4 whitespace-nowrap">Owner Name</th>
+                  <th className="px-6 py-4 whitespace-nowrap">Contact</th>
+                  <th className="px-6 py-4 whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 whitespace-nowrap text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {visits.map((visit) => {
+                  const propertyImage = visit.property?.images?.[0]?.url || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80';
+                  const propertyName = !visit.property ? 'Deleted Property' : (visit.property.pgName || (visit.property.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property.propertyCategory) || 'Unknown Property');
+                  const location = visit.property?.locality ? `${visit.property.locality}, ${visit.property.city}` : (visit.property?.city || 'Location unavailable');
+                  const statusStyles = getStatusBadge(visit.status);
+                  const isMessageExpanded = expandedMessageId === visit._id;
+
+                  return (
+                    <React.Fragment key={visit._id}>
+                      <tr className="hover:bg-slate-50/50 transition-colors group">
+
+                        {/* Property Details */}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-slate-200">
+                              <img src={propertyImage} alt="Property" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-bold text-[#062F26] mb-0.5">{propertyName}</h3>
+                              <p className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                                <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-slate-400" />
+                                {location}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Schedule Date & Time */}
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                              <Icon icon="lucide:calendar" className="w-4 h-4 text-slate-400" />
+                              {visit.date}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                              <Icon icon="lucide:clock" className="w-4 h-4 text-slate-400" />
+                              {visit.time}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Owner Name */}
+                        <td className="px-6 py-4">
+                          <span className="text-sm font-bold text-slate-700">{visit.owner?.fullName || 'Unknown Owner'}</span>
+                        </td>
+
+                        {/* Owner Contact */}
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-2">
+                            <a href={`tel:${visit.owner?.phone}`} className="flex items-center gap-2 text-slate-600 hover:text-[#0AA87D] transition-colors group" title="Call Owner">
+                              <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 group-hover:border-[#0AA87D]">
+                                <Icon icon="lucide:phone" className="w-3 h-3" />
+                              </div>
+                              <span className="text-xs font-semibold">{visit.owner?.phone || 'N/A'}</span>
+                            </a>
+                            <a href={`mailto:${visit.owner?.email}`} className="flex items-center gap-2 text-slate-600 hover:text-blue-500 transition-colors group" title="Email Owner">
+                              <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 group-hover:border-blue-500">
+                                <Icon icon="lucide:mail" className="w-3 h-3" />
+                              </div>
+                              <span className="text-xs font-semibold truncate max-w-[150px]">{visit.owner?.email || 'N/A'}</span>
+                            </a>
+                          </div>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold uppercase tracking-wide border ${statusStyles.bg} ${statusStyles.text} ${statusStyles.border}`}>
+                            <Icon icon={statusStyles.icon} className="w-3.5 h-3.5" />
+                            {visit.status}
+                          </span>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {(visit.message || visit.suggestedTime) && (
+                              <button
+                                onClick={() => setExpandedMessageId(isMessageExpanded ? null : visit._id)}
+                                className={`p-2 rounded-xl border transition-colors flex items-center justify-center gap-2 text-xs font-bold ${isMessageExpanded
+                                  ? 'bg-slate-800 text-white border-slate-800'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-[#062F26]'
+                                  }`}
+                                title="View Details"
+                              >
+                                <Icon icon="lucide:message-square-text" className="w-4 h-4" />
+                                {isMessageExpanded ? 'Hide' : 'Details'}
+                              </button>
+                            )}
+
+                            {visit.status === 'Completed' && (
+                              <button className="px-4 py-2 bg-[#062F26] text-white rounded-xl font-bold text-xs hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1.5">
+                                Book Now
+                                <Icon icon="lucide:arrow-right" className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expandable Message / Reschedule Row */}
+                      <tr>
+                        <td colSpan="6" className={`p-0 ${isMessageExpanded ? 'border-b border-slate-100' : 'border-b-0'}`}>
+                          <div
+                            className={`grid transition-[grid-template-rows,opacity] duration-500 ease-in-out ${
+                              isMessageExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                            }`}
+                          >
+                            <div className="overflow-hidden">
+                              <div className="px-6 py-4 bg-slate-50/50">
+                                <div className="flex flex-col sm:flex-row gap-6 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+
+                                  {/* Tenant Message */}
+                                  <div className="flex-1">
+                                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                      <Icon icon="lucide:message-circle" className="w-3.5 h-3.5" />
+                                      Your Message to Owner
+                                    </h4>
+                                    <p className="text-sm text-slate-600 italic border-l-2 border-slate-300 pl-3 leading-relaxed">
+                                      {visit.message || 'No message provided.'}
+                                    </p>
+                                  </div>
+
+                                  {/* Owner Suggested Time (If Rescheduled) */}
+                                  {visit.status === 'Rescheduled' && visit.suggestedTime && (
+                                    <div className="flex-1 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                                      <h4 className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <Icon icon="lucide:clock-4" className="w-3.5 h-3.5" />
+                                        Owner Suggested Time
+                                      </h4>
+                                      <p className="text-sm font-bold text-blue-900">
+                                        {visit.suggestedTime}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

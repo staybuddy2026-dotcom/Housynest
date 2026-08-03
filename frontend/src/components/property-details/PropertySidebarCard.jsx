@@ -14,6 +14,7 @@ const PropertySidebarCard = ({
   setIsScheduleModalOpen,
   setIsReportModalOpen,
   setIsInquiryModalOpen,
+  setIsBookNowModalOpen,
   toast
 }) => {
   const userStr = localStorage.getItem('user');
@@ -225,9 +226,28 @@ const PropertySidebarCard = ({
         {isTenantOrGuest && (
           <>
             <div className="flex flex-col gap-2.5">
+              {/* PRIMARY BOOK NOW BUTTON */}
+              <button
+                onClick={() => {
+                  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+                  if (!isAuthenticated) {
+                    toast.error('Login is required to book a property');
+                    navigate('/login');
+                    return;
+                  }
+                  if (setIsBookNowModalOpen) {
+                    setIsBookNowModalOpen(true);
+                  }
+                }}
+                className="w-full cursor-pointer bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] hover:from-[#08483B] hover:to-[#098b68] text-white py-3.5 px-4 rounded-xl font-extrabold text-sm tracking-wide transition-all duration-300 flex justify-center items-center gap-2.5 shadow-[0_8px_25px_rgba(10,168,125,0.25)] hover:shadow-[0_12px_30px_rgba(10,168,125,0.35)] transform hover:-translate-y-0.5 active:scale-[0.98]"
+              >
+                <Icon icon="lucide:zap" className="w-4.5 h-4.5 text-emerald-300" />
+                Book Now {propertyType === 'PG' ? '• Reserve Bed' : '• Reserve Property'}
+              </button>
+
               <button
                 onClick={() => setIsScheduleModalOpen(true)}
-                className="w-full cursor-pointer bg-white hover:bg-slate-50 text-[#062F26] border-2 border-[#062F26] py-3 rounded-lg font-bold text-sm transition-colors flex justify-center items-center gap-2"
+                className="w-full cursor-pointer bg-white hover:bg-slate-50 text-[#062F26] border-2 border-[#062F26] py-3 rounded-xl font-bold text-sm transition-colors flex justify-center items-center gap-2 shadow-xs"
               >
                 <Icon icon="lucide:calendar-check" className="w-4 h-4" />
                 Schedule Visit
@@ -240,7 +260,7 @@ const PropertySidebarCard = ({
                     toast.error('Owner phone number not available');
                   }
                 }}
-                className="w-full cursor-pointer bg-[#062F26] hover:bg-[#0a473a] text-white py-3.5 rounded-lg font-bold text-sm transition-colors flex justify-center items-center gap-2 shadow-[0_4px_15px_rgba(6,47,38,0.15)]"
+                className="w-full cursor-pointer bg-[#062F26] hover:bg-[#0a473a] text-white py-3 rounded-xl font-bold text-sm transition-colors flex justify-center items-center gap-2 shadow-sm"
               >
                 <Icon icon="lucide:phone" className="w-4 h-4" />
                 Contact Owner
@@ -255,7 +275,7 @@ const PropertySidebarCard = ({
                   }
                   setIsInquiryModalOpen(true);
                 }}
-                className="w-full cursor-pointer bg-brand-teal hover:bg-teal-800 text-white py-3.5 rounded-lg font-bold text-sm transition-colors flex justify-center items-center gap-2 shadow-sm"
+                className="w-full cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition-colors flex justify-center items-center gap-2"
               >
                 <Icon icon="lucide:message-circle-question" className="w-4 h-4" />
                 Send Inquiry

@@ -12,6 +12,7 @@ import ScheduleVisitModal from '../components/properties/ScheduleVisitModal';
 import ShareModal from '../components/properties/ShareModal';
 import ReportListingModal from '../components/properties/ReportListingModal';
 import InquiryModal from '../components/properties/InquiryModal';
+import BookNowModal from '../components/properties/BookNowModal';
 import { MOCK_PROPERTIES } from '../data/mockProperties';
 
 // Refactored Modular Components
@@ -46,6 +47,7 @@ const PropertyDetails = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
+  const [isBookNowModalOpen, setIsBookNowModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -444,6 +446,7 @@ const PropertyDetails = () => {
             setIsScheduleModalOpen={setIsScheduleModalOpen}
             setIsReportModalOpen={setIsReportModalOpen}
             setIsInquiryModalOpen={setIsInquiryModalOpen}
+            setIsBookNowModalOpen={setIsBookNowModalOpen}
             toast={toast}
           />
         </div>
@@ -615,6 +618,14 @@ const PropertyDetails = () => {
         isOpen={isInquiryModalOpen}
         onClose={() => setIsInquiryModalOpen(false)}
         property={property}
+      />
+
+      {/* Book Now Modal */}
+      <BookNowModal
+        isOpen={isBookNowModalOpen}
+        onClose={() => setIsBookNowModalOpen(false)}
+        property={property}
+        initialRoomIndex={selectedRoomIndex}
       />
 
       {/* WhatsApp Fixed Button */}

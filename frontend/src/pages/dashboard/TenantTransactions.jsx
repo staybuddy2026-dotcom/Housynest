@@ -26,8 +26,8 @@ const TenantTransactions = () => {
   ];
 
   return (
-    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-340 3xl:max-w-420 mx-auto w-full relative pb-24 p-4">
-      
+    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500  mx-auto w-full relative pb-24">
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -39,7 +39,7 @@ const TenantTransactions = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={handleRefresh}
             className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal hover:shadow-sm transition-all"
           >
@@ -52,7 +52,7 @@ const TenantTransactions = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {summaryData.map((item) => (
           <div key={item.id} className={`${item.bg} border ${item.border} rounded-xl p-5 relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer ${item.hoverBg}`}>
-            
+
             {/* Background pattern for hover state */}
             <Icon icon={item.icon} className={`absolute -right-4 -bottom-4 w-32 h-32 opacity-0 group-hover:opacity-10 transition-opacity duration-500 text-white pointer-events-none`} />
 
@@ -62,9 +62,9 @@ const TenantTransactions = () => {
                 <Icon icon={item.icon} className="w-5 h-5" />
               </div>
             </div>
-            
+
             <p className={`text-sm font-medium text-slate-500 mb-6 ${item.hoverSubtitle} transition-colors duration-300 relative z-10`}>{item.subtitle}</p>
-            
+
             <div className="w-full h-1.5 bg-slate-100 group-hover:bg-white/30 rounded-full overflow-hidden absolute bottom-5 left-5 right-5 max-w-[calc(100%-40px)] transition-colors duration-300">
               <div className={`h-full rounded-full ${item.progressBg} group-hover:bg-white ${item.progress} transition-all duration-1000 ease-out`}></div>
             </div>
@@ -95,7 +95,7 @@ const TenantTransactions = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md border ${tx.statusColor}`}>
                 {tx.status}
@@ -109,7 +109,7 @@ const TenantTransactions = () => {
           </div>
         ))}
       </div>
-      
+
       {/* Make Payment Button */}
       <div className="mt-4 flex justify-end">
         <button className="px-6 py-3 bg-[#062F26] text-white font-bold text-sm rounded-xl hover:bg-brand-teal transition-colors shadow-sm flex items-center gap-2">

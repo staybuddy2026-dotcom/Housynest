@@ -2,145 +2,221 @@ import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
 import heroImg from '../../assets/hero_img.jpg';
 
-const PropertyPreview = () => {
+const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
   const { watch } = useFormContext();
   const formData = watch();
 
   const isPg = formData.propertyType === 'PG';
 
-  // Dynamic fields based on propertyType
+  // Dynamic Title
   const title = isPg
-    ? (formData.pgName || 'PG Name')
-    : (formData.bhk ? `${formData.bhk} ${formData.propertyCategory || 'Property'}` : 'Property Title');
+    ? (formData.pgName || 'PG / Hostel Name')
+    : (formData.bhkType ? `${formData.bhkType} ${formData.propertyCategory || 'Apartment'}` : (formData.societyName || 'Property Title'));
 
-  const location = formData.locality
-    ? `${formData.locality}${formData.city ? `, ${formData.city}` : ''}`
-    : 'Location';
+  // Dynamic Location
+  const location = formData.locality || formData.city
+    ? `${formData.locality || ''}${formData.locality && formData.city ? ', ' : ''}${formData.city || ''}`
+    : 'Location not specified';
 
-  const rent = isPg
-    ? (formData.rooms?.[0]?.rentPerBed || '0')
-    : (formData.monthlyRent || '0');
+  // Dynamic Photo
+  const previewPhoto = formData.photos?.[0]?.previewUrl || formData.photos?.[0]?.url || heroImg;
 
-  const deposit = isPg
-    ? (formData.rooms?.[0]?.depositPerBed || '0')
-    : (formData.securityAmount || '0');
+  // Dynamic Rent Math
+  const getPgStartingRent = () => {
+    if (!formData.pgPricing) return formData.monthlyRent || '0';
+    const prices = Object.values(formData.pgPricing)
+      .map(p => Number(p?.rentPerBed))
+      .filter(p => !isNaN(p) && p > 0);
+    if (prices.length > 0) return Math.min(...prices).toLocaleString('en-IN');
+    return formData.monthlyRent || '0';
+  };
 
+  const getPgStartingDeposit = () => {
+    if (!formData.pgPricing) return formData.securityAmount || '0';
+    const deposits = Object.values(formData.pgPricing)
+      .map(p => Number(p?.depositPerBed))
+      .filter(p => !isNaN(p) && p > 0);
+    if (deposits.length > 0) return Math.min(...deposits).toLocaleString('en-IN');
+    return formData.securityAmount || getPgStartingRent();
+  };
+
+  const rent = isPg ? getPgStartingRent() : (Number(formData.monthlyRent || 0).toLocaleString('en-IN') || '0');
+  const deposit = isPg ? getPgStartingDeposit() : (Number(formData.securityAmount || 0).toLocaleString('en-IN') || '0');
+
+  // Dynamic Preferred Tenant / Gender
   const preferred = isPg
-    ? (formData.preferredGender || 'Any')
-    : (formData.preferredTenants?.[0] || 'Any');
+    ? (formData.preferredGender || 'Anyone')
+    : (Array.isArray(formData.preferredTenants) && formData.preferredTenants.length > 0 ? formData.preferredTenants.join(', ') : 'Anyone');
+
+  // Booking Type & Notice Period
+  const bookingType = formData.bookingType || 'Request-Based';
+  const noticePeriod = formData.noticePeriod || '30 Days';
+
+  // Owner Contract Status
+  const hasContract = Boolean(
+    formData.ownerContract?.isCustomized || 
+    formData.ownerContract?.url || 
+    formData.ownerContract?.file
+  );
+
+  // Dynamic Progress Percentage
+  const progressPercent = Math.min(100, Math.max(10, Math.round((activeStep / totalSteps) * 100)));
 
   return (
     <div className="w-full flex flex-col gap-6">
-      <div className="bg-white rounded-xl p-5 shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-50 sticky top-24">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Property Preview</h3>
+      <div className="bg-white rounded-2xl p-5 shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-100 sticky top-24">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h3 className="text-xs font-extrabold text-[#062F26] uppercase tracking-wider">Live Card Preview</h3>
+          </div>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EAF5F2] text-brand-teal border border-brand-teal/20">
+            Real-Time Sync
+          </span>
+        </div>
 
-        {/* Preview Card */}
-        <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm relative group cursor-pointer hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 hover:border-brand-teal/20 transition-all duration-300">
-          {/* Image */}
-          <div className="relative h-50 overflow-hidden bg-slate-200">
+        {/* Preview Card Container */}
+        <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-md relative group bg-white transition-all duration-300">
+          
+          {/* Card Image Banner */}
+          <div className="relative h-48 overflow-hidden bg-slate-100">
             <img
-              src={heroImg}
-              alt="Preview"
+              src={previewPhoto}
+              alt="Property Live Preview"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-linear-to-t from-slate-900/60 to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-slate-900/70 via-slate-900/20 to-transparent"></div>
 
-            {/* Badges */}
-            <div className="absolute top-3 left-3 flex gap-1.5 z-10">
-              <span className="bg-[#062F26] text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded shadow-sm group-hover:-translate-y-0.5 transition-transform duration-300">
+            {/* Top Overlay Badges */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+              <span className="bg-[#062F26] text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm">
                 {formData.propertyType || 'PG'}
               </span>
-              {isPg && formData.rooms?.[0]?.sharingType && (
-                <span className="bg-[#0aa87d] text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded shadow-sm group-hover:-translate-y-0.5 transition-transform duration-300 delay-75">
-                  {formData.rooms[0].sharingType.toUpperCase()}
+
+              {isPg && formData.preferredGender && (
+                <span className="bg-brand-teal text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm">
+                  {formData.preferredGender} PG
+                </span>
+              )}
+
+              {bookingType && (
+                <span className="bg-amber-500 text-white text-[10px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-lg shadow-sm">
+                  {bookingType}
                 </span>
               )}
             </div>
+
+            {/* Image Counter Badge */}
+            {formData.photos && formData.photos.length > 0 && (
+              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                <Icon icon="lucide:camera" className="w-3 h-3" />
+                <span>{formData.photos.length} Photos</span>
+              </div>
+            )}
           </div>
 
-          {/* Details */}
-          <div className="p-4 bg-white">
-            <h4 className="text-lg font-bold text-[#062F26] mb-1 line-clamp-1">
-              {title}
-            </h4>
-            <p className="text-xs font-medium text-slate-500 flex items-center gap-1 mb-4 group-hover:text-brand-teal transition-colors duration-300">
-              <Icon icon="lucide:map-pin" className="w-3 h-3" />
-              <span className="line-clamp-1">
-                {location}
-              </span>
-            </p>
+          {/* Details Body */}
+          <div className="p-4 bg-white space-y-3">
+            <div>
+              <h4 className="text-base font-extrabold text-[#062F26] line-clamp-1">
+                {title}
+              </h4>
+              <p className="text-xs font-medium text-slate-500 flex items-center gap-1 mt-0.5 line-clamp-1">
+                <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+                <span>{location}</span>
+              </p>
+            </div>
 
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-between items-end pb-3 border-b border-slate-100">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Starting From</p>
-                  <div className="flex items-end gap-1">
-                    <span className="text-xl font-bold text-[#062F26] leading-none">₹{rent}</span>
-                    <span className="text-[10px] font-semibold text-slate-400 mb-0.5">/ mo</span>
-                  </div>
+            {/* Starting Rent Box */}
+            <div className="flex justify-between items-end pb-3 border-b border-slate-100">
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Starting From</p>
+                <div className="flex items-end gap-1">
+                  <span className="text-xl font-bold text-[#062F26] leading-none">₹{rent}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 mb-0.5">/ month</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-y-3">
-                <div className="flex items-start gap-2">
-                  <Icon icon="lucide:users" className="w-4 h-4 text-brand-teal mt-0.5" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Preferred</span>
-                    <span className="text-xs font-bold text-[#062F26]">{preferred}</span>
+              {Number(deposit.replace(/,/g, '')) > 0 && (
+                <div className="text-right">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Deposit</p>
+                  <span className="text-xs font-bold text-[#062F26]">₹{deposit}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Key Amenities / Metadata Grid */}
+            <div className="grid grid-cols-2 gap-y-2.5 pt-1 text-xs">
+              <div className="flex items-center gap-2">
+                <Icon icon="lucide:users" className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">Tenant</span>
+                  <span className="text-xs font-bold text-[#062F26] truncate">{preferred}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Icon icon="lucide:clock" className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">Notice</span>
+                  <span className="text-xs font-bold text-[#062F26] truncate">{noticePeriod}</span>
+                </div>
+              </div>
+
+              {isPg && (
+                <div className="flex items-center gap-2">
+                  <Icon icon="lucide:utensils" className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase">Food</span>
+                    <span className="text-xs font-bold text-[#062F26] truncate">{formData.foodProvided ? (formData.vegNonVeg || 'Yes') : 'Self Cooking'}</span>
                   </div>
                 </div>
+              )}
 
-                {isPg ? (
-                  <div className="flex items-start gap-2">
-                    <Icon icon="lucide:utensils" className="w-4 h-4 text-brand-teal mt-0.5" />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Food</span>
-                      <span className="text-xs font-bold text-[#062F26]">{formData.vegNonVeg || 'N/A'}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-2">
-                    <Icon icon="lucide:sofa" className="w-4 h-4 text-brand-teal mt-0.5" />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Furnishing</span>
-                      <span className="text-xs font-bold text-[#062F26]">{formData.furnishing || 'N/A'}</span>
-                    </div>
-                  </div>
+              <div className="flex items-center gap-2">
+                <Icon icon="lucide:file-check" className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">Agreement</span>
+                  <span className="text-xs font-bold text-[#062F26] truncate">{hasContract ? 'Customized ✓' : 'Standard'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Amenities Badges Chips */}
+            {Array.isArray(formData.commonAmenities) && formData.commonAmenities.length > 0 && (
+              <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-1">
+                {formData.commonAmenities.slice(0, 3).map((amenity, idx) => (
+                  <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-semibold">
+                    {amenity}
+                  </span>
+                ))}
+                {formData.commonAmenities.length > 3 && (
+                  <span className="px-2 py-0.5 bg-[#EAF5F2] text-brand-teal rounded text-[10px] font-bold">
+                    +{formData.commonAmenities.length - 3} more
+                  </span>
                 )}
-
-                <div className="flex items-start gap-2">
-                  <Icon icon="lucide:calendar" className="w-4 h-4 text-brand-teal mt-0.5" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Available</span>
-                    <span className="text-xs font-bold text-[#062F26]">
-                      {!isPg && formData.availableFromType === 'Selected Date' ? (formData.availableDate || 'N/A') : 'Immediately'}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Icon icon="lucide:shield-check" className="w-4 h-4 text-brand-teal mt-0.5" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Deposit</span>
-                    <span className="text-xs font-bold text-[#062F26]">₹{deposit}</span>
-                  </div>
-                </div>
               </div>
-            </div>
+            )}
+
           </div>
         </div>
 
-        {/* Progress Box */}
-        <div className="mt-6 bg-[#F4F9F8] rounded-xl p-4 border border-brand-teal/20 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:bg-[#EAF5F2] cursor-default">
-          <p className="text-sm font-bold text-[#062F26] mb-3">Complete all steps to publish your property</p>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-2 bg-white rounded-full overflow-hidden border border-slate-100 shadow-inner">
-              <div className="h-full bg-brand-teal w-[35%] rounded-full transition-all duration-1000 ease-out shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-full bg-white/20 animate-shimmer -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              </div>
-            </div>
-            <span className="text-xs font-bold text-brand-teal">In Progress...</span>
+        {/* Dynamic Progress Bar */}
+        <div className="mt-5 bg-[#EAF5F2]/70 rounded-xl p-4 border border-brand-teal/20">
+          <div className="flex items-center justify-between text-xs font-bold text-[#062F26] mb-2">
+            <span>Form Progress</span>
+            <span className="text-brand-teal">{progressPercent}% Completed</span>
+          </div>
+          <div className="h-2.5 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
+            <div
+              className="h-full bg-brand-teal rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            ></div>
           </div>
         </div>
+
       </div>
     </div>
   );

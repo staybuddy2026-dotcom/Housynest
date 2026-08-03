@@ -11,6 +11,7 @@ import ResetPassword from './pages/ResetPassword';
 import Contact from './pages/Contact';
 import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
+import PropertyBooking from './pages/PropertyBooking';
 import ListProperty from './pages/ListProperty';
 import TermsConditions from './pages/TermsConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -36,6 +37,7 @@ import TenantMessages from './pages/dashboard/TenantMessages';
 import TenantContracts from './pages/dashboard/TenantContracts';
 import TenantTransactions from './pages/dashboard/TenantTransactions';
 import TenantProfile from './pages/dashboard/TenantProfile';
+import TenantBookings from './pages/dashboard/TenantBookings';
 import LawyerDashboardLayout from './layouts/LawyerDashboardLayout';
 import LawyerOverview from './pages/dashboard/LawyerOverview';
 import LawyerOwners from './pages/dashboard/LawyerOwners';
@@ -164,7 +166,7 @@ function App() {
   return (
     <>
       <Toaster 
-        position="bottom-right" 
+        position="top-center" 
         toastOptions={{
           duration: 3000,
           className: 'toast-with-progress',
@@ -208,6 +210,11 @@ const router = createBrowserRouter(
             <Route path="/properties/:id" element={
               <ProtectedRoute>
                 <PropertyDetails />
+              </ProtectedRoute>
+            } />
+            <Route path="/properties/:id/book" element={
+              <ProtectedRoute>
+                <PropertyBooking />
               </ProtectedRoute>
             } />
             <Route path="/list-property" element={
@@ -254,6 +261,7 @@ const router = createBrowserRouter(
             <Route path="messages" element={<TenantMessages />} />
             <Route path="contracts" element={<TenantContracts />} />
             <Route path="transactions" element={<TenantTransactions />} />
+            <Route path="bookings" element={<TenantBookings />} />
             <Route path="profile" element={<TenantProfile />} />
             {/* Additional tenant routes can go here */}
           </Route>
