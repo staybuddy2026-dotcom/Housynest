@@ -276,47 +276,56 @@ const PropertyBooking = () => {
     setIsSubmitting(true);
 
     try {
-      const roomInfoStr = isPG
-        ? `PG Room: ${selectedRoom?.roomName || 'Selected Room'} | Bed: ${selectedBedName || 'Bed A'}`
-        : `Property: ${property?.bhkType || 'Apartment'}`;
-
-      const bookingMessage = `[FINAL BOOKING CONFIRMATION]
-Option: ${paymentType === 'token' ? 'Pay Token 40% (Reserve Bed)' : 'Pay Full (Confirm Now)'}
-${roomInfoStr}
-Move-In Date: ${moveInDate}
-Expected Move-Out Date: ${moveOutDate || 'Not specified'}
-Emergency Contact: ${emergencyName || 'N/A'} (${emergencyPhone || 'N/A'}, ${emergencyRelationship || 'N/A'})
-Paid/Payable Now: ₹${payNowAmount.toLocaleString('en-IN')}`;
-
-      const inquiryData = {
+      const bookingData = {
         propertyId: property?.id || property?._id || id,
-        ownerId: property?.owner?._id || property?.owner || '650000000000000000000000',
-        message: bookingMessage,
         moveInDate: moveInDate,
-        gender: gender,
-        occupants: selectedRoom?.sharingType || '1 Person',
-        contactMethod: 'Phone/WhatsApp',
-        subject: `Property Bed Reservation Request - ${paymentType.toUpperCase()}`,
-        agreedToShareDetails: true
+        expectedMoveOutDate: moveOutDate || null,
+        personalInfo: {
+          firstName,
+          lastName,
+          dob,
+          gender,
+          mobileNumber,
+          whatsappNumber,
+          email,
+          institutionName
+        },
+        emergencyContact: {
+          name: emergencyName,
+          phone: emergencyPhone,
+          relation: emergencyRelationship
+        },
+        kycDocs: [], // To be added when document upload is wired to backend
+        roomDetails: {
+          roomName: selectedRoom?.roomName || null,
+          sharingType: selectedRoom?.sharingType || null,
+          bedName: selectedBedName || null,
+        },
+        paymentDetails: {
+          amount: payNowAmount,
+          status: 'Pending',
+          paymentMethod: paymentType === 'token' ? 'Token Amount' : 'Full Payment'
+        }
       };
 
-      const res = await fetch('/api/inquiries', {
+      const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(inquiryData)
+        body: JSON.stringify(bookingData)
       });
 
       if (res.ok) {
-        const genId = 'HN-BK-' + Math.floor(100000 + Math.random() * 900000);
-        setBookingRef(genId);
+        const result = await res.json();
+        // The backend generates the actual booking ID, but we can display a custom ref on success page
+        setBookingRef(result._id.substring(result._id.length - 8).toUpperCase());
         setBookingSuccess(true);
-        toast.success('Booking Reservation Submitted Successfully!');
+        toast.success(result.status === 'Confirmed' ? 'Booking Confirmed Successfully!' : 'Booking Request Submitted Successfully!');
       } else {
         const errData = await res.json();
-        toast.error(errData.message || 'Failed to submit booking reservation');
+        toast.error(errData.message || 'Failed to submit booking');
       }
     } catch (err) {
       console.error('Booking submission error:', err);
@@ -352,6 +361,7 @@ Paid/Payable Now: ₹${payNowAmount.toLocaleString('en-IN')}`;
               <BookingStepper
                 currentStep={currentStep}
                 handleStepClick={handleStepClick}
+                paymentType={paymentType}
               />
 
               {/* STEP 1: COMPLETE PROFILE */}

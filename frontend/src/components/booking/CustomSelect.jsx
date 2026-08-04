@@ -35,7 +35,7 @@ const CustomSelect = ({ value, onChange, options, placeholder = 'Select Option',
             : 'border-slate-300 hover:border-[#0AA87D]/50'
         }`}
       >
-        <span className={`text-xs font-semibold ${selectedOption ? 'text-[#062F26]' : 'text-slate-400'}`}>
+        <span className={`text-sm font-semibold ${selectedOption ? 'text-[#062F26]' : 'text-slate-400'}`}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <Icon
@@ -55,7 +55,7 @@ const CustomSelect = ({ value, onChange, options, placeholder = 'Select Option',
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`px-4 py-2.5 text-xs font-semibold cursor-pointer flex items-center justify-between transition-colors ${
+                className={`px-4 py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-between transition-colors ${
                   isSelected
                     ? 'bg-[#EAF5F2] text-[#062F26] font-extrabold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-[#062F26]'

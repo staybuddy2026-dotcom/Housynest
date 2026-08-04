@@ -1,30 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 
 const OwnerPayments = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const [summaryData, setSummaryData] = useState([]);
+  const [rentData, setRentData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRentData = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/bookings/owner/rent-collection', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSummaryData(data.summaryData);
+        setRentData(data.rentData);
+      }
+    } catch (error) {
+      console.error('Error fetching rent data:', error);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRentData();
+  }, []);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1000);
+    fetchRentData();
   };
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase();
-
-  const summaryData = [
-    { id: 1, title: '₹13.4L', subtitle: 'Collected (of ₹14.6L)', icon: 'lucide:wallet', bg: 'bg-white', border: 'border-slate-100', text: 'text-[#062F26]', progress: 'w-[90%]', progressBg: 'bg-brand-teal', hoverBg: 'hover:bg-[#062F26] hover:border-[#062F26]', hoverText: 'group-hover:text-white', hoverSubtitle: 'group-hover:text-slate-300' },
-    { id: 2, title: '92%', subtitle: 'On Time (101/110)', icon: 'lucide:calendar-check', bg: 'bg-white', border: 'border-slate-100', text: 'text-[#062F26]', progress: 'w-[92%]', progressBg: 'bg-brand-teal', hoverBg: 'hover:bg-brand-teal hover:border-brand-teal', hoverText: 'group-hover:text-white', hoverSubtitle: 'group-hover:text-emerald-50' },
-    { id: 3, title: '₹1.2L', subtitle: 'Pending (8 tenants)', icon: 'lucide:clock', bg: 'bg-white', border: 'border-slate-100', text: 'text-[#062F26]', progress: 'w-[10%]', progressBg: 'bg-amber-500', hoverBg: 'hover:bg-amber-500 hover:border-amber-500', hoverText: 'group-hover:text-white', hoverSubtitle: 'group-hover:text-amber-100' },
-    { id: 4, title: '24', subtitle: 'AI Reminder Calls', icon: 'lucide:bot', bg: 'bg-white', border: 'border-slate-100', text: 'text-[#062F26]', progress: 'w-[100%]', progressBg: 'bg-indigo-500', hoverBg: 'hover:bg-indigo-500 hover:border-indigo-500', hoverText: 'group-hover:text-white', hoverSubtitle: 'group-hover:text-indigo-100' },
-  ];
-
-  const rentData = [
-    { id: 1, name: 'Vikram Joshi', amount: '₹14,500', date: 'Due 01 May', method: 'UPI', status: 'Paid', statusColor: 'bg-emerald-50 text-brand-teal border-emerald-100' },
-    { id: 2, name: 'Neha Kapoor', amount: '₹12,000', date: 'Due 01 May', method: 'UPI', status: 'Paid', statusColor: 'bg-emerald-50 text-brand-teal border-emerald-100' },
-    { id: 3, name: 'Aditya Rao', amount: '₹16,000', date: 'Due 05 May', method: 'Bank', status: 'Paid', statusColor: 'bg-emerald-50 text-brand-teal border-emerald-100' },
-    { id: 4, name: 'Pooja Nair', amount: '₹11,500', date: 'Due 07 May', method: '—', status: 'Reminder sent', statusColor: 'bg-amber-50 text-amber-500 border-amber-100' },
-    { id: 5, name: 'Suresh Kumar', amount: '₹13,500', date: 'Due 10 May', method: '—', status: 'Overdue', statusColor: 'bg-red-50 text-red-500 border-red-100' },
-  ];
+  const currentMonthYear = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-340 3xl:max-w-420 mx-auto w-full relative pb-24">
@@ -36,7 +49,7 @@ const OwnerPayments = () => {
           <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase">
             <span>{today}</span>
             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-            <span>May 2025</span>
+            <span>{currentMonthYear}</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -75,8 +88,18 @@ const OwnerPayments = () => {
 
       {/* Rent List */}
       <div className="flex flex-col gap-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
-        {rentData.map((rent) => (
-          <div key={rent.id} className="bg-white rounded-xl border border-slate-100 p-4 flex items-center justify-between hover:shadow-md hover:border-brand-teal/20 transition-all cursor-pointer group hover:-translate-y-0.5">
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Icon icon="lucide:loader-2" className="w-8 h-8 animate-spin text-brand-teal" />
+          </div>
+        ) : rentData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-100">
+            <Icon icon="lucide:calendar-clock" className="w-12 h-12 text-slate-300 mb-4" />
+            <p className="text-slate-500 font-medium">No rent collection data available.</p>
+          </div>
+        ) : (
+          rentData.map((rent) => (
+            <div key={rent.id} className="bg-white rounded-xl border border-slate-100 p-4 flex items-center justify-between hover:shadow-md hover:border-brand-teal/20 transition-all cursor-pointer group hover:-translate-y-0.5">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm group-hover:bg-brand-teal/10 group-hover:text-brand-teal transition-colors shrink-0">
                 {rent.name.charAt(0)}
@@ -111,7 +134,8 @@ const OwnerPayments = () => {
               </div>
             </div>
           </div>
-        ))}
+        ))
+      )}
       </div>
 
     </div>

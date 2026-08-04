@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import toast from 'react-hot-toast';
 import logo from '../../assets/logo.png';
 import socket, { joinUserRoom, disconnectSocket } from '../../lib/socket';
 
@@ -16,7 +17,8 @@ const Sidebar = ({ onClose, isMobile }) => {
     newLawyerRequests: 0,
     newOwnerContracts: 0,
     newTenantContracts: 0,
-    newVisits: 0
+    newVisits: 0,
+    newBookingRequests: 0
   });
   
   useEffect(() => {
@@ -45,7 +47,8 @@ const Sidebar = ({ onClose, isMobile }) => {
             newLawyerRequests: data.newLawyerRequests || 0,
             newOwnerContracts: data.newOwnerContracts || 0,
             newTenantContracts: data.newTenantContracts || 0,
-            newVisits: data.newVisits || 0
+            newVisits: data.newVisits || 0,
+            newBookingRequests: data.newBookingRequests || 0
           });
         }
       } catch (err) {
@@ -86,7 +89,16 @@ const Sidebar = ({ onClose, isMobile }) => {
       setCounts(prev => ({ ...prev, newTenantContracts: 0 }));
     };
 
+    const handleBookingRequestsRead = () => {
+      setCounts(prev => ({ ...prev, newBookingRequests: 0 }));
+    };
+
+    const handleRefreshCounts = () => {
+      fetchCounts();
+    };
+
     window.addEventListener('messagesRead', handleMessagesRead);
+    window.addEventListener('refreshCounts', handleRefreshCounts);
     window.addEventListener('profilePicUpdated', handleProfileUpdate);
     window.addEventListener('globalNewLawyerRequest', handleNewLawyerRequest);
     window.addEventListener('lawyerRequestsRead', handleLawyerRequestsRead);
@@ -94,6 +106,7 @@ const Sidebar = ({ onClose, isMobile }) => {
     window.addEventListener('ownerContractsRead', handleOwnerContractsRead);
     window.addEventListener('newTenantContract', handleNewTenantContract);
     window.addEventListener('tenantContractsRead', handleTenantContractsRead);
+    window.addEventListener('bookingRequestsRead', handleBookingRequestsRead);
     return () => {
       window.removeEventListener('messagesRead', handleMessagesRead);
       window.removeEventListener('profilePicUpdated', handleProfileUpdate);
@@ -103,6 +116,8 @@ const Sidebar = ({ onClose, isMobile }) => {
       window.removeEventListener('ownerContractsRead', handleOwnerContractsRead);
       window.removeEventListener('newTenantContract', handleNewTenantContract);
       window.removeEventListener('tenantContractsRead', handleTenantContractsRead);
+      window.removeEventListener('bookingRequestsRead', handleBookingRequestsRead);
+      window.removeEventListener('refreshCounts', handleRefreshCounts);
     };
   }, []);
 
@@ -131,14 +146,29 @@ const Sidebar = ({ onClose, isMobile }) => {
       fetchCounts();
     };
 
+    const onNewBookingRequest = () => {
+      setCounts(prev => ({ ...prev, newBookingRequests: prev.newBookingRequests + 1 }));
+      toast.success('You have a new booking request!', {
+        id: 'new-booking-request',
+        icon: '🔔',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+    };
+
     socket.on('newNotification', onNewNotification);
     socket.on('newInquiry', onNewInquiry);
     socket.on('visit_update', onVisitUpdate);
+    socket.on('newBookingRequest', onNewBookingRequest);
 
     return () => {
       socket.off('newNotification', onNewNotification);
       socket.off('newInquiry', onNewInquiry);
       socket.off('visit_update', onVisitUpdate);
+      socket.off('newBookingRequest', onNewBookingRequest);
     };
   }, [user]);
 
@@ -169,8 +199,8 @@ const Sidebar = ({ onClose, isMobile }) => {
     { name: 'My Listings', icon: 'lucide:building-2', path: '/owner/listings' },
     { name: 'Visits', icon: 'lucide:calendar-days', path: '/owner/visits', badge: counts.newVisits > 0 ? counts.newVisits : null },
     { name: 'Inquiries', icon: 'lucide:message-circle-question', path: '/owner/inquiries', badge: counts.newRequests > 0 ? counts.newRequests : null },
-    { name: 'Booking Requests', icon: 'lucide:calendar-search', path: '/owner/booking-requests' },
-    { name: 'Bookings', icon: 'lucide:book-open-check', path: '/owner/bookings' },
+    { name: 'Booking Requests', icon: 'lucide:calendar-search', path: '/owner/booking-requests', badge: counts.newBookingRequests > 0 ? counts.newBookingRequests : null },
+    { name: 'Bookings', icon: 'lucide:book-open-check', path: '/owner/bookings', badge: counts.newBookings > 0 ? counts.newBookings : null },
     { name: 'Tenants', icon: 'lucide:users-2', path: '/owner/tenants' },
     { name: 'Rent Collection', icon: 'lucide:wallet', path: '/owner/payments' },
     { name: 'Messages', icon: 'lucide:message-square', path: '/owner/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },

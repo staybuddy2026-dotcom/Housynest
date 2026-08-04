@@ -8,13 +8,14 @@ const OwnerListings = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
-  const filterOptions = ['All', 'Active', 'Inactive', 'Pending', 'Sold/Rented'];
   const [viewType, setViewType] = useState('grid');
   const [listings, setListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewingPropertyId, setViewingPropertyId] = useState(null);
   const [editingPropertyId, setEditingPropertyId] = useState(null);
   const [propertyToDelete, setPropertyToDelete] = useState(null);
+
+  const filterOptions = ['All', ...new Set(listings.map(l => l.status || 'Pending'))].filter(Boolean);
 
   const fetchProperties = useCallback(async () => {
     try {
@@ -72,10 +73,17 @@ const OwnerListings = () => {
 
   const filteredListings = listings.filter(listing => {
     const title = listing.pgName || listing.societyName || listing.propertyCategory || 'Property';
-    const location = listing.address || listing.locality || 'Location';
+    const location = listing.locality ? `${listing.locality}, ${listing.city || ''}` : (listing.address || 'Unknown Location');
+    const type = listing.propertyType === 'PG' ? 'PG / Co-living' : 'Flat / Apartment';
+    const status = listing.status || 'Pending';
 
-    const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      title.toLowerCase().includes(searchLower) ||
+      location.toLowerCase().includes(searchLower) ||
+      type.toLowerCase().includes(searchLower) ||
+      status.toLowerCase().includes(searchLower);
+
     const matchesStatus = filterStatus === 'All' ? true : listing.status === filterStatus;
     return matchesSearch && matchesStatus;
   });

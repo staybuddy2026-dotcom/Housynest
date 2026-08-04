@@ -42,7 +42,7 @@ const inquirySchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['New', 'Contacted', 'In Discussion', 'Closed'],
+    enum: ['New', 'Contacted', 'In Discussion', 'Closed', 'Cancelled'],
     default: 'New'
   },
   isRead: {

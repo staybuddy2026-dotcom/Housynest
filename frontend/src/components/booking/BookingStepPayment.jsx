@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
 import { translateWithGoogleFreeApi } from '../../lib/translate';
 
-const DEFAULT_CONTRACT_TEXT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
+export const DEFAULT_CONTRACT_TEXT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
 
@@ -134,12 +134,20 @@ const BookingStepPayment = ({
 
   // Sync agreedTerms with both checkboxes, esign presence, and stamp generation
   useEffect(() => {
-    if (agreeDigitalSign && confirmAccurate && isEsignVerified && stampGenerated) {
-      setAgreedTerms(true);
+    if (paymentType === 'token') {
+      if (agreeDigitalSign && confirmAccurate) {
+        setAgreedTerms(true);
+      } else {
+        setAgreedTerms(false);
+      }
     } else {
-      setAgreedTerms(false);
+      if (agreeDigitalSign && confirmAccurate && isEsignVerified && stampGenerated) {
+        setAgreedTerms(true);
+      } else {
+        setAgreedTerms(false);
+      }
     }
-  }, [agreeDigitalSign, confirmAccurate, isEsignVerified, stampGenerated, setAgreedTerms]);
+  }, [paymentType, agreeDigitalSign, confirmAccurate, isEsignVerified, stampGenerated, setAgreedTerms]);
 
   // Handle Gujarati Translation using Free Google Translate API
   const handleSelectLanguage = async (targetLang) => {
@@ -269,12 +277,19 @@ const BookingStepPayment = ({
       {/* HEADER SECTION */}
       <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-[#062F26]">Agreement & Payment</h2>
-          <p className="text-xs text-slate-500 mt-1">Review the rental agreement and complete the payment</p>
+          <h2 className="text-xl font-bold text-[#062F26]">
+            {paymentType === 'token' ? 'Terms & Conditions' : 'Agreement & Payment'}
+          </h2>
+          <p className="text-xs text-slate-500 mt-1">
+            {paymentType === 'token' 
+              ? 'Please review and accept the terms to proceed with token payment' 
+              : 'Review the rental agreement and complete the payment'}
+          </p>
         </div>
 
         {/* DYNAMIC LANGUAGE SWITCHER BADGES */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+        {paymentType === 'full' && (
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
           <button
             type="button"
             onClick={() => handleSelectLanguage('en')}
@@ -298,10 +313,13 @@ const BookingStepPayment = ({
             🌐 ગુજરાતી (Google Translate)
           </button>
         </div>
+        )}
       </div>
 
       {/* RENTAL AGREEMENT BOX */}
-      <div className="border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs">
+      {paymentType === 'full' && (
+        <>
+          <div className="border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs">
         
         {/* Accordion Header */}
         <div
@@ -523,8 +541,10 @@ const BookingStepPayment = ({
               Preview
             </button>
           </div>
-        )}
-      </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* CHECKBOXES SECTION */}
       <div className="space-y-3 pt-2">
@@ -536,7 +556,9 @@ const BookingStepPayment = ({
             className="mt-0.5 w-4 h-4 text-[#0AA87D] rounded border-slate-300 focus:ring-[#0AA87D]"
           />
           <span className="text-xs text-slate-700 font-semibold leading-relaxed">
-            I agree to sign the rental agreement digitally and accept the Terms and Conditions <span className="text-red-500">*</span>
+            {paymentType === 'token' 
+              ? 'I agree to the Terms and Conditions and Privacy Policy'
+              : 'I agree to sign the rental agreement digitally and accept the Terms and Conditions'} <span className="text-red-500">*</span>
           </span>
         </label>
 
@@ -583,13 +605,15 @@ const BookingStepPayment = ({
         <button
           type="button"
           onClick={() => {
-            if (!isEsignVerified) {
-              toast.error('Please eSign the agreement using Aadhaar OTP before confirming');
-              return;
-            }
-            if (!stampGenerated) {
-              toast.error('Please generate the e-Stamp paper before confirming your booking');
-              return;
+            if (paymentType === 'full') {
+              if (!isEsignVerified) {
+                toast.error('Please eSign the agreement using Aadhaar OTP before confirming');
+                return;
+              }
+              if (!stampGenerated) {
+                toast.error('Please generate the e-Stamp paper before confirming your booking');
+                return;
+              }
             }
             if (!agreeDigitalSign || !confirmAccurate) {
               toast.error('Please accept both agreement checkboxes to confirm your booking');

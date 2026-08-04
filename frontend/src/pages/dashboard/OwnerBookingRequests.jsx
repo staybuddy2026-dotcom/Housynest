@@ -1,46 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import toast from 'react-hot-toast';
 
 const OwnerBookingRequests = () => {
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState(null);
 
-  const stats = [
-    { title: '1', subtitle: 'Total Pending', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
-    { title: '1', subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100' },
-    { title: '0', subtitle: 'Rejected', desc: 'Not Proceeded', icon: 'lucide:x-circle', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
-    { title: '50%', subtitle: 'Conversion Rate', desc: 'Requests to Bookings', icon: 'lucide:percent', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-    { title: '₹ 0', subtitle: 'Total Revenue', desc: 'Current Month', icon: 'lucide:indian-rupee', color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
-  ];
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const res = await fetch('/api/bookings/owner', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Filter to only show requests (Pending Request, Rejected) and maybe recently Confirmed if needed.
+          // The tabs are 'All', 'Pending Approval', 'Approved', 'Rejected'
+          // We will map 'Pending Request' -> 'PENDING APPROVAL'
+          // 'Confirmed' -> 'APPROVED'
+          // 'Rejected' -> 'REJECTED'
+          setBookings(data);
+        }
+      } catch (error) {
+        console.error('Error fetching booking requests:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookings();
+    
+    window.dispatchEvent(new Event('refreshCounts'));
 
-  const requests = [
-    {
-      id: 'BR-28',
-      date: '05 Jan, 4:15 pm',
-      customer: 'Geet',
-      phone: '8857815102',
-      property: 'Rohan PG Alexis',
-      bed: 'A-2204 • Bed 2',
-      moveIn: '2026-01-15',
-      rent: '₹ 15,000',
-      token: '₹2500',
-      paymentStatus: 'Pending',
-      status: 'PENDING APPROVAL',
-    },
-    {
-      id: 'BR-27',
-      date: '29 Dec, 11:01 am',
-      customer: 'Niraj Rawool',
-      phone: '8857815102',
-      property: 'Rohan PG Elipse',
-      bed: 'A-2204 • Bed 2',
-      moveIn: '2025-01-15',
-      rent: '₹ 25,000',
-      token: '₹2500',
-      paymentStatus: 'Pending',
-      status: 'APPROVED',
-    },
-  ];
+    const handleRefresh = () => {
+      fetchBookings();
+    };
+    window.addEventListener('refreshBookingsList', handleRefresh);
+
+    return () => {
+      window.removeEventListener('refreshBookingsList', handleRefresh);
+    };
+  }, []);
+
+  const getStatusMapping = (dbStatus) => {
+    if (dbStatus === 'Pending Request') return 'PENDING APPROVAL';
+    if (dbStatus === 'Pending Payment' || dbStatus === 'Confirmed' || dbStatus === 'Reserved' || dbStatus === 'Completed') return 'APPROVED';
+    if (dbStatus === 'Rejected' || dbStatus === 'Cancelled') return 'REJECTED';
+    return dbStatus;
+  };
+
+  const handleUpdateStatus = async (bookingId, newStatus) => {
+    setProcessingId(bookingId);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status: newStatus } : b));
+        toast.success(`Booking request ${newStatus === 'Pending Payment' ? 'Approved' : newStatus}`);
+        window.dispatchEvent(new Event('refreshCounts'));
+      } else {
+        toast.error('Failed to update request status');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error updating request status');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const requests = bookings
+    .filter(b => getStatusMapping(b.status) === 'PENDING APPROVAL' || getStatusMapping(b.status) === 'REJECTED')
+    .map(b => ({
+      _id: b._id,
+      id: b._id.substring(b._id.length - 8).toUpperCase(),
+      date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
+      customer: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
+      phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
+      email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
+      property: b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
+      bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
+      moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
+      rent: `₹ ${b.paymentDetails?.amount?.toLocaleString() || 0}`,
+      token: `₹ ${b.paymentDetails?.amount?.toLocaleString() || 0}`,
+      paymentStatus: b.paymentDetails?.status || 'Pending',
+      status: getStatusMapping(b.status),
+      originalStatus: b.status
+    }));
 
   const tabs = ['All', 'Pending Approval', 'Approved', 'Rejected'];
 
@@ -67,6 +123,13 @@ const OwnerBookingRequests = () => {
     
     return matchesTabLogic && matchesSearch;
   });
+  const stats = [
+    { title: requests.filter(r => r.status === 'PENDING APPROVAL').length, subtitle: 'Total Pending', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
+    { title: requests.filter(r => r.status === 'APPROVED').length, subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100' },
+    { title: requests.filter(r => r.status === 'REJECTED').length, subtitle: 'Rejected', desc: 'Not Proceeded', icon: 'lucide:x-circle', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
+    { title: requests.length > 0 ? Math.round((requests.filter(r => r.status === 'APPROVED').length / requests.length) * 100) + '%' : '0%', subtitle: 'Conversion Rate', desc: 'Requests to Bookings', icon: 'lucide:percent', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
+    { title: `₹ ${requests.reduce((acc, curr) => acc + parseInt(curr.token.replace(/\D/g, '') || 0), 0).toLocaleString()}`, subtitle: 'Total Request Revenue', desc: 'From Tokens', icon: 'lucide:indian-rupee', color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
+  ];
 
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto w-full relative pb-24 lg:pb-8">
@@ -153,8 +216,11 @@ const OwnerBookingRequests = () => {
                     <div className="text-[11px] font-medium text-slate-400 mt-1">{req.date}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-slate-800 text-sm">{req.customer}</div>
-                    <div className="text-[11px] font-medium text-slate-400 mt-1">{req.phone}</div>
+                    <p className="text-sm font-bold text-[#062F26] mb-1">{req.customer}</p>
+                    <p className="text-[11px] font-semibold text-slate-400">{req.phone}</p>
+                    {req.email && req.email !== 'N/A' && (
+                      <p className="text-[11px] font-semibold text-slate-400 mt-0.5">{req.email}</p>
+                    )}
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{req.property}</div>
@@ -180,18 +246,29 @@ const OwnerBookingRequests = () => {
                   </td>
                   <td className="py-4 px-5 align-middle text-right">
                     <div className="flex items-center justify-end gap-4">
-                      <button className="text-[13px] font-bold text-blue-500 hover:text-blue-700 hover:underline underline-offset-2 transition-all">
-                        View
-                      </button>
-                      {req.status === 'PENDING APPROVAL' && (
-                        <>
-                          <button className="text-[13px] font-bold text-emerald-500 hover:text-emerald-700 hover:underline underline-offset-2 transition-all">
-                            Approve
+                      {req.status === 'PENDING APPROVAL' ? (
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleUpdateStatus(req._id, 'Pending Payment')}
+                            disabled={processingId === req._id}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center justify-center min-w-[72px]"
+                          >
+                            {processingId === req._id ? (
+                              <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
+                            ) : (
+                              'Approve'
+                            )}
                           </button>
-                          <button className="text-[13px] font-bold text-red-500 hover:text-red-700 hover:underline underline-offset-2 transition-all">
+                          <button 
+                            onClick={() => handleUpdateStatus(req._id, 'Rejected')}
+                            disabled={processingId === req._id}
+                            className="px-3 py-1.5 bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-600 hover:text-red-600 disabled:text-slate-400 disabled:hover:bg-white disabled:hover:border-slate-200 text-xs font-bold rounded-lg transition-colors shadow-sm"
+                          >
                             Reject
                           </button>
-                        </>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-bold text-slate-400">Action taken</span>
                       )}
                     </div>
                   </td>

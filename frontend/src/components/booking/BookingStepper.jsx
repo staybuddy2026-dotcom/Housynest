@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BookingStepper = ({ currentStep, handleStepClick }) => {
+const BookingStepper = ({ currentStep, handleStepClick, paymentType }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
       {/* STEP 1 CHEVRON BLOCK */}
@@ -58,9 +58,11 @@ const BookingStepper = ({ currentStep, handleStepClick }) => {
         }`}
       >
         <span className="text-xs font-extrabold block mb-0.5">3</span>
-        <p className="text-xs sm:text-sm font-extrabold leading-tight">Agreement & Payment</p>
+        <p className="text-xs sm:text-sm font-extrabold leading-tight">
+          {paymentType === 'token' ? 'Terms & Payment' : 'Agreement & Payment'}
+        </p>
         <p className={`text-[10px] font-semibold mt-0.5 truncate max-w-full ${currentStep === 3 ? 'text-slate-300' : 'text-slate-500'}`}>
-          Sign Agreement
+          {paymentType === 'token' ? 'Accept Terms' : 'Sign Agreement'}
         </p>
       </div>
     </div>

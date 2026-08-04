@@ -4,6 +4,8 @@ import Inquiry from '../models/Inquiry.js';
 import LawyerRequest from '../models/LawyerRequest.js';
 import Contract from '../models/Contract.js';
 import Visit from '../models/Visit.js';
+import Booking from '../models/Booking.js';
+import Property from '../models/Property.js';
 import { sendBlockEmail, sendUnblockEmail } from './authController.js';
 
 export const getUserProfile = async (req, res) => {
@@ -130,9 +132,12 @@ export const getNotificationCounts = async (req, res) => {
       isRead: false
     });
 
-    // 3. New Lawyer Requests
+    // 3. New Lawyer Requests, Visits, and Bookings
     let newLawyerRequestsCount = 0;
     let newVisitsCount = 0;
+    let newBookingRequestsCount = 0;
+    let newBookingsCount = 0;
+    
     if (req.user.role === 'owner') {
       newLawyerRequestsCount = await LawyerRequest.countDocuments({
         owner: userId,
@@ -142,13 +147,29 @@ export const getNotificationCounts = async (req, res) => {
         owner: userId,
         status: 'Pending'
       });
+      
+      // Get all properties owned by this user
+      const ownerProperties = await Property.find({ owner: userId }).select('_id');
+      const propertyIds = ownerProperties.map(p => p._id);
+      
+      newBookingRequestsCount = await Booking.countDocuments({
+        propertyId: { $in: propertyIds },
+        status: 'Pending Request'
+      });
+
+      newBookingsCount = await Booking.countDocuments({
+        propertyId: { $in: propertyIds },
+        status: { $in: ['Confirmed', 'Active'] }
+      });
     }
 
     res.json({
       unreadMessages: unreadMessagesCount,
       newRequests: newInquiriesCount,
       newLawyerRequests: newLawyerRequestsCount,
-      newVisits: newVisitsCount
+      newVisits: newVisitsCount,
+      newBookingRequests: newBookingRequestsCount,
+      newBookings: newBookingsCount
     });
   } catch (error) {
     console.error('Error in getNotificationCounts:', error);

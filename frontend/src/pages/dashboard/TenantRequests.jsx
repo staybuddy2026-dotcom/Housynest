@@ -1,177 +1,12 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import socket from '../../lib/socket';
 
-const RequestCard = ({ request }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Status-based styling
-  const getStatusStyles = (status) => {
-    switch (status) {
-      case 'New':
-        return {
-          border: 'border-l-emerald-500',
-          badge: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-          icon: 'lucide:sparkles'
-        };
-      case 'Contacted':
-        return {
-          border: 'border-l-blue-500',
-          badge: 'bg-blue-50 text-blue-600 border border-blue-100',
-          icon: 'lucide:phone-call'
-        };
-      case 'In Discussion':
-        return {
-          border: 'border-l-orange-500',
-          badge: 'bg-orange-50 text-orange-600 border border-orange-100',
-          icon: 'lucide:message-circle'
-        };
-      case 'Closed':
-        return {
-          border: 'border-l-slate-400',
-          badge: 'bg-slate-50 text-slate-500 border border-slate-200',
-          icon: 'lucide:archive'
-        };
-      default:
-        return {
-          border: 'border-l-slate-400',
-          badge: 'bg-slate-100 text-slate-700',
-          icon: 'lucide:circle'
-        };
-    }
-  };
-
-  const styles = getStatusStyles(request.status);
-
-  return (
-    <div className={`bg-white rounded-xl border border-slate-200 border-l-4 ${styles.border} shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_30px_-4px_rgba(6,81,237,0.15)] transition-all duration-300 overflow-hidden mb-5 group`}>
-      <div
-        className="px-4 py-3 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-5 relative"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 w-full">
-          {/* Property Image */}
-          <div className="relative w-full sm:w-32 h-24 rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-100 group-hover:shadow-md transition-shadow">
-            <img src={request.propertyImage} alt={request.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 to-transparent"></div>
-          </div>
-
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${styles.badge} flex items-center gap-1.5 w-fit shadow-sm`}>
-                <Icon icon={styles.icon} className="w-3.5 h-3.5" />
-                {request.status}
-              </span>
-            </div>
-
-            <h3 className="text-base md:text-lg font-bold text-[#062F26] leading-tight mb-1.5 group-hover:text-brand-teal transition-colors">
-              {request.title}
-            </h3>
-
-            <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500">
-              <Icon icon="lucide:map-pin" className="w-4 h-4 text-slate-400" />
-              <span className="truncate">{request.location}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Date Badge */}
-        <div className="flex items-center gap-4 w-full md:w-auto md:shrink-0 justify-between md:justify-end border-t md:border-t-0 border-slate-100 pt-4 md:pt-0">
-          <div className="flex items-center gap-4 bg-slate-50/80 px-4 py-2 rounded-xl border border-slate-200">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Sent On:</span>
-              <span className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
-                <Icon icon="lucide:calendar" className="w-3.5 h-3.5 text-slate-400" />
-                {request.date}
-              </span>
-            </div>
-          </div>
-
-          <button className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 border ${isExpanded ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-white border-slate-200 text-slate-400 group-hover:border-brand-teal group-hover:bg-brand-teal/5 group-hover:text-brand-teal'}`}>
-            <Icon
-              icon="lucide:chevron-down"
-              className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
-            />
-          </button>
-        </div>
-      </div>
-
-      {/* Expanded Content */}
-      <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-        <div className="overflow-hidden">
-          <div className="px-5 pb-5 pt-0">
-            <div className="border-t border-slate-100 pt-5 mt-2 flex flex-col lg:flex-row gap-6">
-
-              {/* Left Column: Owner info & tags */}
-              <div className="flex-1 space-y-5">
-                {request.owner && (
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Owner Contact</h4>
-                    <div className="flex items-center justify-between p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                          <Icon icon="lucide:user" className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-[#062F26]">{request.owner.fullName || 'Owner'}</p>
-                          <p className="text-xs font-medium text-slate-500">{request.owner.phone || 'Phone unavailable'}</p>
-                        </div>
-                      </div>
-                      {request.owner.phone && (
-                        <a href={`tel:${request.owner.phone}`} className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-500 hover:text-white transition-colors">
-                          <Icon icon="lucide:phone" className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Request Details</h4>
-                  <div className="flex flex-wrap gap-2.5">
-                    {[
-                      { label: 'Room', value: request.roomType, icon: 'lucide:home' },
-                      { label: 'Move-in', value: request.moveIn, icon: 'lucide:calendar-clock' },
-                      { label: 'Subject', value: request.subject, icon: 'lucide:tag' },
-                      { label: 'Budget', value: request.budget, icon: 'lucide:wallet' },
-                      { label: 'Occupants', value: request.occupants, icon: 'lucide:users' },
-                      { label: 'Gender', value: request.gender, icon: 'lucide:user' },
-                    ].map((tag, idx) => (
-                      <div key={idx} className="bg-slate-50 px-3 py-2 rounded-xl text-xs flex flex-col gap-0.5 border border-slate-100 shadow-sm min-w-25">
-                        <span className="text-slate-400 font-bold flex items-center gap-1.5 uppercase text-[9px] tracking-wider">
-                          <Icon icon={tag.icon} className="w-3 h-3" />
-                          {tag.label}
-                        </span>
-                        <span className="text-[#062F26] font-bold">{tag.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Message */}
-              <div className="flex-1 flex flex-col">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex-1 shadow-inner shadow-slate-100/50">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                    <Icon icon="lucide:message-square" className="w-3.5 h-3.5" />
-                    Your Message
-                  </h4>
-                  <p className="text-sm text-slate-600 font-medium leading-relaxed italic border-l-2 border-slate-300 pl-3 py-0.5 whitespace-pre-wrap">{request.message}</p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const TenantRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -190,6 +25,7 @@ const TenantRequests = () => {
             title: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
             status: inq.status,
             date: new Date(inq.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+            time: new Date(inq.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
             roomType: inq.propertyId?.propertyType || 'N/A',
             moveIn: inq.moveInDate ? new Date(inq.moveInDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A',
             budget: inq.propertyId?.monthlyRent ? `₹${inq.propertyId.monthlyRent}` : (inq.propertyId?.rooms?.[0]?.rentPerBed ? `₹${inq.propertyId.rooms[0].rentPerBed}` : 'N/A'),
@@ -216,7 +52,6 @@ const TenantRequests = () => {
     fetchRequests();
 
     const handleInquirySent = (newInq) => {
-      // Re-fetch to ensure all populated fields are perfectly up-to-date
       fetchRequests();
     };
 
@@ -227,34 +62,216 @@ const TenantRequests = () => {
     };
   }, []);
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'New':
+        return <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold border border-emerald-100">New</span>;
+      case 'Contacted':
+        return <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold border border-blue-100">Contacted</span>;
+      case 'In Discussion':
+        return <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">In Discussion</span>;
+      case 'Closed':
+        return <span className="bg-slate-50 text-slate-500 px-3 py-1 rounded-full text-xs font-bold border border-slate-200">Closed</span>;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10">
+    <div className="flex flex-col h-full bg-white font-sans animate-fadeIn pb-10">
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-2xl font-bold text-[#062F26] tracking-tight">My Requests</h1>
-        <span className="bg-slate-100 text-slate-600 font-bold text-sm px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
-          {requests.length} requests
-        </span>
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 px-6 pt-6 pb-4 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#062F26] tracking-tight">My Requests</h1>
+          <p className="text-sm text-slate-500 mt-1">Track your property inquiries and requests</p>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700">
+          <Icon icon="lucide:message-square" className="w-4 h-4 text-brand-teal" />
+          Total Requests: <span className="text-[#062F26]">{requests.length}</span>
+        </div>
       </div>
 
-      {/* Requests List */}
-      <div className="flex flex-col gap-2">
-        {loading ? (
-          <div className="py-12 text-center text-slate-500 text-sm font-medium">
-            <Icon icon="lucide:loader-2" className="w-6 h-6 animate-spin mx-auto text-brand-teal mb-2" />
-            Loading your requests...
-          </div>
-        ) : requests.length > 0 ? (
-          requests.map(request => (
-            <RequestCard key={request.id} request={request} />
-          ))
-        ) : (
-          <div className="text-center py-12 bg-white rounded-2xl border border-slate-200">
-            <Icon icon="lucide:message-circle-x" className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-            <h3 className="text-lg font-bold text-slate-800 mb-1">No Requests Yet</h3>
-            <p className="text-sm text-slate-500">You haven't sent any inquiries or booking requests yet.</p>
-          </div>
-        )}
+      {/* Table Content */}
+      <div className="flex-1 overflow-x-auto overflow-y-auto">
+        <table className="w-full min-w-[1000px] text-left">
+          <thead className="bg-white sticky top-0 z-20">
+            <tr>
+              <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Property</th>
+              <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Date Sent</th>
+              <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Status</th>
+              <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Message</th>
+              <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white">
+            {loading ? (
+              <tr>
+                <td colSpan="5" className="py-12 text-center text-slate-500 text-sm font-medium">
+                  <Icon icon="lucide:loader-2" className="w-6 h-6 animate-spin mx-auto text-brand-teal mb-2" />
+                  <p>Loading your requests...</p>
+                </td>
+              </tr>
+            ) : requests.length > 0 ? (
+              requests.map((request) => {
+                const isExpanded = expandedId === request.id;
+
+                return (
+                  <Fragment key={request.id}>
+                    <tr className={`transition-colors group ${isExpanded ? 'bg-slate-50/50' : 'hover:bg-slate-50/50 border-b border-slate-100'}`}>
+                      
+                      {/* Property */}
+                      <td className="py-4 px-6 align-middle">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-slate-200">
+                            <img src={request.propertyImage} alt={request.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#062F26] group-hover:text-brand-teal transition-colors">{request.title}</p>
+                            <p className="text-xs font-medium text-slate-500 my-0.5 flex items-center gap-1">
+                              <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-slate-400" />
+                              {request.location}
+                            </p>
+                            <p className="text-xs font-medium text-slate-600">
+                              <span className="font-bold">{request.budget}</span> / month
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Date Sent */}
+                      <td className="py-4 px-6 align-middle">
+                        <p className="text-xs font-bold text-slate-700">{request.date}</p>
+                        <p className="text-xs font-medium text-slate-500 mt-0.5">{request.time}</p>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-4 px-6 align-middle">
+                        {getStatusBadge(request.status)}
+                      </td>
+
+                      {/* Message */}
+                      <td className="py-4 px-6 align-middle max-w-50">
+                        <p className="text-xs font-bold text-brand-teal truncate mb-1" title={request.subject}>
+                          Sub: {request.subject}
+                        </p>
+                        <p className="text-xs font-medium text-slate-600 truncate leading-relaxed" title={request.message}>
+                          {request.message}
+                        </p>
+                      </td>
+
+                      {/* Action */}
+                      <td className="py-4 px-6 align-middle text-right">
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : request.id)}
+                          className={`px-4 py-2 border text-xs font-bold rounded-lg transition-colors ${isExpanded
+                            ? 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                            : 'bg-white border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white'
+                            }`}
+                        >
+                          {isExpanded ? 'Close Details' : 'View Details'}
+                        </button>
+                      </td>
+                    </tr>
+
+                    {/* Expanded Details Row */}
+                    <tr>
+                      <td colSpan="5" className="p-0 border-none">
+                        <div className={`grid transition-[grid-template-rows,opacity] duration-700 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100 border-b border-slate-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                          <div className="overflow-hidden">
+                            <div className="bg-slate-50/80 p-6 shadow-inner">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
+
+                                {/* Message Full Details */}
+                                <div className="md:col-span-2 bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                                  <div className="flex items-center gap-2 mb-3 text-brand-teal">
+                                    <Icon icon="lucide:message-square" className="w-5 h-5" />
+                                    <h4 className="font-bold text-sm">Your Request Message</h4>
+                                  </div>
+                                  <p className="text-sm font-bold text-slate-800 mb-1">Subject: {request.subject}</p>
+                                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                    {request.message}
+                                  </p>
+                                </div>
+
+                                {/* Requirements & Info */}
+                                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col gap-4">
+                                  
+                                  {request.owner && (
+                                    <>
+                                      <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2 mb-1">
+                                        <Icon icon="lucide:user" className="w-5 h-5 text-emerald-600" />
+                                        Owner Contact
+                                      </h4>
+                                      <div className="flex items-start gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                                          <Icon icon="lucide:phone" className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                          <p className="text-xs font-bold text-slate-500 uppercase">{request.owner.fullName || 'Owner'}</p>
+                                          <p className="text-sm font-semibold text-slate-800">{request.owner.phone || 'Phone unavailable'}</p>
+                                        </div>
+                                      </div>
+                                      <div className="h-px bg-slate-100 w-full my-1"></div>
+                                    </>
+                                  )}
+
+                                  <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2 mb-1">
+                                    <Icon icon="lucide:list-checks" className="w-5 h-5 text-brand-teal" />
+                                    Your Requirements
+                                  </h4>
+
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                                      <Icon icon="lucide:calendar-days" className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-500 uppercase">Move-in Date</p>
+                                      <p className="text-sm font-semibold text-slate-800">{request.moveIn}</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
+                                      <Icon icon="lucide:users" className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-500 uppercase">Occupants & Gender</p>
+                                      <p className="text-sm font-semibold text-slate-800">{request.occupants} Person(s) • {request.gender}</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                                      <Icon icon="lucide:home" className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-500 uppercase">Property Type</p>
+                                      <p className="text-sm font-semibold text-slate-800">{request.roomType}</p>
+                                    </div>
+                                  </div>
+
+                                </div>
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </Fragment>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="5" className="py-16 text-center">
+                  <Icon icon="lucide:message-circle-x" className="w-12 h-12 mx-auto text-slate-300 mb-4" />
+                  <h3 className="text-lg font-bold text-slate-800 mb-1">No Requests Yet</h3>
+                  <p className="text-sm text-slate-500">You haven't sent any inquiries or booking requests yet.</p>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

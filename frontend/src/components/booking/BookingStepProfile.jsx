@@ -59,7 +59,7 @@ const BookingStepProfile = ({
               type="date"
               value={moveInDate}
               onChange={(e) => setMoveInDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all"
             />
           </div>
 
@@ -73,7 +73,7 @@ const BookingStepProfile = ({
               value={moveOutDate}
               placeholder="DD/MM/YYYY"
               onChange={(e) => setMoveOutDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -99,7 +99,7 @@ const BookingStepProfile = ({
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="Khush"
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all"
             />
           </div>
 
@@ -113,7 +113,7 @@ const BookingStepProfile = ({
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Prajapati"
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all"
             />
           </div>
 
@@ -126,7 +126,7 @@ const BookingStepProfile = ({
               type="date"
               value={dob}
               onChange={(e) => setDob(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all"
             />
           </div>
 
@@ -150,7 +150,7 @@ const BookingStepProfile = ({
               value={mobileNumber}
               onChange={(e) => setMobileNumber(e.target.value)}
               placeholder="9824970199"
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all"
             />
           </div>
 
@@ -164,7 +164,7 @@ const BookingStepProfile = ({
               value={whatsappNumber}
               onChange={(e) => setWhatsappNumber(e.target.value)}
               placeholder="9824970199"
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all"
             />
           </div>
 
@@ -178,7 +178,7 @@ const BookingStepProfile = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address"
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all"
             />
           </div>
 
@@ -192,7 +192,7 @@ const BookingStepProfile = ({
               value={institutionName}
               onChange={(e) => setInstitutionName(e.target.value)}
               placeholder="Enter your college/company name"
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
             />
           </div>
         </div>
@@ -210,7 +210,7 @@ const BookingStepProfile = ({
                 value={emergencyName}
                 onChange={(e) => setEmergencyName(e.target.value)}
                 placeholder="Enter emergency contact name"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
               />
             </div>
 
@@ -223,7 +223,7 @@ const BookingStepProfile = ({
                 value={emergencyPhone}
                 onChange={(e) => setEmergencyPhone(e.target.value)}
                 placeholder="Enter 10 digit phone number"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-xs font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
               />
             </div>
 

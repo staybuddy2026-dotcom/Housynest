@@ -156,6 +156,22 @@ const BookingSidebarCard = ({
                       <span>Remaining Rent (Pay at Move-In):</span>
                       <span className="font-bold text-[#062F26]">₹{(baseRent - tokenAmount).toLocaleString('en-IN')}</span>
                     </div>
+                    {deposit > 0 && (
+                      <div className="flex justify-between text-slate-600 font-medium">
+                        <span>Security Deposit (Pay at Move-In):</span>
+                        <span className="font-bold text-[#062F26]">₹{deposit.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+                    {maintenance > 0 && (
+                      <div className="flex justify-between text-slate-600 font-medium">
+                        <span>Maintenance (Pay at Move-In):</span>
+                        <span className="font-bold text-[#062F26]">₹{maintenance.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-extrabold text-[#EF4444] pt-1.5 border-t border-slate-200/80">
+                      <span>Total Remaining (Pay at Move-In):</span>
+                      <span>₹{((baseRent - tokenAmount) + deposit + maintenance).toLocaleString('en-IN')}</span>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -202,7 +218,7 @@ const BookingSidebarCard = ({
                 <span>Processing Request...</span>
               </>
             ) : (
-              <span>Continue</span>
+              <span>{paymentType === 'token' ? 'Reserve Bed' : 'Book Room'}</span>
             )}
           </button>
 

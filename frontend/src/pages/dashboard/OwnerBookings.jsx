@@ -1,65 +1,121 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import toast from 'react-hot-toast';
 
 const OwnerBookings = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const res = await fetch('/api/bookings/owner', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setBookings(data);
+        }
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookings();
+  }, []);
+
+  const getStatusMapping = (dbStatus) => {
+    if (dbStatus === 'Pending Payment') return 'PENDING PAYMENT';
+    if (dbStatus === 'Reserved') return 'RESERVED';
+    if (dbStatus === 'Confirmed') return 'CONFIRMED';
+    if (dbStatus === 'Completed') return 'MOVED OUT';
+    if (dbStatus === 'Active') return 'ACTIVE';
+    return null; // Don't show pending requests or rejected in bookings tab
+  };
+
+  const bookingData = bookings
+    .filter(b => getStatusMapping(b.status) !== null)
+    .map(b => ({
+      _id: b._id,
+      id: b._id.substring(b._id.length - 8).toUpperCase(),
+      date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
+      tenant: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
+      phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
+      email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
+      property: b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
+      propertyType: b.propertyId?.propertyCategory || 'N/A',
+      bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
+      moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
+      movedOut: b.expectedMoveOutDate ? new Date(b.expectedMoveOutDate).toISOString().split('T')[0] : null,
+      amountPaid: b.paymentDetails?.status === 'Paid' ? `Paid: ₹${b.paymentDetails?.amount?.toLocaleString() || 0}` : `Pending: ₹${b.paymentDetails?.amount?.toLocaleString() || 0}`,
+      paymentType: (b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)') ? '(Token)' : '(Full)',
+      amountDue: (() => {
+        const isToken = b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)';
+        if (b.paymentDetails?.status === 'Paid') {
+          if (isToken) {
+            const getPricing = () => {
+              if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
+                const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
+                const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
+                let baseType = 'Single';
+                let isAC = false;
+                
+                if (room) {
+                    baseType = room.sharingType || 'Single';
+                    isAC = room.isAC;
+                } else if (b.roomDetails?.sharingType) {
+                    const st = b.roomDetails.sharingType;
+                    baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+                    isAC = st.includes('(AC)');
+                }
+
+                const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
+                const pricing = b.propertyId.pgPricing?.[typeStr];
+                if (pricing) {
+                  return {
+                    rent: Number(pricing.rentPerBed?.replace(/\D/g, '') || 0),
+                    deposit: Number(pricing.depositPerBed?.replace(/\D/g, '') || 0),
+                    maintenance: 0
+                  };
+                }
+              }
+              return {
+                rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
+                deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0),
+                maintenance: Number(b.propertyId?.maintenanceCharges?.replace(/\D/g, '') || 0)
+              };
+            };
+
+            const pricing = getPricing();
+            const stampFees = 300;
+            const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
+            const due = fullAmount > 0 ? fullAmount - Number(b.paymentDetails?.amount || 0) : 0;
+            return due > 0 ? `Move-In Due: ₹${due.toLocaleString()}` : 'Move-In Due: ₹0';
+          }
+          return 'Due: ₹0';
+        }
+        const amt = Number(b.paymentDetails?.amount || 0).toLocaleString();
+        return isToken ? `Reservation Due: ₹${amt}` : `Booking Due: ₹${amt}`;
+      })(),
+      status: getStatusMapping(b.status),
+      source: b.propertyId?.bookingType === 'Direct Booking' ? 'DIRECT' : 'REQUEST',
+    }));
 
   const stats = [
-    { title: '11', subtitle: 'Total Pending', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
-    { title: '5', subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100' },
-    { title: '3', subtitle: 'Active', desc: 'Currently Staying', icon: 'lucide:home', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-    { title: '2', subtitle: 'Moved Out', desc: 'Past Bookings', icon: 'lucide:log-out', color: 'text-slate-500', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
-  ];
-
-  const bookings = [
-    {
-      id: 'BK-1204',
-      date: '10 Oct, 8:45 pm',
-      tenant: 'Geet',
-      phone: '8857815102',
-      property: 'Rohan PG Alexis',
-      bed: 'A-2204 • Bed 2',
-      moveIn: '2025-01-15',
-      movedOut: null,
-      rent: '₹35,000',
-      deposit: 'Token: ₹2500',
-      status: 'CONFIRMED',
-      source: 'REQUEST',
-    },
-    {
-      id: 'BK-8821',
-      date: '12 Oct, 4:00 pm',
-      tenant: 'Rahul Sharma',
-      phone: '9876543210',
-      property: 'Rohan PG Elipse',
-      bed: '302-A • Bed 1',
-      moveIn: '2025-01-20',
-      movedOut: 'Moved-out: 2025-10-20',
-      rent: '₹25,000',
-      deposit: 'Token: ₹2500',
-      status: 'PENDING',
-      source: 'DIRECT',
-    },
-    {
-      id: 'BK-9932',
-      date: '15 Oct, 2:30 pm',
-      tenant: 'Priya Patel',
-      phone: '9876543111',
-      property: 'Sunshine PG',
-      bed: 'Room 4A • Bed 1',
-      moveIn: '2025-02-01',
-      movedOut: null,
-      rent: '₹12,000',
-      deposit: 'Token: ₹1000',
-      status: 'ACTIVE',
-      source: 'DIRECT',
-    }
+    { title: bookingData.filter(b => b.status === 'CONFIRMED').length, subtitle: 'Total Confirmed', desc: 'Upcoming move-ins', icon: 'lucide:calendar-check', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
+    { title: bookingData.filter(b => b.status === 'ACTIVE').length, subtitle: 'Active', desc: 'Currently Staying', icon: 'lucide:home', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
+    { title: bookingData.filter(b => b.status === 'MOVED OUT').length, subtitle: 'Moved Out', desc: 'Past Bookings', icon: 'lucide:log-out', color: 'text-slate-500', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
   ];
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case 'PENDING':
+      case 'PENDING PAYMENT':
         return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'RESERVED':
+        return 'bg-teal-100 text-teal-700 border-teal-200';
       case 'CONFIRMED':
         return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       case 'ACTIVE':
@@ -73,15 +129,12 @@ const OwnerBookings = () => {
     }
   };
 
-  const filteredBookings = bookings.filter(booking => {
-    const query = searchQuery.toLowerCase();
-    return (
-      booking.tenant.toLowerCase().includes(query) ||
-      booking.phone.includes(query) ||
-      booking.id.toLowerCase().includes(query) ||
-      booking.property.toLowerCase().includes(query)
-    );
-  });
+  const filteredBookings = bookingData.filter(bk => 
+    bk.tenant.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    bk.phone.includes(searchQuery) || 
+    bk.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    bk.property.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto w-full relative pb-24 lg:pb-8">
@@ -98,7 +151,7 @@ const OwnerBookings = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {stats.map((stat, idx) => (
           <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
             <div className="flex justify-between items-start mb-4">
@@ -142,7 +195,7 @@ const OwnerBookings = () => {
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Property / Bed</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move - In Date</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent / Deposit</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment Info</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Source</th>
               </tr>
@@ -155,11 +208,15 @@ const OwnerBookings = () => {
                     <div className="text-[11px] font-medium text-slate-400 mt-1">{booking.date}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-slate-800 text-sm">{booking.tenant}</div>
-                    <div className="text-[11px] font-medium text-slate-400 mt-1">{booking.phone}</div>
+                    <p className="text-sm font-bold text-[#062F26] mb-1">{booking.tenant}</p>
+                    <p className="text-[11px] font-semibold text-slate-400">{booking.phone}</p>
+                    {booking.email && booking.email !== 'N/A' && (
+                      <p className="text-[11px] font-semibold text-slate-400 mt-0.5">{booking.email}</p>
+                    )}
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{booking.property}</div>
+                    <div className="text-[11px] font-medium text-slate-500 mt-0.5">{booking.propertyType}</div>
                     <div className="text-[11px] font-medium text-slate-400 mt-1">{booking.bed}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
@@ -169,8 +226,8 @@ const OwnerBookings = () => {
                     )}
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-slate-800 text-sm">{booking.rent}</div>
-                    <div className="text-[11px] font-bold text-[#25D366] mt-1 tracking-wide">{booking.deposit}</div>
+                    <div className="font-bold text-slate-800 text-sm">{booking.amountPaid} <span className="text-slate-500 text-xs font-normal">{booking.paymentType}</span></div>
+                    <div className="text-[11px] font-bold text-amber-500 mt-1 tracking-wide">{booking.amountDue}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getStatusStyle(booking.status)} shadow-sm`}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { ReactLenis } from 'lenis/react';
 import AddTenantModal from '../../components/dashboard/AddTenantModal';
@@ -8,77 +8,149 @@ const OwnerTenants = () => {
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const stats = [
-    { title: '10', subtitle: 'Total Tenants', desc: 'All Active', icon: 'lucide:users', color: 'text-brand-teal', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-    { title: '5', subtitle: 'Unpaid Tenants', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
-    { title: '₹83,500', subtitle: 'Revenue Due', desc: 'This Month', icon: 'lucide:indian-rupee', color: 'text-slate-700', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
-    { title: '156', subtitle: 'Upcoming Move-outs', desc: 'Next 30 Days', icon: 'lucide:calendar-clock', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
-  ];
+  const [tenants, setTenants] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const tenants = [
-    {
-      id: 'TN-1',
-      name: 'Priya Singh',
-      initials: 'PS',
-      email: 'priyasingh@email.com',
-      phone: '9999999999',
-      room: 'Room 109',
-      roomNumber: 'Room 109',
-      bedNumber: '2',
-      bed: 'Bed 2',
-      rent: '₹10,000',
-      deposit: 'Deposit: ₹20,000',
-      payment: 'PAID',
-      moveIn: '15 Jan 2024',
-      moveInIso: '2024-01-15',
-      kyc: 'KYC PENDING',
-      bookingId: '-',
-      leaseDuration: '-',
-      monthlyRentNum: '₹10,000',
-      securityDepositNum: '₹20,000',
-    },
-    {
-      id: 'TN-2',
-      name: 'Ravi Kumar',
-      initials: 'RK',
-      email: 'ravikumar@email.com',
-      phone: '9876543210',
-      room: 'Room 109',
-      roomNumber: 'Room 109',
-      bedNumber: '1',
-      bed: 'Bed 1',
-      rent: '₹11,000',
-      deposit: 'Deposit: ₹20,000',
-      payment: 'PAID',
-      moveIn: '22 Feb 2024',
-      moveInIso: '2024-02-22',
-      kyc: 'VERIFIED',
-      bookingId: '-',
-      leaseDuration: '-',
-      monthlyRentNum: '₹11,000',
-      securityDepositNum: '₹20,000',
-    },
-    {
-      id: 'TN-3',
-      name: 'Anjali Sharma',
-      initials: 'AS',
-      email: 'anjalisharma@email.com',
-      phone: '9876543111',
-      room: 'Room 109',
-      roomNumber: 'Room 109',
-      bedNumber: '3',
-      bed: 'Bed 3',
-      rent: '₹12,000',
-      deposit: 'Deposit: ₹20,000',
-      payment: 'DUE',
-      moveIn: '10 Mar 2024',
-      moveInIso: '2024-03-10',
-      kyc: 'KYC PENDING',
-      bookingId: '-',
-      leaseDuration: '-',
-      monthlyRentNum: '₹12,000',
-      securityDepositNum: '₹20,000',
-    }
+  useEffect(() => {
+    const fetchTenants = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const res = await fetch('/api/bookings/owner', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const bookings = await res.json();
+          const activeTenants = bookings
+            .filter(b => b.status === 'Confirmed' || b.status === 'Reserved' || b.status === 'Active' || b.status === 'Completed')
+            .map((b) => {
+              const name = b.tenantId?.fullName || (b.personalInfo?.firstName ? b.personalInfo.firstName + ' ' + (b.personalInfo.lastName || '') : 'Unknown');
+              const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+              
+              const rentInfo = (() => {
+                 const isToken = b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)';
+                 if (b.paymentDetails?.status === 'Paid') {
+                   if (isToken) {
+                     const getPricing = () => {
+                       if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
+                         const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
+                         const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
+                         let baseType = 'Single';
+                         let isAC = false;
+                         
+                         if (room) {
+                             baseType = room.sharingType || 'Single';
+                             isAC = room.isAC;
+                         } else if (b.roomDetails?.sharingType) {
+                             const st = b.roomDetails.sharingType;
+                             baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+                             isAC = st.includes('(AC)');
+                         }
+
+                         const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
+                         const pricing = b.propertyId.pgPricing?.[typeStr];
+                         if (pricing) {
+                           return {
+                             rent: Number(pricing.rentPerBed?.replace(/\D/g, '') || 0),
+                             deposit: Number(pricing.depositPerBed?.replace(/\D/g, '') || 0),
+                             maintenance: 0
+                           };
+                         }
+                       }
+                       return {
+                         rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
+                         deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0),
+                         maintenance: Number(b.propertyId?.maintenanceCharges?.replace(/\D/g, '') || 0)
+                       };
+                     };
+
+                     const pricing = getPricing();
+                     const stampFees = 300;
+                     const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
+                     const due = fullAmount > 0 ? fullAmount - Number(b.paymentDetails?.amount || 0) : 0;
+                     return { due, fullAmount, paid: b.paymentDetails?.amount || 0 };
+                   }
+                   return { due: 0, fullAmount: 0, paid: b.paymentDetails?.amount || 0 };
+                 }
+                 return { due: Number(b.paymentDetails?.amount || 0), fullAmount: 0, paid: 0 };
+              })();
+
+              const isToken = b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)';
+              
+              const pricing = (() => {
+                if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
+                  const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
+                  const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
+                  let baseType = 'Single';
+                  let isAC = false;
+                  
+                  if (room) {
+                      baseType = room.sharingType || 'Single';
+                      isAC = room.isAC;
+                  } else if (b.roomDetails?.sharingType) {
+                      const st = b.roomDetails.sharingType;
+                      baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+                      isAC = st.includes('(AC)');
+                  }
+
+                  const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
+                  const pgPric = b.propertyId.pgPricing?.[typeStr];
+                  if (pgPric) {
+                    return {
+                      rent: Number(pgPric.rentPerBed?.replace(/\D/g, '') || 0),
+                      deposit: Number(pgPric.depositPerBed?.replace(/\D/g, '') || 0)
+                    };
+                  }
+                }
+                return {
+                  rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
+                  deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0)
+                };
+              })();
+
+              return {
+                id: `TN-${b._id.substring(b._id.length - 4).toUpperCase()}`,
+                name: name,
+                initials: initials,
+                email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
+                phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
+                room: b.roomDetails?.roomName || 'N/A',
+                roomNumber: b.roomDetails?.roomName || 'N/A',
+                bedNumber: b.roomDetails?.bedName ? b.roomDetails.bedName.replace(/\D/g, '') : '',
+                bed: b.roomDetails?.bedName || 'N/A',
+                rent: `₹${pricing.rent.toLocaleString()}`,
+                deposit: `Deposit: ₹${pricing.deposit.toLocaleString()}`,
+                payment: rentInfo.due > 0 ? 'DUE' : 'PAID',
+                rentDueAmount: rentInfo.due,
+                paidStr: isToken ? `Token: ₹${rentInfo.paid.toLocaleString()}` : `Paid: ₹${rentInfo.paid.toLocaleString()}`,
+                dueStr: rentInfo.due > 0 ? `Move-In Due: ₹${rentInfo.due.toLocaleString()}` : 'No Dues',
+                moveIn: new Date(b.moveInDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                moveInIso: new Date(b.moveInDate).toISOString().split('T')[0],
+                kyc: b.kycDocs && b.kycDocs.length > 0 ? 'VERIFIED' : 'KYC PENDING',
+                bookingId: b._id.substring(b._id.length - 8).toUpperCase(),
+                leaseDuration: '-',
+                monthlyRentNum: `₹${(b.propertyId?.monthlyRent || 0).toLocaleString()}`,
+                securityDepositNum: `₹${(b.propertyId?.securityDeposit || 0).toLocaleString()}`,
+                personalInfo: b.personalInfo || {},
+                emergencyContact: b.emergencyContact || {},
+                kycDocs: b.kycDocs || [],
+              };
+            });
+          setTenants(activeTenants);
+        }
+      } catch (error) {
+        console.error('Error fetching tenants:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTenants();
+  }, []);
+
+  const stats = [
+    { title: tenants.length.toString(), subtitle: 'Total Tenants', desc: 'All Active', icon: 'lucide:users', color: 'text-brand-teal', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
+    { title: tenants.filter(t => t.payment === 'DUE').length.toString(), subtitle: 'Unpaid Tenants', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
+    { title: `₹${tenants.reduce((acc, curr) => acc + (curr.rentDueAmount || 0), 0).toLocaleString()}`, subtitle: 'Revenue Due', desc: 'This Month', icon: 'lucide:indian-rupee', color: 'text-slate-700', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
+    { title: '0', subtitle: 'Upcoming Move-outs', desc: 'Next 30 Days', icon: 'lucide:calendar-clock', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
   ];
 
   const getPaymentStyle = (status) => {
@@ -194,9 +266,8 @@ const OwnerTenants = () => {
                     <div className="text-[11px] font-medium text-slate-400 mt-1 tracking-wide">{t.deposit}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getPaymentStyle(t.payment)} shadow-sm`}>
-                      {t.payment}
-                    </span>
+                    <div className="font-bold text-slate-800 text-sm">{t.paidStr}</div>
+                    <div className={`text-[11px] font-bold mt-1 tracking-wide ${t.rentDueAmount > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>{t.dueStr}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="text-sm font-semibold text-slate-700">{t.moveIn}</div>
@@ -213,8 +284,12 @@ const OwnerTenants = () => {
                           Remind Now
                         </button>
                       )}
-                      <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
-                        <Icon icon="lucide:more-vertical" className="w-4 h-4" />
+                      <button 
+                        onClick={() => setSelectedTenant(t)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-brand-teal transition-colors"
+                        title="View Details"
+                      >
+                        <Icon icon="lucide:eye" className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -305,61 +380,39 @@ const OwnerTenants = () => {
                       <Icon icon="lucide:folder" className="w-4 h-4 text-slate-700" />
                       <h4 className="text-[13px] font-bold text-slate-800">Tenant Documents</h4>
                     </div>
-                    <span className="text-[11px] font-medium text-slate-500">Recent</span>
                   </div>
                   
-                  <div className="bg-[#F8F9FA] rounded-xl p-3 flex flex-col gap-1 border border-slate-100 mb-4">
-                    {/* Lease Agreement */}
-                    <div className="flex items-center justify-between py-2.5 border-b border-slate-200/80 group">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
-                          <Icon icon="lucide:file-text" className="w-4 h-4" />
+                  {selectedTenant.kycDocs && selectedTenant.kycDocs.length > 0 ? (
+                    <div className="bg-[#F8F9FA] rounded-xl p-3 flex flex-col gap-1 border border-slate-100 mb-4">
+                      {selectedTenant.kycDocs.map((doc, idx) => (
+                        <div key={idx} className="flex items-center justify-between py-3 border-b border-slate-200/80 group last:border-0 last:pb-0">
+                          <div className="flex items-center gap-3.5">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100/50 shrink-0">
+                              <Icon icon="lucide:image" className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[13px] font-bold text-slate-800">{doc.type}</span>
+                              <span className="text-[11px] text-slate-500 font-medium">{doc.number}</span>
+                            </div>
+                          </div>
+                          {doc.documentUrl && (
+                            <a href={doc.documentUrl} target="_blank" rel="noreferrer" className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-brand-teal transition-colors shrink-0">
+                              <Icon icon="lucide:eye" className="w-4 h-4" />
+                            </a>
+                          )}
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-[13px] font-bold text-slate-800">Lease Agreement</span>
-                          <span className="text-[11px] text-slate-500 font-medium">Signed 08 Dec 2024</span>
-                        </div>
-                      </div>
-                      <button className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors">
-                        <Icon icon="lucide:download" className="w-4 h-4" />
-                      </button>
+                      ))}
                     </div>
-
-                    {/* ID Proof Aadhaar */}
-                    <div className="flex items-center justify-between py-3 border-b border-slate-200/80 group">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100/50">
-                          <Icon icon="lucide:image" className="w-4 h-4" />
-                        </div>
-                        <span className="text-[13px] font-bold text-slate-800">ID Proof Aadhaar</span>
-                      </div>
-                      <button className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors">
-                        <Icon icon="lucide:eye" className="w-4 h-4" />
-                      </button>
+                  ) : (
+                    <div className="bg-[#F8F9FA] rounded-xl p-6 text-center border border-slate-100 mb-4">
+                      <p className="text-sm font-medium text-slate-500">No documents uploaded.</p>
                     </div>
-
-                    {/* Company ID card */}
-                    <div className="flex items-center justify-between pt-3 pb-1.5 group">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100/50">
-                          <Icon icon="lucide:image" className="w-4 h-4" />
-                        </div>
-                        <span className="text-[13px] font-bold text-slate-800">Company ID card</span>
-                      </div>
-                      <button className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors">
-                        <Icon icon="lucide:eye" className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <button className="text-[13px] font-bold text-red-500 hover:text-red-600 transition-colors flex items-center justify-center gap-1.5 self-center pb-2">
-                    View All Documents <Icon icon="lucide:arrow-right" className="w-3.5 h-3.5" />
-                  </button>
+                  )}
                 </div>
 
-                {/* Contact Information */}
+                {/* Personal Information */}
                 <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
-                  <h4 className="text-sm font-bold text-[#062F26] mb-4">Contact Information</h4>
+                  <h4 className="text-sm font-bold text-[#062F26] mb-4">Personal Information</h4>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-50">
                       <span className="text-sm font-medium text-slate-500">Phone</span>
@@ -369,16 +422,53 @@ const OwnerTenants = () => {
                       <span className="text-sm font-medium text-slate-500">Email</span>
                       <span className="text-sm font-bold text-slate-800">{selectedTenant.email}</span>
                     </div>
-                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
-                      <span className="text-sm font-medium text-slate-500">Rent</span>
-                      <span className="text-sm font-bold text-slate-800">{selectedTenant.monthlyRentNum}/month</span>
-                    </div>
+                    {selectedTenant.personalInfo?.dob && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Date of Birth</span>
+                        <span className="text-sm font-bold text-slate-800">{new Date(selectedTenant.personalInfo.dob).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {selectedTenant.personalInfo?.gender && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Gender</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedTenant.personalInfo.gender}</span>
+                      </div>
+                    )}
+                    {selectedTenant.personalInfo?.profession && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Profession</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedTenant.personalInfo.profession}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-slate-500">Joined</span>
                       <span className="text-sm font-bold text-slate-800">{selectedTenant.moveIn}</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Emergency Contact */}
+                {selectedTenant.emergencyContact?.name && (
+                  <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                    <h4 className="text-sm font-bold text-[#062F26] mb-4">Emergency Contact</h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Name</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedTenant.emergencyContact.name}</span>
+                      </div>
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Relationship</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedTenant.emergencyContact.relation}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-slate-500">Phone</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedTenant.emergencyContact.phone}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+
 
                 {/* Room & Booking Details */}
                 <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">

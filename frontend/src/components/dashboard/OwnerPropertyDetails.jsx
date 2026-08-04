@@ -100,6 +100,10 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
   const [loadingLeads, setLoadingLeads] = useState(false);
   const [leadsFetched, setLeadsFetched] = useState(false);
 
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [bookingsFetched, setBookingsFetched] = useState(false);
+
 
 
   useEffect(() => {
@@ -154,6 +158,32 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
     }
   }, [activeTab, propertyId, leadsFetched]);
 
+  useEffect(() => {
+    const fetchBookings = async () => {
+      setLoadingBookings(true);
+      try {
+        const token = localStorage.getItem('accessToken');
+        const res = await fetch('/api/bookings/owner', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const propertyBookings = data.filter(b => b.propertyId && b.propertyId._id === propertyId);
+          setBookings(propertyBookings);
+          setBookingsFetched(true);
+        }
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      } finally {
+        setLoadingBookings(false);
+      }
+    };
+
+    if (activeTab === 'Bookings' && !bookingsFetched) {
+      fetchBookings();
+    }
+  }, [activeTab, propertyId, bookingsFetched]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm animate-fadeIn">
@@ -174,6 +204,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
     'Overview',
     ...(isPG ? ['Rooms & Beds'] : ['Property Details']),
     'Leads',
+    'Bookings',
     'Tenants',
     'Rent Collection',
     'Rules & Regulations',
@@ -1007,43 +1038,57 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
 
   const renderRentCollection = () => {
     const rentItems = [];
+    const today = new Date();
 
-    if (property.propertyType === 'PG' && property.floors) {
-      let tenantCount = 1;
-      property.floors.forEach(floor => {
-        if (floor.rooms) {
-          floor.rooms.forEach((room, rIdx) => {
-            if (room.beds) {
-              room.beds.forEach((bed, bIdx) => {
-                if (bed.status === 'Occupied') {
-                  const sharingKey = `${room.sharingType}_${room.isAC ? 'AC' : 'NonAC'}`;
-                  const pgRent = property.pgPricing?.[sharingKey]?.rentPerBed;
-                  const displayRent = pgRent ? `₹${Number(pgRent).toLocaleString()}` : (property.monthlyRent ? `₹${property.monthlyRent}` : '₹14,500');
-                  rentItems.push({
-                    id: `RNT-${tenantCount}`,
-                    name: 'Occupied Bed',
-                    initials: 'B',
-                    rent: displayRent,
-                    dueDate: 'N/A',
-                    method: 'N/A',
-                    status: 'N/A',
-                  });
-                  tenantCount++;
-                }
-              });
-            }
-          });
+    const activeBookings = bookings.filter(b => ['Active', 'Confirmed', 'Completed', 'Reserved'].includes(b.status));
+
+    activeBookings.forEach(booking => {
+      let rentAmount = 14500;
+      if (property.propertyType === 'PG') {
+        if (property.pgPricing && booking.roomDetails && booking.roomDetails.sharingType) {
+          const baseType = booking.roomDetails.sharingType.includes('Single') ? 'Single' : booking.roomDetails.sharingType.includes('Double') ? 'Double' : booking.roomDetails.sharingType.includes('Triple') ? 'Triple' : booking.roomDetails.sharingType.includes('Four') ? 'Four' : 'Other';
+          const typeStr = `${baseType}_${property.isAC ? 'AC' : 'NonAC'}`;
+          if (property.pgPricing[typeStr]?.rentPerBed) {
+            rentAmount = Number(property.pgPricing[typeStr].rentPerBed.replace(/\D/g, ''));
+          }
         }
-      });
-    } else if (property.propertyType === 'Tenant' && (property.status === 'Active' || property.status === 'Occupied')) {
+      } else if (property.monthlyRent) {
+        rentAmount = Number(property.monthlyRent.replace(/\D/g, ''));
+      }
+
+      const moveInDate = booking.moveInDate ? new Date(booking.moveInDate) : new Date(booking.createdAt);
+      let nextDueDate = new Date(today.getFullYear(), today.getMonth(), moveInDate.getDate());
+      
+      if (nextDueDate < today) {
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+      }
+
+      const diffMs = nextDueDate - today;
+      const daysDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+
+      let status = 'Paid';
+      if (daysDue <= 7 && daysDue > 0) {
+        status = 'Reminder sent';
+      } else if (nextDueDate < today) {
+        status = 'Overdue';
+      }
+
+      const formatDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+      const name = booking.tenantId ? booking.tenantId.fullName : (booking.personalInfo?.firstName + ' ' + booking.personalInfo?.lastName);
+
       rentItems.push({
-        id: 'RNT-1',
-        name: 'Occupied Property',
-        initials: 'P',
-        rent: property.monthlyRent ? `₹${Number(property.monthlyRent).toLocaleString()}` : '₹14,500',
-        status: 'Occupied',
+        id: booking._id,
+        name: name,
+        initials: name.charAt(0).toUpperCase(),
+        rent: `₹${rentAmount.toLocaleString('en-IN')}`,
+        dueDate: `Due ${formatDate(nextDueDate)}`,
+        rawDate: nextDueDate,
+        method: status === 'Paid' ? 'UPI' : '—',
+        status: status,
       });
-    }
+    });
+
+    rentItems.sort((a, b) => a.rawDate - b.rawDate);
 
     if (rentItems.length === 0) {
       return renderEmptyTab('Rent Collection');
@@ -1244,6 +1289,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
       { id: 'Contacted', title: 'Contacted', color: 'bg-blue-50/30 border-blue-100', headerBg: 'bg-blue-50', badgeColor: 'bg-[#062F26] text-white', icon: 'lucide:phone-call' },
       { id: 'In Discussion', title: 'Site Visit', color: 'bg-amber-50/30 border-amber-100', headerBg: 'bg-amber-50', badgeColor: 'bg-amber-500 text-white', icon: 'lucide:users' },
       { id: 'Closed', title: 'Booked', color: 'bg-emerald-50/30 border-emerald-100', headerBg: 'bg-emerald-50', badgeColor: 'bg-emerald-600 text-white', icon: 'lucide:check-circle-2' },
+      { id: 'Cancelled', title: 'Cancelled', color: 'bg-rose-50/30 border-rose-100', headerBg: 'bg-rose-50', badgeColor: 'bg-rose-500 text-white', icon: 'lucide:x-circle' },
     ];
 
     const handleDragStart = (e, leadId) => {
@@ -1371,6 +1417,100 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
     );
   };
 
+  const updateBookingStatus = async (bookingId, newStatus) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status: newStatus } : b));
+        toast.success(`Booking ${newStatus === 'Confirmed' ? 'Approved' : newStatus}`);
+      } else {
+        toast.error('Failed to update booking status');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error updating booking status');
+    }
+  };
+
+  const renderBookings = () => {
+    if (loadingBookings) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm animate-fadeIn">
+          <Icon icon="lucide:loader-2" className="w-8 h-8 text-brand-teal animate-spin mb-4" />
+          <p className="text-slate-500 font-medium text-sm">Loading bookings...</p>
+        </div>
+      );
+    }
+
+    if (bookings.length === 0) {
+      return (
+        <div className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center animate-fadeIn">
+          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon icon="lucide:calendar" className="w-8 h-8 text-slate-300" />
+          </div>
+          <h3 className="text-lg font-bold text-[#062F26] mb-2">No Bookings Yet</h3>
+          <p className="text-sm font-medium text-slate-500 max-w-sm mx-auto">
+            You don't have any bookings for this property yet.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-fadeIn p-6">
+        <h3 className="text-lg font-bold text-[#062F26] mb-6">Property Bookings</h3>
+        <div className="space-y-4">
+          {bookings.map(booking => (
+            <div key={booking._id} className="border border-slate-200 rounded-xl p-5 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#062F26] text-white flex items-center justify-center font-bold text-xl shrink-0">
+                  {booking.tenantId?.profilePic ? (
+                    <img src={booking.tenantId.profilePic} alt={booking.tenantId.fullName} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    booking.tenantId?.fullName?.charAt(0).toUpperCase() || 'T'
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-bold text-[#062F26]">{booking.tenantId?.fullName || 'Unknown Tenant'}</h4>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
+                    <span className="flex items-center gap-1"><Icon icon="lucide:calendar" className="w-3.5 h-3.5" /> Move-in: {new Date(booking.moveInDate).toLocaleDateString('en-GB')}</span>
+                    {booking.roomDetails?.roomName && (
+                      <span className="flex items-center gap-1"><Icon icon="lucide:bed" className="w-3.5 h-3.5" /> {booking.roomDetails.roomName} ({booking.roomDetails.bedName})</span>
+                    )}
+                    <span className="flex items-center gap-1 font-semibold text-brand-teal">₹{booking.paymentDetails?.amount?.toLocaleString()} ({booking.paymentDetails?.paymentMethod})</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2 min-w-[120px]">
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
+                  booking.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' :
+                  booking.status === 'Pending Request' ? 'bg-amber-50 text-amber-600 border border-amber-200' :
+                  'bg-rose-50 text-rose-600 border border-rose-200'
+                }`}>
+                  {booking.status}
+                </span>
+                {booking.status === 'Pending Request' && (
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => updateBookingStatus(booking._id, 'Confirmed')} className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors">Approve</button>
+                    <button onClick={() => updateBookingStatus(booking._id, 'Rejected')} className="px-3 py-1.5 bg-rose-100 text-rose-600 text-xs font-bold rounded-lg hover:bg-rose-200 transition-colors">Reject</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-[#FAF6F0] min-h-[calc(100vh-80px)] -m-4 sm:-m-6 p-4 sm:p-6 font-sans text-slate-800 animate-fadeIn">
       {/* Header Area */}
@@ -1464,10 +1604,11 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
         {activeTab === 'Tenants' && renderTenants()}
         {activeTab === 'Rent Collection' && renderRentCollection()}
         {activeTab === 'Leads' && renderLeads()}
+        {activeTab === 'Bookings' && renderBookings()}
         {activeTab === 'Rules & Regulations' && renderRules()}
         {activeTab === 'Contract Agreement' && renderContract()}
         {activeTab === 'Reports' && renderReports()}
-        {activeTab !== 'Overview' && activeTab !== 'Rooms & Beds' && activeTab !== 'Property Details' && activeTab !== 'Tenants' && activeTab !== 'Rent Collection' && activeTab !== 'Leads' && activeTab !== 'Rules & Regulations' && activeTab !== 'Contract Agreement' && activeTab !== 'Reports' && renderEmptyTab(activeTab)}
+        {activeTab !== 'Overview' && activeTab !== 'Rooms & Beds' && activeTab !== 'Property Details' && activeTab !== 'Tenants' && activeTab !== 'Rent Collection' && activeTab !== 'Leads' && activeTab !== 'Bookings' && activeTab !== 'Rules & Regulations' && activeTab !== 'Contract Agreement' && activeTab !== 'Reports' && renderEmptyTab(activeTab)}
       </div>
 
     </div>

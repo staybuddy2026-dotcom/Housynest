@@ -7,6 +7,12 @@ const TenantVisits = () => {
   const [loading, setLoading] = useState(true);
   const [expandedMessageId, setExpandedMessageId] = useState(null);
 
+  // Filter States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterProperty, setFilterProperty] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [filterTime, setFilterTime] = useState('');
+
   useEffect(() => {
     const fetchVisits = async () => {
       try {
@@ -56,6 +62,33 @@ const TenantVisits = () => {
     );
   }
 
+  const uniqueProperties = [...new Set(visits.map(v => {
+    if (!v.property) return 'Deleted Property';
+    return v.property.pgName || (v.property.bhkType ? `${v.property.bhkType} ${v.property.propertyCategory}` : v.property.propertyCategory) || 'Unknown Property';
+  }))].filter(Boolean);
+
+  const filteredVisits = visits.filter(visit => {
+    const propName = !visit.property ? 'Deleted Property' : (visit.property.pgName || (visit.property.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property.propertyCategory) || 'Unknown Property');
+    
+    // Search
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = !searchQuery || 
+      (visit.owner?.fullName && visit.owner.fullName.toLowerCase().includes(searchLower)) ||
+      (visit.owner?.phone && visit.owner.phone.toLowerCase().includes(searchLower)) ||
+      (visit.owner?.email && visit.owner.email.toLowerCase().includes(searchLower));
+
+    // Property Filter
+    const matchesProperty = !filterProperty || propName === filterProperty;
+
+    // Date Filter
+    const matchesDate = !filterDate || visit.date === filterDate;
+
+    // Time Filter
+    const matchesTime = !filterTime || (visit.time && visit.time.toLowerCase() === filterTime.toLowerCase());
+
+    return matchesSearch && matchesProperty && matchesDate && matchesTime;
+  });
+
   return (
     <div className="animate-fadeIn mx-auto pb-10 space-y-4">
 
@@ -69,6 +102,79 @@ const TenantVisits = () => {
           <Icon icon="lucide:calendar-days" className="w-4 h-4 text-[#0AA87D]" />
           Total Visits: <span className="text-[#062F26]">{visits.length}</span>
         </div>
+      </div>
+
+      {/* Filters Bar */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col lg:flex-row gap-4 items-center">
+        {/* Search */}
+        <div className="flex-1 w-full relative">
+          <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by owner name, email, phone..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#0AA87D] focus:ring-1 focus:ring-[#0AA87D] transition-all"
+          />
+        </div>
+
+        {/* Property Filter */}
+        <div className="w-full lg:w-48 relative shrink-0">
+          <Icon icon="lucide:building-2" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <select
+            value={filterProperty}
+            onChange={(e) => setFilterProperty(e.target.value)}
+            className="w-full pl-10 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 appearance-none focus:outline-none focus:border-[#0AA87D] transition-all"
+          >
+            <option value="">All Properties</option>
+            {uniqueProperties.map(prop => (
+              <option key={prop} value={prop}>{prop}</option>
+            ))}
+          </select>
+          <Icon icon="lucide:chevron-down" className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        </div>
+
+        {/* Date Filter */}
+        <div className="w-full lg:w-40 relative shrink-0">
+          <input
+            type="date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#0AA87D] transition-all text-center"
+          />
+        </div>
+
+        {/* Time Filter */}
+        <div className="w-full lg:w-40 relative shrink-0">
+          <Icon icon="lucide:clock" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <select
+            value={filterTime}
+            onChange={(e) => setFilterTime(e.target.value)}
+            className="w-full pl-10 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 appearance-none focus:outline-none focus:border-[#0AA87D] transition-all"
+          >
+            <option value="">All Times</option>
+            <option value="morning">Morning</option>
+            <option value="afternoon">Afternoon</option>
+            <option value="evening">Evening</option>
+          </select>
+          <Icon icon="lucide:chevron-down" className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        </div>
+
+        {/* Clear Filters */}
+        {(searchQuery || filterProperty || filterDate || filterTime) && (
+          <button
+            onClick={() => {
+              setSearchQuery('');
+              setFilterProperty('');
+              setFilterDate('');
+              setFilterTime('');
+            }}
+            className="shrink-0 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+            title="Clear all filters"
+          >
+            <Icon icon="lucide:filter-x" className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Visits Data Table */}
@@ -87,18 +193,18 @@ const TenantVisits = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 font-extrabold">
-                  <th className="px-6 py-4 whitespace-nowrap w-2/5">Property Details</th>
-                  <th className="px-6 py-4 whitespace-nowrap">Schedule</th>
-                  <th className="px-6 py-4 whitespace-nowrap">Owner Name</th>
-                  <th className="px-6 py-4 whitespace-nowrap">Contact</th>
-                  <th className="px-6 py-4 whitespace-nowrap">Status</th>
-                  <th className="px-6 py-4 whitespace-nowrap text-right">Actions</th>
+              <thead className="bg-white sticky top-0 z-20">
+                <tr>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 w-2/5">Property Details</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Schedule</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Owner Name</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Contact</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Status</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {visits.map((visit) => {
+                {filteredVisits.map((visit) => {
                   const propertyImage = visit.property?.images?.[0]?.url || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80';
                   const propertyName = !visit.property ? 'Deleted Property' : (visit.property.pgName || (visit.property.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property.propertyCategory) || 'Unknown Property');
                   const location = visit.property?.locality ? `${visit.property.locality}, ${visit.property.city}` : (visit.property?.city || 'Location unavailable');
@@ -128,11 +234,11 @@ const TenantVisits = () => {
                         {/* Schedule Date & Time */}
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                            <div className="flex items-center gap-2 text-sm font-bold text-slate-700 whitespace-nowrap">
                               <Icon icon="lucide:calendar" className="w-4 h-4 text-slate-400" />
                               {visit.date}
                             </div>
-                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 whitespace-nowrap capitalize">
                               <Icon icon="lucide:clock" className="w-4 h-4 text-slate-400" />
                               {visit.time}
                             </div>
