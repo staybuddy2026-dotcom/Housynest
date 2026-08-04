@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
 
 export const Step4GlobalPricing = ({ onBack }) => {
-  const { watch, register, setValue } = useFormContext();
+  const { watch, register, formState: { errors } } = useFormContext();
   const floors = watch('floors') || [];
   
   const activeTypes = new Set();
@@ -63,26 +63,26 @@ export const Step4GlobalPricing = ({ onBack }) => {
                 </h4>
                 <div className="flex gap-4">
                   <div className="flex-1 relative">
-                    <label className="text-xs font-bold text-[#062F26] mb-1.5 block">Rent Per Bed / Month</label>
+                    <label className="text-xs font-bold text-[#062F26] mb-1.5 block">Rent Per Bed / Month <span className="text-red-500">*</span></label>
                     <span className="absolute left-3 bottom-3 text-slate-500 font-medium text-sm">₹</span>
                     <input 
                       type="number" 
                       min="0"
                       onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
                       {...register(`pgPricing.${type}.rentPerBed`)} 
-                      className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all" 
+                      className={`w-full pl-8 pr-3 py-2.5 border rounded-lg text-sm focus:outline-none transition-all ${errors.pgPricing?.[type]?.rentPerBed ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-slate-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20'}`}
                       placeholder="Amount" 
                     />
                   </div>
                   <div className="flex-1 relative">
-                    <label className="text-xs font-bold text-[#062F26] mb-1.5 block">Security Deposit Per Bed</label>
+                    <label className="text-xs font-bold text-[#062F26] mb-1.5 block">Security Deposit Per Bed <span className="text-red-500">*</span></label>
                     <span className="absolute left-3 bottom-3 text-slate-500 font-medium text-sm">₹</span>
                     <input 
                       type="number" 
                       min="0"
                       onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
                       {...register(`pgPricing.${type}.depositPerBed`)} 
-                      className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all" 
+                      className={`w-full pl-8 pr-3 py-2.5 border rounded-lg text-sm focus:outline-none transition-all ${errors.pgPricing?.[type]?.depositPerBed ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-slate-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20'}`}
                       placeholder="Amount" 
                     />
                   </div>

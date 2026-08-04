@@ -65,6 +65,9 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
             totalFloorsCount: data.totalFloorsCount ? String(data.totalFloorsCount) : '',
             floors: data.floors || [],
             pgPricing: data.pgPricing || {},
+            paymentModel: data.paymentModel || '',
+            rentalPeriod: data.rentalPeriod || '',
+            bookingType: data.bookingType || '',
             services: data.services || [],
             extraServices: data.extraServices || [],
             foodProvided: data.foodProvided || false,
@@ -74,6 +77,7 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
             commonAmenities: data.commonAmenities || [],
             extraCommonAmenities: data.extraCommonAmenities || [],
             parking: data.parking || [],
+            parkingAvailable: data.parking && data.parking.length > 0,
             preferredGender: data.preferredGender || 'Male',
             tenantPreference: data.tenantPreference || 'Professionals',
             pgRules: data.pgRules || [],
@@ -111,7 +115,11 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
 
             existingImages: data.images || [],
             existingDocs: data.verificationDocs || [],
-            ownerContract: data.ownerContract || null
+            ownerContract: data.ownerContract || null,
+            photos: [],
+            verificationDocs: [],
+            removeImages: [],
+            removeDocs: []
           };
 
           methods.reset(formValues);

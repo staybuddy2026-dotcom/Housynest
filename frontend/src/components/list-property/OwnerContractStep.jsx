@@ -4,92 +4,92 @@ import { useFormContext } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { translateWithGoogleFreeApi } from '../../lib/translate';
 
-const DEFAULT_ENGLISH_AGREEMENT = `RENTAL / LEAVE AND LICENSE AGREEMENT
+const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
 
-PARTIES TO THE AGREEMENT
+<h3>PARTIES TO THE AGREEMENT</h3>
 
-Licensor (Owner/Property Manager):
+<b>Licensor (Owner/Property Manager):</b>
 [property_name], having its premises at [property_address], [property_city]
 (hereinafter referred to as the "Licensor")
 
-Licensee (Tenant):
+<b>Licensee (Tenant):</b>
 [tenant_full_name]
 Contact: [tenant_mobile] | [tenant_email]
 Date of Birth: [tenant_date_of_birth]
 (hereinafter referred to as the "Licensee")
 
-ACCOMMODATION DETAILS
-Property: [property_name]
-Address: [property_address], [property_locality], [property_city]
-Room / Unit: [room_name]
-Bed Number: [bed_number]
+<h3>ACCOMMODATION DETAILS</h3>
+<b>Property:</b> [property_name]
+<b>Address:</b> [property_address], [property_locality], [property_city]
+<b>Room / Unit:</b> [room_name]
+<b>Bed Number:</b> [bed_number]
 
-FINANCIAL TERMS
-Monthly Rent: ₹[rent_amount]
-Security Deposit: ₹[deposit_amount]
-Commencement Date: [move_in_date]
-Vacation Date: [move_out_date]
-Booking Reference: [booking_reference]
+<h3>FINANCIAL TERMS</h3>
+<b>Monthly Rent:</b> ₹[rent_amount]
+<b>Security Deposit:</b> ₹[deposit_amount]
+<b>Commencement Date:</b> [move_in_date]
+<b>Vacation Date:</b> [move_out_date]
+<b>Booking Reference:</b> [booking_reference]
 
-TERMS AND CONDITIONS
+<h3>TERMS AND CONDITIONS</h3>
 
-1. Nature of Agreement
+<b>1. Nature of Agreement</b>
 This Agreement is a Leave and License Agreement only. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.
 
-2. Monthly Rent and Payment
+<b>2. Monthly Rent and Payment</b>
 The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the due date communicated by the Licensor. Continued occupation of the premises is conditional on timely payment of rent and any applicable charges.
 
-3. Security Deposit
+<b>3. Security Deposit</b>
 A refundable security deposit of ₹[deposit_amount] has been or shall be collected prior to move-in. The deposit shall be refunded within a reasonable time after the Licensee vacates the premises, after adjusting any outstanding dues, unpaid rent, utility charges, or costs of repairing damages caused by the Licensee beyond normal wear and tear.
 
-4. Utilities and Additional Charges
+<b>4. Utilities and Additional Charges</b>
 Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card communicated separately.
 
-5. Maintenance and Care of Premises
+<b>5. Maintenance and Care of Premises</b>
 The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The Licensee shall promptly report any damage or defect to the Licensor. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.
 
-6. Conduct and House Rules
+<b>6. Conduct and House Rules</b>
 The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents, staff, or neighbors. The Licensee shall abide by all house rules, facility timings, and guidelines communicated by the Licensor from time to time.
 
-7. Guests and Visitors
+<b>7. Guests and Visitors</b>
 Guests and visitors shall be permitted on the premises only as per the Licensor's guest and visitor policy communicated separately. Overnight stays of guests shall require prior permission from the Licensor.
 
-8. Alterations
+<b>8. Alterations</b>
 The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas without the prior written consent of the Licensor.
 
-9. Prohibited Uses
+<b>9. Prohibited Uses</b>
 The Licensee shall not use the premises for any illegal, commercial, or immoral activity. The Licensee shall not sublet the accommodation or any part thereof to any third party.
 
-10. Notice Period and Termination
+<b>10. Notice Period and Termination</b>
 Either party may terminate this Agreement by giving advance notice as agreed at the time of move-in or as communicated in writing. The Licensor reserves the right to terminate this Agreement immediately in the event of breach of any term of this Agreement, non-payment of rent, or conduct detrimental to other residents.
 
-11. Vacation of Premises
+<b>11. Vacation of Premises</b>
 Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation on or before the agreed vacation date, remove all personal belongings, return all keys and access devices, and hand over the premises in the same condition as received, subject to normal wear and tear.
 
-12. Liability
+<b>12. Liability</b>
 The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises. The Licensee is advised to arrange personal insurance coverage for their valuables if required.
 
-13. Force Majeure
+<b>13. Force Majeure</b>
 Neither party shall be liable for any failure or delay in performance due to circumstances beyond their reasonable control, including natural disasters, government restrictions, or other force majeure events.
 
-14. Governing Law and Jurisdiction
+<b>14. Governing Law and Jurisdiction</b>
 This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].
 
-15. Entire Agreement
+<b>15. Entire Agreement</b>
 This Agreement, along with any house rules communicated separately, constitutes the entire understanding between the parties regarding the accommodation. Any modification to this Agreement shall be mutually agreed upon in writing.
 
-EMERGENCY CONTACT
-Name: [emergency_contact_name]
-Phone: [emergency_contact_phone]
-Relationship: [emergency_contact_relationship]
+<h3>EMERGENCY CONTACT</h3>
+<b>Name:</b> [emergency_contact_name]
+<b>Phone:</b> [emergency_contact_phone]
+<b>Relationship:</b> [emergency_contact_relationship]
 
-SIGNATURES
+<h3>SIGNATURES</h3>
 By proceeding with occupation of the premises, the Licensee acknowledges that they have read, understood, and agree to be bound by all the terms and conditions of this Agreement.
 
-Licensee: [tenant_full_name]
-Date: [agreement_date]`;
+<b>Licensee:</b> [tenant_full_name]
+<b>Date:</b> [agreement_date]`;
 
 const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
   const { watch, setValue } = useFormContext();
@@ -326,62 +326,60 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
       .replace(/\[rent_amount\]/g, Number(monthlyRent).toLocaleString('en-IN'))
       .replace(/\[deposit_amount\]/g, Number(securityDeposit).toLocaleString('en-IN'));
 
-    // Split text into lines
     const lines = substituted.split('\n');
 
     return (
       <div className="space-y-3 font-sans text-xs leading-relaxed text-slate-700">
         {lines.map((line, index) => {
-          const trimmed = line.trim();
+          let trimmed = line.trim();
           if (!trimmed) return <div key={index} className="h-1"></div>;
 
-          // Main Header
-          if (trimmed.includes('RENTAL / LEAVE AND LICENSE AGREEMENT') || trimmed.includes('મકાન ભાડા કરાર')) {
+          if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) {
             return (
               <div key={index} className="text-center font-extrabold text-sm text-[#062F26] border-b border-slate-200 pb-3 my-2 tracking-wide">
-                {trimmed}
+                {trimmed.replace(/<\/?h1>/g, '')}
               </div>
             );
           }
 
-          // Section Headers
-          const isSectionHeader = [
-            'PARTIES TO THE AGREEMENT',
-            'ACCOMMODATION DETAILS',
-            'FINANCIAL TERMS',
-            'TERMS AND CONDITIONS',
-            'EMERGENCY CONTACT',
-            'SIGNATURES',
-            'કરારના પક્ષકારો',
-            'મિલકત વિગતો',
-            'નાણાકીય શરતો',
-            'નિયમો અને શરતો',
-            'ઈમરજન્સી સંપર્ક',
-            'સહીઓ'
-          ].some(h => trimmed.toUpperCase().includes(h));
-
-          if (isSectionHeader) {
+          if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) {
             return (
               <div key={index} className="font-extrabold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">
-                {trimmed}
+                {trimmed.replace(/<\/?h3>/g, '')}
               </div>
             );
           }
 
-          // Check if line contains un-replaced tenant placeholders
-          const parts = line.split(/(\[[a-z_]+\])/g);
+          // Parse <b> tags
+          const parts = trimmed.split(/(<b>.*?<\/b>)/g);
 
           return (
             <p key={index} className="leading-relaxed">
-              {parts.map((part, pIdx) => {
-                if (part.startsWith('[') && part.endsWith(']')) {
-                  return (
-                    <span key={pIdx} className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#EAF5F2] text-[#0AA87D] font-bold text-[11px] border border-[#0AA87D]/30 mx-0.5">
-                      {part}
-                    </span>
-                  );
+              {parts.map((part, i) => {
+                let textToRender = part;
+                let isBold = false;
+                if (part.startsWith('<b>') && part.endsWith('</b>')) {
+                  isBold = true;
+                  textToRender = part.slice(3, -4);
                 }
-                return <span key={pIdx}>{part}</span>;
+                
+                // Now parse placeholders within textToRender
+                const subParts = textToRender.split(/(\[[a-z_]+\])/g);
+                const renderedSubParts = subParts.map((subPart, j) => {
+                    if (subPart.startsWith('[') && subPart.endsWith(']')) {
+                        return (
+                          <span key={j} className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#EAF5F2] text-[#0AA87D] font-bold text-[11px] border border-[#0AA87D]/30 mx-0.5">
+                            {subPart}
+                          </span>
+                        );
+                    }
+                    return subPart;
+                });
+
+                if (isBold) {
+                  return <strong key={i} className="font-bold text-slate-800">{renderedSubParts}</strong>;
+                }
+                return <span key={i}>{renderedSubParts}</span>;
               })}
             </p>
           );

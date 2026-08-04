@@ -108,7 +108,7 @@ const PgBooking = ({ onNext, onPrev }) => {
           <label className="text-sm font-bold text-[#062F26] mb-3 block">Booking Type <span className="text-red-500">*</span></label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            <label className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${bookingType === 'Request-Based' ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' : 'border-slate-100 bg-white hover:border-brand-teal/30 hover:shadow-sm'}`}>
+            <label className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${bookingType === 'Request-Based' ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' : (errors.bookingType ? 'border-red-500 bg-red-50' : 'border-slate-100 bg-white hover:border-brand-teal/30 hover:shadow-sm')}`}>
               <div className="flex items-start gap-4">
                 <div className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center transition-colors ${bookingType === 'Request-Based' ? 'bg-brand-teal text-white' : 'bg-slate-100 text-slate-400'}`}>
                   <Icon icon="lucide:clock" className="w-5 h-5" strokeWidth="2.5" />
@@ -128,7 +128,7 @@ const PgBooking = ({ onNext, onPrev }) => {
               <input type="radio" name="bookingType" value="Request-Based" className="hidden" checked={bookingType === 'Request-Based'} onChange={() => setValue('bookingType', 'Request-Based', { shouldValidate: true })} />
             </label>
 
-            <label className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${bookingType === 'Direct Booking' ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' : 'border-slate-100 bg-white hover:border-brand-teal/30 hover:shadow-sm'}`}>
+            <label className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${bookingType === 'Direct Booking' ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' : (errors.bookingType ? 'border-red-500 bg-red-50' : 'border-slate-100 bg-white hover:border-brand-teal/30 hover:shadow-sm')}`}>
               <div className="flex items-start gap-4">
                 <div className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center transition-colors ${bookingType === 'Direct Booking' ? 'bg-brand-teal text-white' : 'bg-slate-100 text-slate-400'}`}>
                   <Icon icon="lucide:check-circle" className="w-5 h-5" strokeWidth="2.5" />

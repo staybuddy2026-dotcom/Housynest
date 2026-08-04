@@ -3,10 +3,12 @@ import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
 
 const PgVerifyProperty = ({ onNext, onPrev, isSubmitting }) => {
-  const { watch, setValue } = useFormContext();
+  const { watch, setValue, formState: { errors } } = useFormContext();
   const [dragActive, setDragActive] = useState(false);
 
   const verificationDocs = watch('verificationDocs') || [];
+  const existingDocs = watch('existingDocs') || [];
+  const removeDocsList = watch('removeDocs') || [];
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -48,6 +50,11 @@ const PgVerifyProperty = ({ onNext, onPrev, isSubmitting }) => {
     setValue('verificationDocs', verificationDocs.filter((_, i) => i !== index), { shouldValidate: true });
   };
 
+  const removeExistingDoc = (public_id) => {
+    setValue('removeDocs', [...removeDocsList, public_id]);
+    setValue('existingDocs', existingDocs.filter(doc => doc.public_id !== public_id), { shouldValidate: true });
+  };
+
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] flex flex-col h-full">
 
@@ -87,11 +94,11 @@ const PgVerifyProperty = ({ onNext, onPrev, isSubmitting }) => {
         {/* Upload Section */}
         <div>
           <h3 className="text-xs sm:text-sm font-bold text-[#062F26] mb-2 sm:mb-3">
-            Verification Documents <span className="text-slate-400 font-medium text-xs sm:text-xs">(optional — skip to post without verification)</span>
+            Verification Documents <span className="text-red-500">*</span>
           </h3>
 
           <div
-            className={`relative border-2 border-dashed rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-all duration-300 ${dragActive ? 'border-brand-teal bg-[#EAF5F2] scale-[1.02]' : 'border-slate-200 bg-slate-50 hover:border-brand-teal/50 hover:bg-slate-50/50'
+            className={`relative border-2 border-dashed rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-all duration-300 ${errors.verificationDocs ? 'border-red-500 bg-red-50' : (dragActive ? 'border-brand-teal bg-[#EAF5F2] scale-[1.02]' : 'border-slate-200 bg-slate-50 hover:border-brand-teal/50 hover:bg-slate-50/50')
               }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -105,22 +112,41 @@ const PgVerifyProperty = ({ onNext, onPrev, isSubmitting }) => {
               onChange={handleChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
-            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-sm flex items-center justify-center mb-3 sm:mb-4 transition-colors ${dragActive ? 'bg-brand-teal text-white' : 'bg-white text-slate-400'}`}>
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-sm flex items-center justify-center mb-3 sm:mb-4 transition-colors ${errors.verificationDocs ? 'bg-red-500 text-white' : (dragActive ? 'bg-brand-teal text-white' : 'bg-white text-slate-400')}`}>
               <Icon icon="lucide:shield-check" className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth="2" />
             </div>
-            <p className="text-sm sm:text-sm font-bold text-[#062F26] mb-1">Click to upload verification documents</p>
+            <p className={`text-sm sm:text-sm font-bold mb-1 ${errors.verificationDocs ? 'text-red-600' : 'text-[#062F26]'}`}>Click to upload verification documents</p>
             <p className="text-xs sm:text-xs text-slate-400 font-medium">JPG, PNG, PDF accepted • Max 5 files</p>
+            {errors.verificationDocs && <span className="text-red-500 text-[10px] sm:text-xs mt-2 block">{errors.verificationDocs.message || 'Please upload verification documents'}</span>}
           </div>
 
           {/* Uploaded Files Preview */}
-          {verificationDocs.length > 0 && (
+          {(verificationDocs.length > 0 || existingDocs.length > 0) && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
+              {/* Existing Docs */}
+              {existingDocs.map((doc, idx) => (
+                <div key={doc.public_id || `exist-${idx}`} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-[#EAF5F2]/30 aspect-square shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="w-full h-full flex flex-col items-center justify-center p-4 hover:bg-white/50 transition-colors">
+                    <Icon icon="lucide:file-check" width="32" className="text-brand-teal mb-2" />
+                    <span className="text-[10px] font-bold text-slate-500 truncate w-full text-center">Existing Document</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => removeExistingDoc(doc.public_id)}
+                    className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center text-slate-400 opacity-0 group-hover:opacity-100 transition-all hover:text-red-500 hover:bg-red-50 shadow-sm"
+                  >
+                    <Icon icon="lucide:trash-2" width="14" />
+                  </button>
+                </div>
+              ))}
+
+              {/* New Uploaded Docs */}
               {verificationDocs.map((doc, idx) => (
                 <div key={doc.id || idx} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-white aspect-square shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                  <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="w-full h-full flex flex-col items-center justify-center p-4 hover:bg-slate-50 transition-colors">
                     <Icon icon="lucide:file-text" width="32" className="text-brand-teal mb-2" />
                     <span className="text-[10px] font-bold text-slate-500 truncate w-full text-center">{doc.label || `Document ${idx + 1}`}</span>
-                  </div>
+                  </a>
                   <button
                     type="button"
                     onClick={() => removeDoc(idx)}

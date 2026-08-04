@@ -134,11 +134,14 @@ const propertySchema = new mongoose.Schema({
     public_id: String
   }],
 
-  // Owner contract PDF uploaded to Cloudinary
+  // Owner contract PDF uploaded to Cloudinary or customized text
   ownerContract: {
+    mode: { type: String, enum: ['upload', 'customize'], default: 'upload' },
     url: String,
     public_id: String,
-    fileName: String
+    fileName: String,
+    contractTextEn: String,
+    contractTextGu: String
   },
   
   status: {

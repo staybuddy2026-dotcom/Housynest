@@ -15,7 +15,7 @@ const pgSchema = z.object({
   state: z.string().min(2, "State is required"),
   pincode: z.coerce.string().regex(/^\d{6}$/, "Pincode must be exactly 6 digits"),
   landmark: z.string().min(2, "Landmark is required"),
-  mapLink: z.string().regex(/^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com)\/.*$/, "Must be a valid Google Maps link").optional().or(z.literal('')),
+  mapLink: z.string().min(1, "Google Maps Link is required").regex(/^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com)\/.*$/, "Must be a valid Google Maps link"),
   nearbyPlaces: z.array(
     z.object({
       place: z.string().optional().or(z.literal('')),
@@ -46,16 +46,16 @@ const pgSchema = z.object({
   ).optional(),
 
   pgPricing: z.object({
-    Single_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Single_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Double_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Double_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Triple_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Triple_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Four_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Four_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Other_AC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
-    Other_NonAC: z.object({ rentPerBed: z.string(), depositPerBed: z.string() }).optional(),
+    Single_AC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Single_NonAC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Double_AC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Double_NonAC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Triple_AC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Triple_NonAC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Four_AC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Four_NonAC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Other_AC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
+    Other_NonAC: z.object({ rentPerBed: z.string().min(1, 'Required'), depositPerBed: z.string().min(1, 'Required') }).optional(),
   }).optional(),
 
   paymentModel: z.string().min(1, "Payment Model is required"),
@@ -86,7 +86,11 @@ const pgSchema = z.object({
 
   virtualTour: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   photos: z.any().optional(),
-  verificationDocs: z.any().optional(),
+  existingImages: z.any().optional(),
+  removeImages: z.any().optional(),
+  existingDocs: z.any().optional(),
+  removeDocs: z.any().optional(),
+  verificationDocs: z.array(z.any()).optional(),
   ownerContract: z.any().optional(),
 });
 
@@ -102,7 +106,7 @@ const tenantSchema = z.object({
   state: z.string().min(2, "State is required"),
   pincode: z.coerce.string().regex(/^\d{6}$/, "Pincode must be exactly 6 digits"),
   landmark: z.string().min(2, "Landmark is required"),
-  mapLink: z.string().regex(/^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com)\/.*$/, "Must be a valid Google Maps link").optional().or(z.literal('')),
+  mapLink: z.string().min(1, "Google Maps Link is required").regex(/^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com)\/.*$/, "Must be a valid Google Maps link"),
   nearbyPlaces: z.array(z.any()).optional(),
 
   bhkType: z.string().min(1, "Required"),
@@ -137,11 +141,26 @@ const tenantSchema = z.object({
 
   virtualTour: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   photos: z.any().optional(),
-  verificationDocs: z.any().optional(),
+  existingImages: z.any().optional(),
+  removeImages: z.any().optional(),
+  existingDocs: z.any().optional(),
+  removeDocs: z.any().optional(),
+  verificationDocs: z.array(z.any()).optional(),
   ownerContract: z.any().optional(),
 });
 
 export const listPropertySchema = z.discriminatedUnion("propertyType", [
   pgSchema,
   tenantSchema
-]);
+]).superRefine((data, ctx) => {
+  const hasNewDocs = Array.isArray(data.verificationDocs) && data.verificationDocs.length > 0;
+  const hasExistingDocs = Array.isArray(data.existingDocs) && data.existingDocs.length > 0;
+  
+  if (!hasNewDocs && !hasExistingDocs) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "At least one verification document is required",
+      path: ["verificationDocs"],
+    });
+  }
+});

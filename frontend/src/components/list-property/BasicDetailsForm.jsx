@@ -111,7 +111,7 @@ const BasicDetailsForm = ({ formData, setFormData }) => {
         </div>
 
         <div className="grid grid-cols-3 gap-6">
-          <InputField label="Google Map Link (Optional)" name="mapLink" value={formData.mapLink} onChange={handleChange} placeholder="https://maps.google.com/..." />
+          <InputField label="Google Map Link" name="mapLink" required value={formData.mapLink} onChange={handleChange} placeholder="https://maps.google.com/..." />
           <InputField label="Latitude (Optional)" name="latitude" value={formData.latitude} onChange={handleChange} placeholder="12.9352" />
           <InputField label="Longitude (Optional)" name="longitude" value={formData.longitude} onChange={handleChange} placeholder="77.6245" />
         </div>

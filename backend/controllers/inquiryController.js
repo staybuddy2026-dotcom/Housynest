@@ -157,6 +157,9 @@ export const updateInquiryStatus = async (req, res) => {
     }
 
     inquiry.status = status;
+    if (status !== 'New') {
+      inquiry.isRead = true;
+    }
     await inquiry.save();
 
     res.status(200).json({ message: 'Inquiry status updated', inquiry });

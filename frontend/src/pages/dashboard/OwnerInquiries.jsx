@@ -187,7 +187,15 @@ const OwnerInquiries = () => {
       });
       if (res.ok) {
         toast.success(`Inquiry marked as ${newStatus}`);
-        setInquiries(prev => prev.map(inq => inq.id === id ? { ...inq, status: newStatus } : inq));
+        setInquiries(prev => prev.map(inq => 
+          inq.id === id 
+            ? { ...inq, status: newStatus, ...(newStatus !== 'New' ? { isRead: true } : {}) } 
+            : inq
+        ));
+        // Notify the sidebar to decrement the inquiries count if it was marked as read
+        if (newStatus !== 'New') {
+          window.dispatchEvent(new Event('messagesRead'));
+        }
       } else {
         toast.error('Failed to update status');
       }

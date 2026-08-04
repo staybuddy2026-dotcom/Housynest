@@ -87,6 +87,10 @@ const ListProperty = () => {
       pgRules: [],
       extraRules: [],
       noticePeriod: '',
+      verificationDocs: [],
+      paymentModel: '',
+      rentalPeriod: '',
+      bookingType: '',
       uspCategory: '',
       uspText: '',
       description: '',
@@ -309,9 +313,15 @@ const ListProperty = () => {
         });
       }
 
-      // Append owner contract PDF
-      if (data.ownerContract && data.ownerContract.file) {
-        formData.append('ownerContract', data.ownerContract.file);
+      // Append owner contract
+      if (data.ownerContract) {
+        if (data.ownerContract.mode === 'customize') {
+          formData.append('ownerContract_mode', 'customize');
+          formData.append('ownerContract_en', data.ownerContract.contractTextEn || '');
+          formData.append('ownerContract_gu', data.ownerContract.contractTextGu || '');
+        } else if (data.ownerContract.file) {
+          formData.append('ownerContract', data.ownerContract.file);
+        }
       }
 
       const response = await fetch('/api/properties', {

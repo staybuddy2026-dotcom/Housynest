@@ -3,6 +3,93 @@ import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
 import { translateWithGoogleFreeApi } from '../../lib/translate';
 
+const DEFAULT_CONTRACT_TEXT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
+
+This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
+
+<h3>PARTIES TO THE AGREEMENT</h3>
+
+<b>Licensor (Owner/Property Manager):</b>
+[property_name], having its premises at [property_address], [property_city]
+(hereinafter referred to as the "Licensor")
+
+<b>Licensee (Tenant):</b>
+[tenant_full_name]
+Contact: [tenant_mobile] | [tenant_email]
+Date of Birth: [tenant_date_of_birth]
+(hereinafter referred to as the "Licensee")
+
+<h3>ACCOMMODATION DETAILS</h3>
+<b>Property:</b> [property_name]
+<b>Address:</b> [property_address], [property_locality], [property_city]
+<b>Room / Unit:</b> [room_name]
+<b>Bed Number:</b> [bed_number]
+
+<h3>FINANCIAL TERMS</h3>
+<b>Monthly Rent:</b> ₹[rent_amount]
+<b>Security Deposit:</b> ₹[deposit_amount]
+<b>Commencement Date:</b> [move_in_date]
+<b>Vacation Date:</b> [move_out_date]
+<b>Booking Reference:</b> [booking_reference]
+
+<h3>TERMS AND CONDITIONS</h3>
+
+<b>1. Nature of Agreement</b>
+This Agreement is a Leave and License Agreement only. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.
+
+<b>2. Monthly Rent and Payment</b>
+The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the due date communicated by the Licensor. Continued occupation of the premises is conditional on timely payment of rent and any applicable charges.
+
+<b>3. Security Deposit</b>
+A refundable security deposit of ₹[deposit_amount] has been or shall be collected prior to move-in. The deposit shall be refunded within a reasonable time after the Licensee vacates the premises, after adjusting any outstanding dues, unpaid rent, utility charges, or costs of repairing damages caused by the Licensee beyond normal wear and tear.
+
+<b>4. Utilities and Additional Charges</b>
+Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card communicated separately.
+
+<b>5. Maintenance and Care of Premises</b>
+The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The Licensee shall promptly report any damage or defect to the Licensor. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.
+
+<b>6. Conduct and House Rules</b>
+The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents, staff, or neighbors. The Licensee shall abide by all house rules, facility timings, and guidelines communicated by the Licensor from time to time.
+
+<b>7. Guests and Visitors</b>
+Guests and visitors shall be permitted on the premises only as per the Licensor's guest and visitor policy communicated separately. Overnight stays of guests shall require prior permission from the Licensor.
+
+<b>8. Alterations</b>
+The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas without the prior written consent of the Licensor.
+
+<b>9. Prohibited Uses</b>
+The Licensee shall not use the premises for any illegal, commercial, or immoral activity. The Licensee shall not sublet the accommodation or any part thereof to any third party.
+
+<b>10. Notice Period and Termination</b>
+Either party may terminate this Agreement by giving advance notice as agreed at the time of move-in or as communicated in writing. The Licensor reserves the right to terminate this Agreement immediately in the event of breach of any term of this Agreement, non-payment of rent, or conduct detrimental to other residents.
+
+<b>11. Vacation of Premises</b>
+Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation on or before the agreed vacation date, remove all personal belongings, return all keys and access devices, and hand over the premises in the same condition as received, subject to normal wear and tear.
+
+<b>12. Liability</b>
+The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises. The Licensee is advised to arrange personal insurance coverage for their valuables if required.
+
+<b>13. Force Majeure</b>
+Neither party shall be liable for any failure or delay in performance due to circumstances beyond their reasonable control, including natural disasters, government restrictions, or other force majeure events.
+
+<b>14. Governing Law and Jurisdiction</b>
+This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].
+
+<b>15. Entire Agreement</b>
+This Agreement, along with any house rules communicated separately, constitutes the entire understanding between the parties regarding the accommodation. Any modification to this Agreement shall be mutually agreed upon in writing.
+
+<h3>EMERGENCY CONTACT</h3>
+<b>Name:</b> [emergency_contact_name]
+<b>Phone:</b> [emergency_contact_phone]
+<b>Relationship:</b> [emergency_contact_relationship]
+
+<h3>SIGNATURES</h3>
+By proceeding with occupation of the premises, the Licensee acknowledges that they have read, understood, and agree to be bound by all the terms and conditions of this Agreement.
+
+<b>Licensee:</b> [tenant_full_name]
+<b>Date:</b> [agreement_date]`;
+
 const BookingStepPayment = ({
   paymentType,
   propTitle,
@@ -40,108 +127,26 @@ const BookingStepPayment = ({
   const [showEsignOtp, setShowEsignOtp] = useState(false);
   const [esignOtp, setEsignOtp] = useState('');
   const [isEsignVerified, setIsEsignVerified] = useState(false);
+  const [isVerifyingEsign, setIsVerifyingEsign] = useState(false);
 
-  // Sync agreedTerms with both checkboxes & esign presence
+  const [stampGenerated, setStampGenerated] = useState(false);
+  const [isGeneratingStamp, setIsGeneratingStamp] = useState(false);
+
+  // Sync agreedTerms with both checkboxes, esign presence, and stamp generation
   useEffect(() => {
-    if (agreeDigitalSign && confirmAccurate && isEsignVerified) {
+    if (agreeDigitalSign && confirmAccurate && isEsignVerified && stampGenerated) {
       setAgreedTerms(true);
     } else {
       setAgreedTerms(false);
     }
-  }, [agreeDigitalSign, confirmAccurate, isEsignVerified, setAgreedTerms]);
+  }, [agreeDigitalSign, confirmAccurate, isEsignVerified, stampGenerated, setAgreedTerms]);
 
   // Handle Gujarati Translation using Free Google Translate API
   const handleSelectLanguage = async (targetLang) => {
     setAgreementLanguage(targetLang);
     if (targetLang === 'gu' && !translatedGujaratiText) {
       setIsTranslatingText(true);
-      const rawTextToTranslate = customContractText || `RENTAL / LEAVE AND LICENSE AGREEMENT
-
-This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
-
-PARTIES TO THE AGREEMENT
-
-Licensor (Owner/Property Manager):
-[property_name], having its premises at [property_address], [property_city]
-(hereinafter referred to as the "Licensor")
-
-Licensee (Tenant):
-[tenant_full_name]
-Contact: [tenant_mobile] | [tenant_email]
-Date of Birth: [tenant_date_of_birth]
-(hereinafter referred to as the "Licensee")
-
-ACCOMMODATION DETAILS
-Property: [property_name]
-Address: [property_address], [property_locality], [property_city]
-Room / Unit: [room_name]
-Bed Number: [bed_number]
-
-FINANCIAL TERMS
-Monthly Rent: ₹[rent_amount]
-Security Deposit: ₹[deposit_amount]
-Commencement Date: [move_in_date]
-Vacation Date: [move_out_date]
-Booking Reference: [booking_reference]
-
-TERMS AND CONDITIONS
-
-1. Nature of Agreement
-This Agreement is a Leave and License Agreement only. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.
-
-2. Monthly Rent and Payment
-The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the due date communicated by the Licensor. Continued occupation of the premises is conditional on timely payment of rent and any applicable charges.
-
-3. Security Deposit
-A refundable security deposit of ₹[deposit_amount] has been or shall be collected prior to move-in. The deposit shall be refunded within a reasonable time after the Licensee vacates the premises, after adjusting any outstanding dues, unpaid rent, utility charges, or costs of repairing damages caused by the Licensee beyond normal wear and tear.
-
-4. Utilities and Additional Charges
-Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card communicated separately.
-
-5. Maintenance and Care of Premises
-The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The Licensee shall promptly report any damage or defect to the Licensor. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.
-
-6. Conduct and House Rules
-The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents, staff, or neighbors. The Licensee shall abide by all house rules, facility timings, and guidelines communicated by the Licensor from time to time.
-
-7. Guests and Visitors
-Guests and visitors shall be permitted on the premises only as per the Licensor's guest and visitor policy communicated separately. Overnight stays of guests shall require prior permission from the Licensor.
-
-8. Alterations
-The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas without the prior written consent of the Licensor.
-
-9. Prohibited Uses
-The Licensee shall not use the premises for any illegal, commercial, or immoral activity. The Licensee shall not sublet the accommodation or any part thereof to any third party.
-
-10. Notice Period and Termination
-Either party may terminate this Agreement by giving advance notice as agreed at the time of move-in or as communicated in writing. The Licensor reserves the right to terminate this Agreement immediately in the event of breach of any term of this Agreement, non-payment of rent, or conduct detrimental to other residents.
-
-11. Vacation of Premises
-Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation on or before the agreed vacation date, remove all personal belongings, return all keys and access devices, and hand over the premises in the same condition as received, subject to normal wear and tear.
-
-12. Liability
-The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises. The Licensee is advised to arrange personal insurance coverage for their valuables if required.
-
-13. Force Majeure
-Neither party shall be liable for any failure or delay in performance due to circumstances beyond their reasonable control, including natural disasters, government restrictions, or other force majeure events.
-
-14. Governing Law and Jurisdiction
-This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].
-
-15. Entire Agreement
-This Agreement, along with any house rules communicated separately, constitutes the entire understanding between the parties regarding the accommodation. Any modification to this Agreement shall be mutually agreed upon in writing.
-
-EMERGENCY CONTACT
-Name: [emergency_contact_name]
-Phone: [emergency_contact_phone]
-Relationship: [emergency_contact_relationship]
-
-SIGNATURES
-By proceeding with occupation of the premises, the Licensee acknowledges that they have read, understood, and agree to be bound by all the terms and conditions of this Agreement.
-
-Licensee: [tenant_full_name]
-Date: [agreement_date]`;
-
+      const rawTextToTranslate = customContractText || DEFAULT_CONTRACT_TEXT;
       const translated = await translateWithGoogleFreeApi(rawTextToTranslate, 'gu');
       setTranslatedGujaratiText(translated);
       setIsTranslatingText(false);
@@ -158,8 +163,21 @@ Date: [agreement_date]`;
       toast.error('Please enter a valid 6-digit OTP');
       return;
     }
-    setIsEsignVerified(true);
-    toast.success('Document eSigned Successfully!');
+    setIsVerifyingEsign(true);
+    setTimeout(() => {
+      setIsVerifyingEsign(false);
+      setIsEsignVerified(true);
+      toast.success('Document eSigned Successfully!');
+    }, 2500);
+  };
+
+  const handleGenerateStamp = () => {
+    setIsGeneratingStamp(true);
+    setTimeout(() => {
+      setIsGeneratingStamp(false);
+      setStampGenerated(true);
+      toast.success('e-Stamp Paper generated successfully!');
+    }, 2000);
   };
 
   const todayDateStr = new Date().toLocaleDateString('en-GB', {
@@ -200,7 +218,7 @@ Date: [agreement_date]`;
       .replace(/\[emergency_contact_relationship\]/g, emergencyRelationship || 'N/A');
   };
 
-  // Render formatted contract lines with section headers & tag styling
+  // Render formatted contract lines with HTML tags parsed correctly
   const renderFormattedContractLines = (rawText) => {
     const substituted = injectDynamicValuesIntoText(rawText);
     const lines = substituted.split('\n');
@@ -208,43 +226,36 @@ Date: [agreement_date]`;
     return (
       <div className="space-y-3 font-sans text-xs leading-relaxed text-slate-700">
         {lines.map((line, index) => {
-          const trimmed = line.trim();
+          let trimmed = line.trim();
           if (!trimmed) return <div key={index} className="h-1"></div>;
 
-          if (trimmed.includes('RENTAL / LEAVE AND LICENSE AGREEMENT') || trimmed.includes('મકાન ભાડા કરાર')) {
+          if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) {
             return (
               <div key={index} className="text-center font-extrabold text-sm text-[#062F26] border-b border-slate-200 pb-3 my-2 tracking-wide">
-                {trimmed}
+                {trimmed.replace(/<\/?h1>/g, '')}
               </div>
             );
           }
 
-          const isSectionHeader = [
-            'PARTIES TO THE AGREEMENT',
-            'ACCOMMODATION DETAILS',
-            'FINANCIAL TERMS',
-            'TERMS AND CONDITIONS',
-            'EMERGENCY CONTACT',
-            'SIGNATURES',
-            'કરારના પક્ષકારો',
-            'મિલકત વિગતો',
-            'નાણાકીય શરતો',
-            'નિયમો અને શરતો',
-            'ઈમરજન્સી સંપર્ક',
-            'સહીઓ'
-          ].some(h => trimmed.toUpperCase().includes(h));
-
-          if (isSectionHeader) {
+          if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) {
             return (
               <div key={index} className="font-extrabold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">
-                {trimmed}
+                {trimmed.replace(/<\/?h3>/g, '')}
               </div>
             );
           }
+
+          // Parse <b> tags
+          const parts = trimmed.split(/(<b>.*?<\/b>)/g);
 
           return (
             <p key={index} className="leading-relaxed">
-              {trimmed}
+              {parts.map((part, i) => {
+                if (part.startsWith('<b>') && part.endsWith('</b>')) {
+                  return <strong key={i} className="font-bold text-slate-800">{part.slice(3, -4)}</strong>;
+                }
+                return part;
+              })}
             </p>
           );
         })}
@@ -332,92 +343,7 @@ Date: [agreement_date]`;
           >
             {agreementLanguage === 'en' ? (
               /* DYNAMIC ENGLISH CONTRACT */
-              renderFormattedContractLines(customContractText || `RENTAL / LEAVE AND LICENSE AGREEMENT
-
-This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
-
-PARTIES TO THE AGREEMENT
-
-Licensor (Owner/Property Manager):
-[property_name], having its premises at [property_address], [property_city]
-(hereinafter referred to as the "Licensor")
-
-Licensee (Tenant):
-[tenant_full_name]
-Contact: [tenant_mobile] | [tenant_email]
-Date of Birth: [tenant_date_of_birth]
-(hereinafter referred to as the "Licensee")
-
-ACCOMMODATION DETAILS
-Property: [property_name]
-Address: [property_address], [property_locality], [property_city]
-Room / Unit: [room_name]
-Bed Number: [bed_number]
-
-FINANCIAL TERMS
-Monthly Rent: ₹[rent_amount]
-Security Deposit: ₹[deposit_amount]
-Commencement Date: [move_in_date]
-Vacation Date: [move_out_date]
-Booking Reference: [booking_reference]
-
-TERMS AND CONDITIONS
-
-1. Nature of Agreement
-This Agreement is a Leave and License Agreement only. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.
-
-2. Monthly Rent and Payment
-The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the due date communicated by the Licensor. Continued occupation of the premises is conditional on timely payment of rent and any applicable charges.
-
-3. Security Deposit
-A refundable security deposit of ₹[deposit_amount] has been or shall be collected prior to move-in. The deposit shall be refunded within a reasonable time after the Licensee vacates the premises, after adjusting any outstanding dues, unpaid rent, utility charges, or costs of repairing damages caused by the Licensee beyond normal wear and tear.
-
-4. Utilities and Additional Charges
-Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card communicated separately.
-
-5. Maintenance and Care of Premises
-The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The Licensee shall promptly report any damage or defect to the Licensor. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.
-
-6. Conduct and House Rules
-The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents, staff, or neighbors. The Licensee shall abide by all house rules, facility timings, and guidelines communicated by the Licensor from time to time.
-
-7. Guests and Visitors
-Guests and visitors shall be permitted on the premises only as per the Licensor's guest and visitor policy communicated separately. Overnight stays of guests shall require prior permission from the Licensor.
-
-8. Alterations
-The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas without the prior written consent of the Licensor.
-
-9. Prohibited Uses
-The Licensee shall not use the premises for any illegal, commercial, or immoral activity. The Licensee shall not sublet the accommodation or any part thereof to any third party.
-
-10. Notice Period and Termination
-Either party may terminate this Agreement by giving advance notice as agreed at the time of move-in or as communicated in writing. The Licensor reserves the right to terminate this Agreement immediately in the event of breach of any term of this Agreement, non-payment of rent, or conduct detrimental to other residents.
-
-11. Vacation of Premises
-Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation on or before the agreed vacation date, remove all personal belongings, return all keys and access devices, and hand over the premises in the same condition as received, subject to normal wear and tear.
-
-12. Liability
-The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises. The Licensee is advised to arrange personal insurance coverage for their valuables if required.
-
-13. Force Majeure
-Neither party shall be liable for any failure or delay in performance due to circumstances beyond their reasonable control, including natural disasters, government restrictions, or other force majeure events.
-
-14. Governing Law and Jurisdiction
-This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].
-
-15. Entire Agreement
-This Agreement, along with any house rules communicated separately, constitutes the entire understanding between the parties regarding the accommodation. Any modification to this Agreement shall be mutually agreed upon in writing.
-
-EMERGENCY CONTACT
-Name: [emergency_contact_name]
-Phone: [emergency_contact_phone]
-Relationship: [emergency_contact_relationship]
-
-SIGNATURES
-By proceeding with occupation of the premises, the Licensee acknowledges that they have read, understood, and agree to be bound by all the terms and conditions of this Agreement.
-
-Licensee: [tenant_full_name]
-Date: [agreement_date]`)
+              renderFormattedContractLines(customContractText || DEFAULT_CONTRACT_TEXT)
             ) : (
               /* DYNAMIC GUJARATI TRANSLATION OF OWNER'S CUSTOMIZED CONTRACT */
               isTranslatingText ? (
@@ -426,7 +352,7 @@ Date: [agreement_date]`)
                   <span>Translating agreement into Gujarati via Google Translate...</span>
                 </div>
               ) : (
-                renderFormattedContractLines(translatedGujaratiText || customContractTextGu || 'મકાન ભાડા કરાર...')
+                renderFormattedContractLines(translatedGujaratiText || customContractTextGu || DEFAULT_CONTRACT_TEXT)
               )
             )}
           </div>
@@ -477,10 +403,24 @@ Date: [agreement_date]`)
                 <button
                   type="button"
                   onClick={handleVerifyEsign}
-                  className="px-6 py-3 rounded-xl font-bold text-xs bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition-all shrink-0 flex items-center gap-2"
+                  disabled={isVerifyingEsign || esignOtp.length < 6}
+                  className={`px-6 py-3 rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 ${
+                    isVerifyingEsign || esignOtp.length < 6
+                      ? 'bg-indigo-400 text-white cursor-not-allowed'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  }`}
                 >
-                  <Icon icon="lucide:file-signature" className="w-4 h-4" />
-                  Verify & eSign
+                  {isVerifyingEsign ? (
+                    <>
+                      <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
+                      Affixing Signature...
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon="lucide:file-signature" className="w-4 h-4" />
+                      Verify & eSign
+                    </>
+                  )}
                 </button>
               </div>
             )}
@@ -494,6 +434,94 @@ Date: [agreement_date]`)
                 <p className="text-xs opacity-90 mt-0.5">Your booking agreement has been digitally signed using Aadhaar eSign.</p>
               </div>
             </div>
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @keyframes stamp-press {
+          0% { transform: scale(1.8) rotate(-15deg); opacity: 0; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .animate-stamp-press {
+          animation: stamp-press 1.5s ease-out forwards;
+        }
+      `}</style>
+
+      {/* E-STAMP GENERATION SECTION */}
+      <div className="space-y-3 pt-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-extrabold text-[#062F26] flex items-center gap-2">
+              <Icon icon="lucide:stamp" className="w-4 h-4 text-[#0AA87D]" />
+              Agreement e-Stamp <span className="text-red-500">*</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Generate a legally binding e-Stamp paper for your rental agreement (₹300 stamp duty included in payment).
+            </p>
+          </div>
+          {stampGenerated && (
+            <span className="px-3 py-1 rounded-full text-[10px] font-extrabold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
+              <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
+              e-Stamp Ready
+            </span>
+          )}
+        </div>
+
+        {!stampGenerated ? (
+          <div className={`border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 mt-2 transition-all min-h-[104px] ${isGeneratingStamp ? 'bg-emerald-50/50 justify-center' : 'bg-slate-50/50 justify-between'}`}>
+            {isGeneratingStamp ? (
+              <div className="flex items-center gap-4 animate-in fade-in duration-300">
+                 <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center animate-stamp-press border-2 border-emerald-500 text-emerald-600 shadow-sm shadow-emerald-200 shrink-0">
+                   <Icon icon="lucide:stamp" className="w-7 h-7" />
+                 </div>
+                 <div>
+                   <h4 className="font-bold text-base text-emerald-800">Affixing e-Stamp...</h4>
+                   <p className="text-xs text-emerald-600 mt-0.5 animate-pulse">Please wait while the document is stamped</p>
+                 </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
+                    <Icon icon="lucide:file-badge-2" className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-[#062F26]">Generate ₹300 e-Stamp</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Required before final confirmation</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateStamp}
+                  disabled={!isEsignVerified}
+                  className={`px-6 py-3 rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 ${
+                    !isEsignVerified
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-70'
+                      : 'bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer'
+                  }`}
+                >
+                  <Icon icon="lucide:stamp" className="w-4 h-4" />
+                  Generate e-Stamp
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="mt-2 p-4 bg-[#FFFDF0] text-[#B45309] rounded-xl border border-[#FCD34D] shadow-sm flex items-center justify-between animate-fadeIn">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm border border-[#FCD34D]">
+                <Icon icon="lucide:stamp" className="w-5 h-5 text-[#D97706]" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm">e-Stamp Paper Attached</h4>
+                <p className="text-xs opacity-90 mt-0.5">A legal ₹300 e-Stamp has been affixed to your signed agreement.</p>
+              </div>
+            </div>
+            <button type="button" className="text-xs font-bold text-[#D97706] hover:underline flex items-center gap-1 cursor-pointer">
+              <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
+              Preview
+            </button>
           </div>
         )}
       </div>
@@ -557,6 +585,10 @@ Date: [agreement_date]`)
           onClick={() => {
             if (!isEsignVerified) {
               toast.error('Please eSign the agreement using Aadhaar OTP before confirming');
+              return;
+            }
+            if (!stampGenerated) {
+              toast.error('Please generate the e-Stamp paper before confirming your booking');
               return;
             }
             if (!agreeDigitalSign || !confirmAccurate) {

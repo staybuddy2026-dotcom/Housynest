@@ -57,6 +57,8 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
 
   const [dragActive, setDragActive] = useState(false);
   const verificationDocs = watch('verificationDocs') || [];
+  const existingDocs = watch('existingDocs') || [];
+  const removeDocsList = watch('removeDocs') || [];
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -98,6 +100,11 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
     setValue('verificationDocs', verificationDocs.filter((_, i) => i !== index), { shouldValidate: true });
   };
 
+  const removeExistingDoc = (public_id) => {
+    setValue('removeDocs', [...removeDocsList, public_id]);
+    setValue('existingDocs', existingDocs.filter(doc => doc.public_id !== public_id), { shouldValidate: true });
+  };
+
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] flex flex-col h-full">
 
@@ -137,7 +144,7 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
         {/* Google Map Link */}
         <div className="flex flex-col gap-1 sm:gap-1.5">
           <label className="text-xs sm:text-sm font-bold text-[#062F26]">
-            Google Maps Direct Link (Optional)
+            Google Maps Direct Link <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -251,14 +258,32 @@ const TenantPropertyDetails = ({ onNext, onPrev }) => {
         </div>
 
         {/* Uploaded Files Preview */}
-        {verificationDocs.length > 0 && (
+        {(verificationDocs.length > 0 || existingDocs.length > 0) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
+            {/* Existing Docs */}
+            {existingDocs.map((doc, idx) => (
+              <div key={doc.public_id || `exist-${idx}`} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-[#EAF5F2]/30 aspect-square shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                <a href={doc.url} target="_blank" rel="noopener noreferrer" className="w-full h-full flex flex-col items-center justify-center p-4 hover:bg-white/50 transition-colors">
+                  <Icon icon="lucide:file-check" width="32" className="text-brand-teal mb-2" />
+                  <span className="text-[10px] font-bold text-slate-500 truncate w-full text-center">Existing Document</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => removeExistingDoc(doc.public_id)}
+                  className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center text-slate-400 opacity-0 group-hover:opacity-100 transition-all hover:text-red-500 hover:bg-red-50 shadow-sm"
+                >
+                  <Icon icon="lucide:trash-2" width="14" />
+                </button>
+              </div>
+            ))}
+
+            {/* New Uploaded Docs */}
             {verificationDocs.map((doc, idx) => (
               <div key={doc.id || idx} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-white aspect-square shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                <a href={doc.url} target="_blank" rel="noopener noreferrer" className="w-full h-full flex flex-col items-center justify-center p-4 hover:bg-slate-50 transition-colors">
                   <Icon icon="lucide:file-text" width="32" className="text-brand-teal mb-2" />
                   <span className="text-[10px] font-bold text-slate-500 truncate w-full text-center">{doc.label || `Document ${idx + 1}`}</span>
-                </div>
+                </a>
                 <button
                   type="button"
                   onClick={() => removeDoc(idx)}

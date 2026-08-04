@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
-import heroImg from '../../assets/hero_img.jpg';
 
 const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
   const { watch } = useFormContext();
@@ -18,8 +18,32 @@ const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
     ? `${formData.locality || ''}${formData.locality && formData.city ? ', ' : ''}${formData.city || ''}`
     : 'Location not specified';
 
-  // Dynamic Photo
-  const previewPhoto = formData.photos?.[0]?.previewUrl || formData.photos?.[0]?.url || heroImg;
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Dynamic Photo Slider
+  const photos = formData.photos || [];
+  const existingImages = formData.existingImages || [];
+  
+  const allPhotos = [...existingImages, ...photos];
+  const previewPhotos = allPhotos.map(p => {
+    if (typeof p === 'string') return p;
+    return p?.previewUrl || p?.url || p?.secure_url;
+  }).filter(Boolean);
+  
+  const safeImageIndex = currentImageIndex >= previewPhotos.length ? 0 : currentImageIndex;
+  const currentPhoto = previewPhotos.length > 0 ? previewPhotos[safeImageIndex] : null;
+
+  const handlePrevImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === 0 ? previewPhotos.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === previewPhotos.length - 1 ? 0 : prev + 1));
+  };
 
   // Dynamic Rent Math
   const getPgStartingRent = () => {
@@ -62,6 +86,10 @@ const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
   // Dynamic Progress Percentage
   const progressPercent = Math.min(100, Math.max(10, Math.round((activeStep / totalSteps) * 100)));
 
+  const activePgPrices = isPg && formData.pgPricing 
+    ? Object.entries(formData.pgPricing).filter(([_, p]) => Number(p?.rentPerBed) > 0)
+    : [];
+
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="bg-white rounded-2xl p-5 shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-100 sticky top-24">
@@ -81,13 +109,53 @@ const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
         <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-md relative group bg-white transition-all duration-300">
           
           {/* Card Image Banner */}
-          <div className="relative h-48 overflow-hidden bg-slate-100">
-            <img
-              src={previewPhoto}
-              alt="Property Live Preview"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-slate-900/70 via-slate-900/20 to-transparent"></div>
+          <div className="relative h-48 overflow-hidden bg-slate-100 group/slider flex flex-col items-center justify-center">
+            {currentPhoto ? (
+              <>
+                <img
+                  key={currentPhoto}
+                  src={currentPhoto}
+                  alt="Property Live Preview"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 animate-in fade-in"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-slate-900/70 via-slate-900/20 to-transparent"></div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-slate-300 w-full h-full">
+                <Icon icon="lucide:image" className="w-10 h-10 mb-2 opacity-50" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">No Image Uploaded</span>
+              </div>
+            )}
+
+            {/* Slider Controls */}
+            {previewPhotos.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/20 hover:bg-white/90 backdrop-blur-md flex items-center justify-center text-white hover:text-[#062F26] transition-all opacity-0 group-hover/slider:opacity-100 shadow-sm z-20"
+                >
+                  <Icon icon="lucide:chevron-left" width="16" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/20 hover:bg-white/90 backdrop-blur-md flex items-center justify-center text-white hover:text-[#062F26] transition-all opacity-0 group-hover/slider:opacity-100 shadow-sm z-20"
+                >
+                  <Icon icon="lucide:chevron-right" width="16" />
+                </button>
+                
+                {/* Dots */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-20">
+                  {previewPhotos.map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-3 bg-white' : 'w-1.5 bg-white/50'}`} 
+                    />
+                  ))}
+                </div>
+              </>
+            )}
 
             {/* Top Overlay Badges */}
             <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
@@ -109,10 +177,10 @@ const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
             </div>
 
             {/* Image Counter Badge */}
-            {formData.photos && formData.photos.length > 0 && (
-              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                <Icon icon="lucide:camera" className="w-3 h-3" />
-                <span>{formData.photos.length} Photos</span>
+            {previewPhotos.length > 0 && (
+              <div className="absolute bottom-2.5 right-3 bg-black/40 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 z-20">
+                <Icon icon="lucide:camera" className="w-2.5 h-2.5" />
+                <span>{safeImageIndex + 1} / {previewPhotos.length}</span>
               </div>
             )}
           </div>
@@ -129,23 +197,51 @@ const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
               </p>
             </div>
 
-            {/* Starting Rent Box */}
-            <div className="flex justify-between items-end pb-3 border-b border-slate-100">
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Starting From</p>
-                <div className="flex items-end gap-1">
-                  <span className="text-xl font-bold text-[#062F26] leading-none">₹{rent}</span>
-                  <span className="text-[10px] font-semibold text-slate-400 mb-0.5">/ month</span>
+            {/* Pricing Section */}
+            {activePgPrices.length > 0 ? (
+              <div className="flex flex-col gap-2 pb-3 border-b border-slate-100">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Pricing (Per Bed / Month)</p>
+                <div className="flex flex-col bg-slate-50/80 rounded-xl border border-slate-100 overflow-hidden">
+                  {activePgPrices.map(([type, pricing], index) => {
+                    const [sharingType, isAC] = type.split('_');
+                    return (
+                      <div key={type} className={`flex justify-between items-center p-2.5 px-3 ${index !== activePgPrices.length - 1 ? 'border-b border-slate-200/60' : ''}`}>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[#062F26] text-[11px]">{sharingType} Sharing</span>
+                          <span className="font-semibold text-slate-400 text-[9px]">{isAC === 'AC' ? 'AC Room' : 'Non-AC Room'}</span>
+                        </div>
+                        <div className="flex flex-col items-end text-right">
+                          <div className="flex items-baseline gap-0.5">
+                            <span className="font-extrabold text-[#062F26] text-[13px]">₹{Number(pricing.rentPerBed).toLocaleString('en-IN')}</span>
+                            <span className="font-bold text-slate-400 text-[9px]">/mo</span>
+                          </div>
+                          {Number(pricing.depositPerBed) > 0 && (
+                            <span className="font-semibold text-slate-400 text-[9px] mt-0.5">Dep: ₹{Number(pricing.depositPerBed).toLocaleString('en-IN')}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-
-              {Number(deposit.replace(/,/g, '')) > 0 && (
-                <div className="text-right">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Deposit</p>
-                  <span className="text-xs font-bold text-[#062F26]">₹{deposit}</span>
+            ) : (
+              <div className="flex justify-between items-end pb-3 border-b border-slate-100">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Starting From</p>
+                  <div className="flex items-end gap-1">
+                    <span className="text-xl font-bold text-[#062F26] leading-none">₹{rent}</span>
+                    <span className="text-[10px] font-semibold text-slate-400 mb-0.5">/ month</span>
+                  </div>
                 </div>
-              )}
-            </div>
+
+                {Number(deposit.replace(/,/g, '')) > 0 && (
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Deposit</p>
+                    <span className="text-xs font-bold text-[#062F26]">₹{deposit}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Key Amenities / Metadata Grid */}
             <div className="grid grid-cols-2 gap-y-2.5 pt-1 text-xs">

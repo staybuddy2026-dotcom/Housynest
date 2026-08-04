@@ -42,8 +42,16 @@ export const createProperty = async (req, res) => {
 
     let ownerContractData = null;
     const contractFile = (req.files && req.files.ownerContract && req.files.ownerContract[0]) || (req.files && req.files.contract && req.files.contract[0]);
-    if (contractFile) {
+    
+    if (req.body.ownerContract_mode === 'customize') {
       ownerContractData = {
+        mode: 'customize',
+        contractTextEn: req.body.ownerContract_en || '',
+        contractTextGu: req.body.ownerContract_gu || ''
+      };
+    } else if (contractFile) {
+      ownerContractData = {
+        mode: 'upload',
         url: contractFile.path,
         public_id: contractFile.filename,
         fileName: contractFile.originalname
@@ -175,10 +183,17 @@ export const updateProperty = async (req, res) => {
         propertyData.verificationDocs = [...(property.verificationDocs || []), ...newDocs];
     }
 
-    // Handle owner contract upload
+    // Handle owner contract upload or customized text
     const updatedContractFile = (req.files && req.files.ownerContract && req.files.ownerContract[0]) || (req.files && req.files.contract && req.files.contract[0]);
-    if (updatedContractFile) {
+    if (req.body.ownerContract_mode === 'customize') {
       propertyData.ownerContract = {
+        mode: 'customize',
+        contractTextEn: req.body.ownerContract_en || '',
+        contractTextGu: req.body.ownerContract_gu || ''
+      };
+    } else if (updatedContractFile) {
+      propertyData.ownerContract = {
+        mode: 'upload',
         url: updatedContractFile.path,
         public_id: updatedContractFile.filename,
         fileName: updatedContractFile.originalname
