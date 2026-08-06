@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
@@ -158,7 +158,7 @@ const OwnerLeads = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] min-h-[600px] w-full bg-slate-50/50 font-sans">
+    <div className="flex flex-col h-[calc(100dvh-80px)] md:h-[calc(100vh-100px)] min-h-[600px] w-full bg-slate-50/50 font-sans pb-20 md:pb-0">
       {/* Kanban Board */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {loading ? (
@@ -177,7 +177,7 @@ const OwnerLeads = () => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-1 gap-3 md:gap-4 min-h-0 items-stretch">
+          <div className="flex flex-1 gap-4 min-h-0 items-stretch overflow-x-auto custom-scrollbar px-4 md:px-0 pb-4 md:pb-0">
             {columns.map(col => {
               const columnLeads = leads.filter(l => {
                 const status = l.status || 'New';
@@ -190,7 +190,7 @@ const OwnerLeads = () => {
                   key={col.id}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, col.id)}
-                  className={`flex flex-col flex-1 min-w-[200px] rounded-2xl border ${col.color} bg-white/50 transition-colors`}
+                  className={`flex flex-col min-w-[280px] w-full max-w-[320px] md:max-w-none md:w-auto md:min-w-[280px] rounded-2xl border ${col.color} bg-white/50 transition-colors shrink-0 md:flex-1`}
                 >
                   <div className={`p-4 rounded-t-2xl border-b border-inherit flex items-center justify-between ${col.headerBg}`}>
                     <div className="flex items-center gap-2">

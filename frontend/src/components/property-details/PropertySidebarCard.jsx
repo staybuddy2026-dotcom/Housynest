@@ -278,7 +278,7 @@ const PropertySidebarCard = ({
                 className="w-full cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition-colors flex justify-center items-center gap-2"
               >
                 <Icon icon="lucide:message-circle-question" className="w-4 h-4" />
-                Send Lead
+                Send Inquiry
               </button>
             </div>
 

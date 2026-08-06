@@ -21,6 +21,7 @@ import ownerProspectRoutes from './routes/ownerProspectRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
+import seoRoutes from './routes/seoRoutes.js';
 import cron from 'node-cron';
 import { sendVisitReminders } from './controllers/visitController.js';
 import { generateMonthlyInvoices } from './controllers/invoiceController.js';
@@ -58,6 +59,7 @@ app.use('/api/owner-prospects', ownerProspectRoutes);
 app.use('/api/v1/chat', chatbotRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/seo', seoRoutes);
 
 // Cron Job for Visit Reminders
 cron.schedule('0 8 * * *', () => {

@@ -186,7 +186,9 @@ const TenantVisits = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-white sticky top-0 z-20">
                 <tr>
@@ -346,7 +348,118 @@ const TenantVisits = () => {
               </tbody>
             </table>
           </div>
-        )}
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden flex flex-col divide-y divide-slate-100">
+            {filteredVisits.map((visit) => {
+              const propertyImage = visit.property?.images?.[0]?.url || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80';
+              const propertyName = !visit.property ? 'Deleted Property' : (visit.property.pgName || (visit.property.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property.propertyCategory) || 'Unknown Property');
+              const location = visit.property?.locality ? `${visit.property.locality}, ${visit.property.city}` : (visit.property?.city || 'Location unavailable');
+              const statusStyles = getStatusBadge(visit.status);
+              const isMessageExpanded = expandedMessageId === visit._id;
+
+              return (
+                <div key={visit._id} className="p-4 flex flex-col gap-4 hover:bg-slate-50 transition-colors">
+                  {/* Header: Property & Status */}
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-slate-200">
+                        <img src={propertyImage} alt="Property" className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-[#062F26] mb-0.5 line-clamp-1">{propertyName}</h3>
+                        <p className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                          <Icon icon="lucide:map-pin" className="w-3 h-3 text-slate-400" />
+                          {location}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wide border ${statusStyles.bg} ${statusStyles.text} ${statusStyles.border}`}>
+                      <Icon icon={statusStyles.icon} className="w-3 h-3" />
+                      {visit.status}
+                    </span>
+                  </div>
+
+                  {/* Middle: Schedule & Owner */}
+                  <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Schedule</span>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                        <Icon icon="lucide:calendar" className="w-3.5 h-3.5 text-slate-400" />
+                        {visit.date}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 capitalize mt-0.5">
+                        <Icon icon="lucide:clock" className="w-3.5 h-3.5 text-slate-400" />
+                        {visit.time}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Owner Contact</span>
+                      <span className="text-xs font-bold text-slate-700 block line-clamp-1 mb-1">{visit.owner?.fullName || 'Unknown'}</span>
+                      <div className="flex items-center gap-2">
+                        <a href={`tel:${visit.owner?.phone}`} className="text-[#0AA87D] bg-[#EAF5F2] p-1.5 rounded-md hover:bg-[#0AA87D] hover:text-white transition-colors" title="Call">
+                          <Icon icon="lucide:phone" className="w-3.5 h-3.5" />
+                        </a>
+                        <a href={`mailto:${visit.owner?.email}`} className="text-blue-600 bg-blue-50 p-1.5 rounded-md hover:bg-blue-600 hover:text-white transition-colors" title="Email">
+                          <Icon icon="lucide:mail" className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer Actions */}
+                  <div className="flex items-center justify-between mt-1">
+                    {(visit.message || visit.suggestedTime) ? (
+                      <button
+                        onClick={() => setExpandedMessageId(isMessageExpanded ? null : visit._id)}
+                        className={`text-xs font-bold flex items-center gap-1.5 transition-colors ${isMessageExpanded ? 'text-[#062F26]' : 'text-slate-500 hover:text-[#0AA87D]'}`}
+                      >
+                        <Icon icon="lucide:message-square-text" className="w-4 h-4" />
+                        {isMessageExpanded ? 'Hide Details' : 'View Details'}
+                      </button>
+                    ) : <div></div>}
+                    
+                    {visit.status === 'Completed' && (
+                      <button className="px-3 py-1.5 bg-[#062F26] text-white rounded-lg font-bold text-[11px] hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1">
+                        Book Now
+                        <Icon icon="lucide:arrow-right" className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Expanded Details */}
+                  {isMessageExpanded && (
+                    <div className="mt-2 flex flex-col gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                      {visit.message && (
+                        <div>
+                          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <Icon icon="lucide:message-circle" className="w-3 h-3" />
+                            Your Message
+                          </h4>
+                          <p className="text-xs text-slate-600 italic border-l-2 border-slate-300 pl-2 leading-relaxed">
+                            {visit.message}
+                          </p>
+                        </div>
+                      )}
+                      {visit.status === 'Rescheduled' && visit.suggestedTime && (
+                        <div className="bg-blue-50/50 p-2.5 rounded-lg border border-blue-100">
+                          <h4 className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <Icon icon="lucide:clock-4" className="w-3 h-3" />
+                            Owner Suggested Time
+                          </h4>
+                          <p className="text-xs font-bold text-blue-900">
+                            {visit.suggestedTime}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
       </div>
     </div>
   );

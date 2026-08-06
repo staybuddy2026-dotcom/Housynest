@@ -384,7 +384,7 @@ const TenantMessages = () => {
       <div className="flex flex-1 overflow-hidden gap-4">
 
         {/* LEFT COLUMN: Conversation List */}
-        <div className="w-85 bg-white border border-slate-200 rounded-xl flex flex-col shrink-0 overflow-hidden shadow-sm">
+        <div className={`${activeChat ? 'hidden lg:flex' : 'flex'} w-full lg:w-85 bg-white border border-slate-200 rounded-xl flex-col shrink-0 overflow-hidden shadow-sm`}>
           {/* Search Header */}
           <div className="p-4 border-b border-slate-100 flex items-center gap-2">
             <div className="relative flex-1 group">
@@ -466,11 +466,17 @@ const TenantMessages = () => {
 
         {/* RIGHT COLUMN: Active Chat */}
         {activeChat ? (
-          <div className="flex-1 bg-white border border-slate-200 rounded-lg flex flex-col shadow-sm overflow-hidden min-w-125">
+          <div className={`${!activeChat ? 'hidden lg:flex' : 'flex'} flex-1 bg-white border border-slate-200 rounded-lg flex-col shadow-sm overflow-hidden min-w-0 lg:min-w-125`}>
 
             {/* Chat Header */}
             <div className="h-18 lg:h-20 px-4 lg:px-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3 lg:gap-4">
+                <button
+                  onClick={() => setActiveChatId(null)}
+                  className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-600 border border-slate-200"
+                >
+                  <Icon icon="lucide:arrow-left" className="w-4 h-4" />
+                </button>
 
                 <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-sm lg:text-[15px] font-bold shrink-0 overflow-hidden ${activeChat?.avatarColor}`}>
                   {activeChat?.profilePic ? (
@@ -641,7 +647,7 @@ const TenantMessages = () => {
 
           </div>
         ) : (
-          <div className="flex-1 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm">
+          <div className="hidden lg:flex flex-1 bg-white border border-slate-200 rounded-xl flex-col items-center justify-center shadow-sm">
             <div className="text-center">
               <Icon icon="lucide:message-square-dashed" className="w-12 h-12 text-slate-200 mx-auto mb-3" />
               <p className="text-sm font-bold text-slate-400">Select a conversation to start messaging</p>

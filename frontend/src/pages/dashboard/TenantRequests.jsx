@@ -91,8 +91,8 @@ const TenantRequests = () => {
         </div>
       </div>
 
-      {/* Table Content */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto">
+      {/* Desktop Table View */}
+      <div className="hidden lg:block flex-1 overflow-x-auto overflow-y-auto">
         <table className="w-full min-w-[1000px] text-left">
           <thead className="bg-white sticky top-0 z-20">
             <tr>
@@ -273,6 +273,128 @@ const TenantRequests = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Mobile Card View */}
+      <div className="lg:hidden flex flex-col gap-4 p-4 pb-20">
+        {loading ? (
+          <div className="py-12 text-center text-slate-500 text-sm font-medium">
+            <Icon icon="lucide:loader-2" className="w-6 h-6 animate-spin mx-auto text-brand-teal mb-2" />
+            <p>Loading your requests...</p>
+          </div>
+        ) : requests.length > 0 ? (
+          requests.map((request) => {
+            const isExpanded = expandedId === request.id;
+            return (
+              <div key={request.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                {/* Card Header: Property & Status */}
+                <div className="p-4 flex gap-3 border-b border-slate-100">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-200">
+                    <img src={request.propertyImage} alt={request.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="text-sm font-bold text-[#062F26] line-clamp-1">{request.title}</h3>
+                      <div className="shrink-0">{getStatusBadge(request.status)}</div>
+                    </div>
+                    <p className="text-[11px] font-medium text-slate-500 flex items-center gap-1 mt-1">
+                      <Icon icon="lucide:map-pin" className="w-3 h-3 text-slate-400" />
+                      {request.location}
+                    </p>
+                    <p className="text-xs font-bold text-slate-700 mt-1">{request.budget} <span className="text-[10px] text-slate-400 font-medium">/ month</span></p>
+                  </div>
+                </div>
+
+                {/* Card Body: Date, Message Preview & Action */}
+                <div className="p-4 bg-slate-50/50">
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date Sent</span>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                        <Icon icon="lucide:calendar" className="w-3.5 h-3.5 text-slate-400" />
+                        {request.date}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-0.5 items-end">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time</span>
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                        <Icon icon="lucide:clock" className="w-3.5 h-3.5 text-slate-400" />
+                        {request.time}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <p className="text-xs font-bold text-brand-teal truncate mb-1">Sub: {request.subject}</p>
+                    <p className="text-xs font-medium text-slate-600 line-clamp-2 leading-relaxed">{request.message}</p>
+                  </div>
+
+                  <button
+                    onClick={() => setExpandedId(isExpanded ? null : request.id)}
+                    className="w-full py-2.5 text-xs font-bold rounded-lg transition-colors bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center justify-center gap-2"
+                  >
+                    {isExpanded ? 'Hide Details' : 'View Full Details'}
+                    <Icon icon={isExpanded ? "lucide:chevron-up" : "lucide:chevron-down"} className="w-4 h-4 text-slate-400" />
+                  </button>
+                </div>
+
+                {/* Expanded Content */}
+                {isExpanded && (
+                  <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div>
+                      <h4 className="font-bold text-[11px] text-slate-800 flex items-center gap-1.5 mb-2">
+                        <Icon icon="lucide:message-square" className="w-4 h-4 text-brand-teal" />
+                        Full Message
+                      </h4>
+                      <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
+                        "{request.message}"
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {request.owner && (
+                        <div className="col-span-2 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 flex items-center justify-between">
+                          <div>
+                            <h4 className="font-bold text-[10px] text-emerald-600 uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
+                              <Icon icon="lucide:user" className="w-3.5 h-3.5" />
+                              Owner Contact
+                            </h4>
+                            <p className="text-xs font-bold text-slate-800">{request.owner.fullName || 'Owner'}</p>
+                            <p className="text-[11px] font-semibold text-emerald-700">{request.owner.phone || 'N/A'}</p>
+                          </div>
+                          <a href={`tel:${request.owner.phone}`} className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center hover:bg-emerald-200 transition-colors shadow-sm">
+                            <Icon icon="lucide:phone" className="w-4 h-4" />
+                          </a>
+                        </div>
+                      )}
+
+                      <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                        <h4 className="text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                          <Icon icon="lucide:calendar-days" className="w-3 h-3" /> Move-in
+                        </h4>
+                        <p className="text-xs font-bold text-slate-800">{request.moveIn}</p>
+                      </div>
+
+                      <div className="bg-purple-50/50 p-3 rounded-xl border border-purple-100">
+                        <h4 className="text-[10px] font-bold text-purple-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                          <Icon icon="lucide:users" className="w-3 h-3" /> Occupants
+                        </h4>
+                        <p className="text-xs font-bold text-slate-800 truncate">{request.occupants} • {request.gender}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div className="py-16 text-center bg-white rounded-xl border border-slate-200 shadow-sm">
+            <Icon icon="lucide:message-circle-x" className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+            <h3 className="text-lg font-bold text-slate-800 mb-1">No Requests Yet</h3>
+            <p className="text-sm text-slate-500 max-w-[250px] mx-auto">You haven't sent any leads or requests for properties yet.</p>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };

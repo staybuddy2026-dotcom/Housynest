@@ -23,7 +23,7 @@ const DashboardLayout = () => {
           <div className="flex items-center gap-4 lg:hidden">
             {/* Logo in Header for Mobile */}
             <Link to="/">
-              <img src="/src/assets/logo.png" alt="Housynest" className="h-7 object-contain" />
+              <img src="/src/assets/logo.png" alt="Housynest" className="h-9 object-contain" />
             </Link>
           </div>
 
@@ -49,7 +49,7 @@ const DashboardLayout = () => {
 
         {/* Scrollable Main Area OR Fixed Area for Messages */}
         {isMessagesRoute ? (
-          <main className="flex-1 flex flex-col overflow-hidden p-4">
+          <main className="flex-1 flex flex-col overflow-hidden p-4 pb-24 lg:pb-4">
             <Outlet />
           </main>
         ) : (

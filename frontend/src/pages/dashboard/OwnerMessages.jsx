@@ -63,7 +63,7 @@ const OwnerMessages = () => {
     socketRef.current = socket;
 
     joinUserRoom(user.id || user._id);
-    
+
     // Explicitly request the online users list
     socketRef.current.emit('getOnlineUsers');
 
@@ -167,7 +167,7 @@ const OwnerMessages = () => {
     const handleNewLead = () => {
       fetchLeadsAsConversations();
     };
-    
+
     if (socketRef.current) {
       socketRef.current.on('newLead', handleNewLead);
     }
@@ -386,13 +386,14 @@ const OwnerMessages = () => {
   const activeChat = conversations.find(c => c.id === activeChatId);
 
   return (
-    <div className="flex flex-col h-full bg-[#FAFAFA] font-sans">
+    <div className="flex flex-col h-full bg-[#FAFAFA] font-sans pb-16 md:pb-0">
 
       {/* Main Split Pane Container */}
-      <div className="flex flex-1 overflow-hidden gap-4">
+      <div className="flex flex-1 overflow-hidden md:gap-4 relative">
 
         {/* LEFT COLUMN: Conversation List */}
-        <div className="w-85 bg-white border border-slate-200 rounded-xl flex flex-col shrink-0 overflow-hidden shadow-sm">
+        <div className={`bg-white md:border border-slate-200 md:rounded-xl flex flex-col shrink-0 overflow-hidden shadow-sm transition-all duration-300 absolute md:relative inset-0 z-10 md:z-auto ${activeChat ? 'hidden md:flex md:w-85' : 'w-full md:w-85 flex'
+          }`}>
 
           {/* Search Header */}
           <div className="p-4 border-b border-slate-100 flex items-center gap-2">
@@ -475,11 +476,18 @@ const OwnerMessages = () => {
 
         {/* RIGHT COLUMN: Active Chat */}
         {activeChat ? (
-          <div className="flex-1 bg-white border border-slate-200 rounded-lg flex flex-col shadow-sm overflow-hidden min-w-125">
+          <div className={`flex-1 bg-white md:border border-slate-200 md:rounded-lg flex flex-col shadow-sm overflow-hidden min-w-0 absolute md:relative inset-0 z-20 md:z-auto ${activeChat ? 'flex' : 'hidden md:flex'
+            }`}>
 
             {/* Chat Header */}
-            <div className="h-18 lg:h-20 px-4 lg:px-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div className="h-16 lg:h-20 px-4 lg:px-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3 lg:gap-4">
+                <button
+                  onClick={() => setActiveChatId(null)}
+                  className="md:hidden w-8 h-8 -ml-2 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+                >
+                  <Icon icon="lucide:arrow-left" className="w-5 h-5" />
+                </button>
 
                 <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-sm lg:text-[15px] font-bold shrink-0 overflow-hidden ${activeChat?.avatarColor}`}>
                   {activeChat?.profilePic ? (
@@ -497,9 +505,9 @@ const OwnerMessages = () => {
               </div>
 
               {/* Header Actions (Status) */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 ml-auto">
                 <span className={`w-2 h-2 rounded-full ${isOtherUserTyping ? 'bg-brand-teal animate-pulse' : (onlineUsers.has(String(activeChat?.otherUserId)) ? 'bg-emerald-500' : 'bg-slate-400')}`}></span>
-                <span className={`text-xs font-medium ${isOtherUserTyping ? 'text-brand-teal' : (onlineUsers.has(String(activeChat?.otherUserId)) ? 'text-emerald-600' : 'text-slate-500')}`}>
+                <span className={`text-[10px] sm:text-xs font-medium ${isOtherUserTyping ? 'text-brand-teal' : (onlineUsers.has(String(activeChat?.otherUserId)) ? 'text-emerald-600' : 'text-slate-500')}`}>
                   {isOtherUserTyping ? 'Typing...' : (onlineUsers.has(String(activeChat?.otherUserId)) ? 'Online' : 'Offline')}
                 </span>
               </div>
@@ -573,7 +581,7 @@ const OwnerMessages = () => {
 
                 </div>
               ))}
-              
+
               {/* Typing Indicator Bubble */}
               {isOtherUserTyping && (
                 <div className="flex gap-3 justify-start animate-in fade-in duration-300">
@@ -650,7 +658,7 @@ const OwnerMessages = () => {
 
           </div>
         ) : (
-          <div className="flex-1 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm">
+          <div className="flex-1 bg-white border border-slate-200 rounded-xl hidden md:flex flex-col items-center justify-center shadow-sm min-w-125">
             <div className="text-center">
               <Icon icon="lucide:message-square-dashed" className="w-12 h-12 text-slate-200 mx-auto mb-3" />
               <p className="text-sm font-bold text-slate-400">Select a conversation to start messaging</p>

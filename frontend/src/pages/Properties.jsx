@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import SEO from '../components/SEO';
 import { useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import loginImg from '../assets/aboutmain.png';
@@ -214,6 +215,10 @@ const Properties = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans pb-20">
+      <SEO 
+        title="Properties for Rent" 
+        description="Browse thousands of properties, PGs, and homes for rent on Housynest. Filter by budget, location, and amenities to find your perfect match."
+      />
 
       {/* Hero Section */}
       <div className="relative w-full h-60 lg:h-70">

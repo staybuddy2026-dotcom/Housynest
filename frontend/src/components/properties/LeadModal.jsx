@@ -137,7 +137,7 @@ const LeadModal = ({ isOpen, onClose, property }) => {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-2 text-[#062F26]">
             <Icon icon="lucide:message-circle-question" className="w-5 h-5" />
-            <h3 className="font-bold text-base">Send Lead</h3>
+            <h3 className="font-bold text-base">Send Inquiry</h3>
           </div>
           <button
             onClick={onClose}
@@ -381,7 +381,7 @@ const LeadModal = ({ isOpen, onClose, property }) => {
             className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-[#062F26] hover:bg-[#062F26] transition-colors shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? <Icon icon="eos-icons:loading" className="w-4 h-4" /> : <Icon icon="lucide:send" className="w-4 h-4" />}
-            Send Lead
+            Send Inquiry
           </button>
         </div>
       </div>

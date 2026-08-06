@@ -1,3 +1,4 @@
+import SEO from '../components/SEO';
 import HeroSection from '../components/home/HeroSection';
 import FilterSection from '../components/home/FilterSection';
 import PopularCities from '../components/home/PopularCities';
@@ -10,6 +11,10 @@ import Testimonials from '../components/home/Testimonials';
 const Home = () => {
   return (
     <div className="flex flex-col w-full">
+      <SEO 
+        title="Housynest - The modern way to rent and manage properties" 
+        description="Find your perfect home or manage your properties seamlessly with Housynest. Trusted by thousands of tenants and property owners."
+      />
       <HeroSection />
       <FilterSection />
       <PopularCities />

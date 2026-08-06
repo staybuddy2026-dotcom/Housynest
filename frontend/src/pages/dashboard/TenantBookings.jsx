@@ -268,9 +268,9 @@ const TenantBookings = () => {
                   </div>
 
                   {/* Bottom Stats Row */}
-                  <div className="bg-slate-50/50 border-t border-slate-100 p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 divide-x divide-slate-100">
+                  <div className="bg-slate-50/50 border-t border-slate-100 p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-4 sm:gap-4 sm:divide-x sm:divide-slate-100">
                     {btmStats.map((stat, idx) => (
-                      <div key={idx} className={`flex items-center gap-3 ${idx === 0 ? 'pl-2 sm:pl-4' : 'pl-4'}`}>
+                      <div key={idx} className={`flex items-center gap-3 sm:pl-4 ${idx === 0 ? 'sm:pl-0' : ''}`}>
                         <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
                           <Icon icon={stat.icon} className="w-5 h-5 text-emerald-600" />
                         </div>
@@ -316,11 +316,11 @@ const TenantBookings = () => {
                     <h3 className="text-lg font-bold text-[#062F26] mb-4">
                       {booking.status === 'Pending Payment' ? (['Token Amount', 'Token (40%)'].includes(booking.paymentDetails?.paymentMethod) ? 'Pending Reservation Payment' : 'Pending Booking Payment') : (isTokenPaid ? 'Move-In Payment Due' : 'Upcoming Due')}
                     </h3>
-                    <div className="bg-[#EAF5F2]/50 border border-emerald-100 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-6">
-                      <div className="flex items-center gap-6 w-full sm:w-auto flex-1">
+                    <div className="bg-[#EAF5F2]/50 border border-emerald-100 rounded-xl p-4 sm:p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full lg:w-auto flex-1">
 
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                        <div className="flex items-center gap-4 w-full sm:w-auto pb-4 sm:pb-0 border-b border-emerald-100/50 sm:border-0">
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0">
                             <Icon icon="lucide:calendar" className="w-6 h-6 text-emerald-600" />
                           </div>
                           <div>
@@ -333,20 +333,22 @@ const TenantBookings = () => {
                           </div>
                         </div>
 
-                        <div className="hidden sm:block w-px h-10 bg-slate-200"></div>
+                        <div className="hidden sm:block w-px h-10 bg-emerald-200/50 shrink-0"></div>
 
-                        <div>
-                          <p className="text-xs text-slate-500 font-medium mb-0.5">Amount Due</p>
-                          <p className="text-sm font-bold text-[#062F26]">₹{booking.status === 'Pending Payment' ? (booking.paymentDetails?.amount?.toLocaleString() || booking.propertyId?.monthlyRent || 0) : (isTokenPaid ? remainingAmount.toLocaleString() : '0')}</p>
-                        </div>
+                        <div className="flex items-center justify-between w-full sm:w-auto gap-8 sm:gap-6">
+                          <div>
+                            <p className="text-xs text-slate-500 font-medium mb-0.5">Amount Due</p>
+                            <p className="text-sm font-bold text-[#062F26]">₹{booking.status === 'Pending Payment' ? (booking.paymentDetails?.amount?.toLocaleString() || booking.propertyId?.monthlyRent || 0) : (isTokenPaid ? remainingAmount.toLocaleString() : '0')}</p>
+                          </div>
 
-                        <div className="hidden sm:block w-px h-10 bg-slate-200"></div>
+                          <div className="hidden sm:block w-px h-10 bg-emerald-200/50 shrink-0"></div>
 
-                        <div>
-                          <p className="text-xs text-slate-500 font-medium mb-1">Status</p>
-                          <span className={`px-2.5 py-1 text-[10px] font-bold rounded ${booking.status === 'Pending Payment' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                            {booking.status === 'Pending Payment' ? 'Pending Payment' : 'Upcoming'}
-                          </span>
+                          <div>
+                            <p className="text-xs text-slate-500 font-medium mb-1">Status</p>
+                            <span className={`px-2.5 py-1 text-[10px] font-bold rounded ${booking.status === 'Pending Payment' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {booking.status === 'Pending Payment' ? 'Pending Payment' : 'Upcoming'}
+                            </span>
+                          </div>
                         </div>
                       </div>
 

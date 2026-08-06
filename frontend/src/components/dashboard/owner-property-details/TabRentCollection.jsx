@@ -51,6 +51,9 @@ const TabRentCollection = ({ bookings, property, setSelectedTenant }) => {
 
     const formatDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
     const name = booking.tenantId ? booking.tenantId.fullName : (booking.personalInfo?.firstName + ' ' + booking.personalInfo?.lastName);
+    const phone = booking.tenantId?.phone || booking.personalInfo?.mobileNumber || '';
+    const whatsapp = (booking.tenantId?.whatsappNumber || booking.personalInfo?.whatsappNumber || phone || '').replace(/[^0-9]/g, '');
+    const email = booking.tenantId?.email || booking.personalInfo?.email || '';
 
     rentItems.push({
       id: booking._id,
@@ -62,6 +65,9 @@ const TabRentCollection = ({ bookings, property, setSelectedTenant }) => {
       daysDue: (status === 'Overdue' || status === 'Due') ? daysDue : 0,
       status: status,
       room: booking.roomDetails?.roomName ? `${booking.roomDetails.roomName} | ${booking.roomDetails.bedName}` : 'Full Property',
+      phone,
+      whatsapp,
+      email
     });
   });
 
@@ -77,35 +83,35 @@ const TabRentCollection = ({ bookings, property, setSelectedTenant }) => {
   };
 
   const formatNum = (n) => {
-     if (n >= 100000) return `₹${(n/100000).toFixed(1)}L`;
-     if (n >= 1000) return `₹${(n/1000).toFixed(1)}k`;
-     return `₹${n}`;
+    if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`;
+    if (n >= 1000) return `₹${(n / 1000).toFixed(1)}k`;
+    return `₹${n}`;
   };
 
   return (
     <div className="flex flex-col animate-fadeIn">
-      
+
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm relative overflow-hidden group hover:border-brand-teal/30 transition-colors">
-           <Icon icon="lucide:indian-rupee" className="absolute right-4 top-4 w-5 h-5 text-slate-200 group-hover:text-slate-300 transition-colors" />
-           <div className="text-xl font-bold text-slate-800">{formatNum(totalExpected)}</div>
-           <div className="text-xs font-medium text-slate-500 mt-1">Expected</div>
+          <Icon icon="lucide:indian-rupee" className="absolute right-4 top-4 w-5 h-5 text-slate-200 group-hover:text-slate-300 transition-colors" />
+          <div className="text-xl font-bold text-slate-800">{formatNum(totalExpected)}</div>
+          <div className="text-xs font-medium text-slate-500 mt-1">Expected</div>
         </div>
         <div className="bg-white rounded-xl border border-emerald-100 p-4 shadow-sm relative overflow-hidden group hover:border-emerald-300 transition-colors">
-           <Icon icon="lucide:trending-up" className="absolute right-4 top-4 w-5 h-5 text-emerald-200 group-hover:text-emerald-300 transition-colors" />
-           <div className="text-xl font-bold text-emerald-600">{formatNum(totalCollected)}</div>
-           <div className="text-xs font-medium text-slate-500 mt-1">Collected</div>
+          <Icon icon="lucide:trending-up" className="absolute right-4 top-4 w-5 h-5 text-emerald-200 group-hover:text-emerald-300 transition-colors" />
+          <div className="text-xl font-bold text-emerald-600">{formatNum(totalCollected)}</div>
+          <div className="text-xs font-medium text-slate-500 mt-1">Collected</div>
         </div>
         <div className="bg-white rounded-xl border border-rose-100 p-4 shadow-sm relative overflow-hidden group hover:border-rose-300 transition-colors">
-           <Icon icon="lucide:alert-circle" className="absolute right-4 top-4 w-5 h-5 text-rose-200 group-hover:text-rose-300 transition-colors" />
-           <div className="text-xl font-bold text-rose-600">{formatNum(totalOverdue)}</div>
-           <div className="text-xs font-medium text-slate-500 mt-1">Overdue</div>
+          <Icon icon="lucide:alert-circle" className="absolute right-4 top-4 w-5 h-5 text-rose-200 group-hover:text-rose-300 transition-colors" />
+          <div className="text-xl font-bold text-rose-600">{formatNum(totalOverdue)}</div>
+          <div className="text-xs font-medium text-slate-500 mt-1">Overdue</div>
         </div>
         <div className="bg-white rounded-xl border border-amber-100 p-4 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors">
-           <Icon icon="lucide:clock" className="absolute right-4 top-4 w-5 h-5 text-amber-200 group-hover:text-amber-300 transition-colors" />
-           <div className="text-xl font-bold text-amber-500">{formatNum(totalPending)}</div>
-           <div className="text-xs font-medium text-slate-500 mt-1">Pending</div>
+          <Icon icon="lucide:clock" className="absolute right-4 top-4 w-5 h-5 text-amber-200 group-hover:text-amber-300 transition-colors" />
+          <div className="text-xl font-bold text-amber-500">{formatNum(totalPending)}</div>
+          <div className="text-xs font-medium text-slate-500 mt-1">Pending</div>
         </div>
       </div>
 
@@ -135,68 +141,127 @@ const TabRentCollection = ({ bookings, property, setSelectedTenant }) => {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-x-auto custom-scrollbar">
-          <table className="w-full min-w-[900px] text-left border-collapse">
-            <thead className="bg-slate-50/80">
-              <tr>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Contact</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Due Date</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-center">History</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rentItems.map(item => (
-                <tr key={item.id} className="hover:bg-[#F8F9FA] transition-colors group cursor-pointer" onClick={() => setSelectedTenant({ ...item, name: item.name })}>
-                  <td className="py-4 px-5 align-middle">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center font-bold text-sm shrink-0">
-                        {item.initials}
-                      </div>
-                      <div>
-                        <p className="font-bold text-[#062F26] text-sm group-hover:text-brand-teal transition-colors">{item.name}</p>
-                        <p className="text-[11px] font-medium text-slate-400 mt-0.5">{item.room}</p>
-                      </div>
+        <div className="bg-white rounded-xl md:border border-slate-100 md:shadow-sm overflow-hidden relative">
+
+          {/* Mobile View (Cards) */}
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-slate-50/50">
+            {rentItems.map(item => (
+              <div key={item.id} className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm" onClick={() => setSelectedTenant({ ...item, name: item.name })}>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex gap-3 items-center">
+                    <div className="w-10 h-10 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center font-bold text-sm shrink-0">{item.initials}</div>
+                    <div>
+                      <h3 className="font-bold text-[#062F26] text-sm">{item.name}</h3>
+                      <p className="text-[11px] font-medium text-slate-400 mt-0.5">{item.room}</p>
                     </div>
-                  </td>
-                  <td className="py-4 px-5 align-middle">
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <button className="w-7 h-7 rounded bg-slate-50 border border-slate-100 text-slate-500 flex items-center justify-center hover:text-brand-teal hover:border-brand-teal/30 hover:bg-brand-teal/5 transition-all"><Icon icon="lucide:phone" className="w-3.5 h-3.5" /></button>
-                      <button className="w-7 h-7 rounded bg-slate-50 border border-slate-100 text-slate-500 flex items-center justify-center hover:text-brand-teal hover:border-brand-teal/30 hover:bg-brand-teal/5 transition-all"><Icon icon="lucide:mail" className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </td>
-                  <td className="py-4 px-5 align-middle">
-                    <span className="font-bold text-[#062F26] text-sm">₹{item.rentAmount.toLocaleString('en-IN')}</span>
-                  </td>
-                  <td className="py-4 px-5 align-middle">
+                  </div>
+                  <span className={`px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm ${getStatusStyle(item.status)}`}>
+                    {item.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Rent Amount</p>
+                    <p className="text-sm font-bold text-slate-700">₹{item.rentAmount.toLocaleString('en-IN')}</p>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Due Date</p>
                     <p className="text-sm font-bold text-slate-700">{item.dueDate}</p>
-                    {item.daysDue > 0 && <p className={`text-[11px] font-bold mt-0.5 tracking-wide ${item.status === 'Overdue' ? 'text-rose-500' : 'text-amber-500'}`}>{item.daysDue} days {item.status === 'Overdue' ? 'late' : 'remaining'}</p>}
-                  </td>
-                  <td className="py-4 px-5 align-middle">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ${getStatusStyle(item.status)}`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-5 align-middle text-center">
-                    <button onClick={(e) => e.stopPropagation()} className="w-7 h-7 mx-auto rounded text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-colors"><Icon icon="lucide:history" className="w-4 h-4" /></button>
-                  </td>
-                  <td className="py-4 px-5 align-middle text-right">
-                    <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
-                      {item.status !== 'Paid' && (
-                        <button className="px-3 py-1.5 rounded-lg bg-emerald-50/50 text-emerald-600 hover:bg-emerald-100 hover:border-emerald-300 border border-emerald-200 text-xs font-bold transition-all shadow-sm">
-                          Mark as Paid
-                        </button>
-                      )}
-                      <button className="text-slate-400 hover:text-brand-teal transition-colors p-1"><Icon icon="lucide:more-vertical" className="w-4 h-4" /></button>
-                    </div>
-                  </td>
+                    {item.daysDue > 0 && <p className={`text-[10px] font-bold mt-0.5 ${item.status === 'Overdue' ? 'text-rose-500' : 'text-amber-500'}`}>{item.daysDue} days {item.status === 'Overdue' ? 'late' : 'left'}</p>}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <a href={`tel:${item.phone}`} className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-colors shadow-sm"><Icon icon="lucide:phone" className="w-4 h-4" /></a>
+                    <a href={`https://wa.me/${item.whatsapp}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors shadow-sm"><Icon icon="lucide:message-circle" className="w-4 h-4" /></a>
+                    <a href={`mailto:${item.email}`} className="w-8 h-8 rounded-full bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white flex items-center justify-center transition-colors shadow-sm"><Icon icon="lucide:mail" className="w-4 h-4" /></a>
+                  </div>
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    {item.status !== 'Paid' && (
+                      <button className="px-3 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white text-xs font-bold transition-all border border-emerald-100 shadow-sm">
+                        Mark Paid
+                      </button>
+                    )}
+                    <button className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors border border-slate-100 shadow-sm"><Icon icon="lucide:history" className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View (Table) */}
+          <div className="hidden md:block overflow-x-auto custom-scrollbar w-full">
+            <table className="w-full min-w-[900px] text-left border-collapse">
+              <thead className="bg-slate-50/80">
+                <tr>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Contact</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Due Date</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-center">History</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {rentItems.map(item => (
+                  <tr key={item.id} className="hover:bg-[#F8F9FA] transition-colors group cursor-pointer" onClick={() => setSelectedTenant({ ...item, name: item.name })}>
+                    <td className="py-4 px-5 align-middle">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center font-bold text-sm shrink-0">
+                          {item.initials}
+                        </div>
+                        <div>
+                          <p className="font-bold text-[#062F26] text-sm group-hover:text-brand-teal transition-colors">{item.name}</p>
+                          <p className="text-[11px] font-medium text-slate-400 mt-0.5">{item.room}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 align-middle">
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <a href={`tel:${item.phone}`} className="w-7 h-7 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="Call">
+                          <Icon icon="lucide:phone" className="w-3.5 h-3.5" />
+                        </a>
+                        <a href={`https://wa.me/${item.whatsapp}`} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="WhatsApp">
+                          <Icon icon="lucide:message-circle" className="w-3.5 h-3.5" />
+                        </a>
+                        <a href={`mailto:${item.email}`} className="w-7 h-7 rounded-full bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="Email">
+                          <Icon icon="lucide:mail" className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 align-middle">
+                      <span className="font-bold text-[#062F26] text-sm">₹{item.rentAmount.toLocaleString('en-IN')}</span>
+                    </td>
+                    <td className="py-4 px-5 align-middle">
+                      <p className="text-sm font-bold text-slate-700">{item.dueDate}</p>
+                      {item.daysDue > 0 && <p className={`text-[11px] font-bold mt-0.5 tracking-wide ${item.status === 'Overdue' ? 'text-rose-500' : 'text-amber-500'}`}>{item.daysDue} days {item.status === 'Overdue' ? 'late' : 'remaining'}</p>}
+                    </td>
+                    <td className="py-4 px-5 align-middle">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ${getStatusStyle(item.status)}`}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-5 align-middle text-center">
+                      <button onClick={(e) => e.stopPropagation()} className="w-7 h-7 mx-auto rounded text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-colors"><Icon icon="lucide:history" className="w-4 h-4" /></button>
+                    </td>
+                    <td className="py-4 px-5 align-middle text-right">
+                      <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
+                        {item.status !== 'Paid' && (
+                          <button className="px-3 py-1.5 rounded-lg bg-emerald-50/50 text-emerald-600 hover:bg-emerald-100 hover:border-emerald-300 border border-emerald-200 text-xs font-bold transition-all shadow-sm">
+                            Mark as Paid
+                          </button>
+                        )}
+                        <button className="text-slate-400 hover:text-brand-teal transition-colors p-1"><Icon icon="lucide:more-vertical" className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

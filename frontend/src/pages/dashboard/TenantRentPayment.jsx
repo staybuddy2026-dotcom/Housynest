@@ -298,41 +298,46 @@ const TenantRentPayment = () => {
 
           {/* Pay Rent Details Card */}
           {pendingInvoice ? (
-            <div className="bg-[#FAFAF9] rounded-2xl p-5 border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
-                  <Icon icon="lucide:calendar-clock" className="w-6 h-6 text-emerald-600" />
+            <div className="bg-[#FAFAF9] rounded-2xl p-4 sm:p-5 border border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+              <div className="flex items-center justify-between w-full lg:w-auto border-b border-slate-200 pb-4 lg:border-0 lg:pb-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
+                    <Icon icon="lucide:calendar-clock" className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-slate-500 font-medium mb-0.5">Next Rent Due On</p>
+                    <p className="text-base font-extrabold text-[#062F26]">{formatDate(new Date(pendingInvoice.dueDate))}</p>
+                  </div>
                 </div>
+              </div>
+
+              <div className="hidden lg:block w-px h-10 bg-slate-200"></div>
+
+              <div className="flex flex-row lg:flex-row items-center justify-between w-full lg:w-auto gap-4">
                 <div>
-                  <p className="text-[11px] text-slate-500 font-medium mb-0.5">Next Rent Due On</p>
-                  <p className="text-base font-extrabold text-[#062F26]">{formatDate(new Date(pendingInvoice.dueDate))}</p>
+                  <p className="text-[11px] text-slate-500 font-medium mb-0.5">Rent Period</p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-800">{formatDate(new Date(pendingInvoice.billingPeriodStart))} - {formatDate(new Date(pendingInvoice.billingPeriodEnd))}</p>
                 </div>
-              </div>
 
-              <div className="hidden sm:block w-px h-10 bg-slate-200"></div>
+                <div className="hidden sm:block lg:hidden w-px h-10 bg-slate-200"></div>
+                <div className="hidden lg:block w-px h-10 bg-slate-200"></div>
 
-              <div>
-                <p className="text-[11px] text-slate-500 font-medium mb-0.5">Rent Period</p>
-                <p className="text-sm font-bold text-slate-800">{formatDate(new Date(pendingInvoice.billingPeriodStart))} - {formatDate(new Date(pendingInvoice.billingPeriodEnd))}</p>
-              </div>
-
-              <div className="hidden sm:block w-px h-10 bg-slate-200"></div>
-
-              <div className="flex items-center gap-2">
-                <div className="text-center">
-                  <p className="text-[10px] text-slate-500 font-medium mb-1">Due In</p>
-                  <div className="flex gap-1.5 text-center">
-                    <div className="bg-white px-2 py-1.5 rounded border border-slate-200 shadow-sm min-w-[36px]">
-                      <span className="block text-sm font-bold text-[#062F26]">{daysDue}</span>
-                      <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Days</span>
-                    </div>
-                    <div className="bg-white px-2 py-1.5 rounded border border-slate-200 shadow-sm min-w-[36px]">
-                      <span className="block text-sm font-bold text-[#062F26]">{hoursDue}</span>
-                      <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Hours</span>
-                    </div>
-                    <div className="bg-white px-2 py-1.5 rounded border border-slate-200 shadow-sm min-w-[36px]">
-                      <span className="block text-sm font-bold text-[#062F26]">{minsDue}</span>
-                      <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Mins</span>
+                <div className="flex items-center gap-2">
+                  <div className="text-right sm:text-center">
+                    <p className="text-[10px] text-slate-500 font-medium mb-1 text-center">Due In</p>
+                    <div className="flex gap-1 sm:gap-1.5 text-center">
+                      <div className="bg-white px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border border-slate-200 shadow-sm min-w-[32px] sm:min-w-[36px]">
+                        <span className="block text-xs sm:text-sm font-bold text-[#062F26]">{daysDue}</span>
+                        <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Days</span>
+                      </div>
+                      <div className="bg-white px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border border-slate-200 shadow-sm min-w-[32px] sm:min-w-[36px]">
+                        <span className="block text-xs sm:text-sm font-bold text-[#062F26]">{hoursDue}</span>
+                        <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Hours</span>
+                      </div>
+                      <div className="bg-white px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border border-slate-200 shadow-sm min-w-[32px] sm:min-w-[36px]">
+                        <span className="block text-xs sm:text-sm font-bold text-[#062F26]">{minsDue}</span>
+                        <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Mins</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -350,7 +355,7 @@ const TenantRentPayment = () => {
           {/* History Table */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_15px_rgba(0,0,0,0.02)] overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
                     <th className="p-4 font-bold">Month</th>
@@ -394,20 +399,20 @@ const TenantRentPayment = () => {
 
           {/* Set Auto Pay Card */}
           <div className="bg-white rounded-2xl border border-[#FCD34D] shadow-sm overflow-hidden mt-4">
-            <div className="bg-[#FFFDF0] px-5 py-3 border-b border-[#FDE68A] flex items-center justify-between">
+            <div className="bg-[#FFFDF0] px-4 sm:px-5 py-3 border-b border-[#FDE68A] flex items-center justify-between">
               <h3 className="font-bold text-[#B45309] text-sm flex items-center gap-2">
-                Set Auto Pay <span className="bg-[#FEF3C7] text-[#D97706] text-[10px] px-2 py-0.5 rounded-full border border-[#FDE68A]">(Recommended)</span>
+                Set Auto Pay <span className="bg-[#FEF3C7] text-[#D97706] text-[10px] px-2 py-0.5 rounded-full border border-[#FDE68A] hidden sm:inline-block">(Recommended)</span>
               </h3>
               <p className="text-[11px] font-semibold text-[#B45309] hidden sm:block">Save time, never miss a payment</p>
             </div>
-            <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative">
-              <div className="flex gap-4 items-start">
+            <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative">
+              <div className="flex gap-4 items-start w-full sm:w-auto">
                 <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center border border-emerald-100 shrink-0 mt-1">
                   <Icon icon="lucide:refresh-cw" className="w-5 h-5 text-[#0AA87D]" />
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-2.5 pr-12 sm:pr-0 flex-1">
                   <p className="text-sm font-bold text-slate-700">Enable auto pay to pay rent automatically on due date.</p>
-                  <ul className="text-xs font-semibold text-slate-500 space-y-1.5">
+                  <ul className="text-xs font-semibold text-slate-500 space-y-2 sm:space-y-1.5 flex flex-wrap sm:block gap-x-4 gap-y-1 sm:gap-0">
                     <li className="flex items-center gap-2"><Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" /> Never miss a payment</li>
                     <li className="flex items-center gap-2"><Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" /> Hassle free experience</li>
                     <li className="flex items-center gap-2"><Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" /> Cancel anytime</li>

@@ -2,6 +2,7 @@ import Property from '../models/Property.js';
 import User from '../models/User.js';
 import Newsletter from '../models/Newsletter.js';
 import Lead from '../models/Lead.js';
+import Booking from '../models/Booking.js';
 import { getIo } from '../socket.js';
 import { sendPropertyDeletionEmail } from './authController.js';
 import { sendGenericEmail } from '../utils/emailService.js';
@@ -298,10 +299,13 @@ export const getOwnerProperties = async (req, res) => {
   try {
     const properties = await Property.find({ owner: req.user._id }).lean();
 
-    // Dynamically calculate accurate leads count for perfect sync with DB
+    // Dynamically calculate accurate leads and bookings count for perfect sync with DB
     const propertiesWithCounts = await Promise.all(properties.map(async (prop) => {
-      const leadCount = await Lead.countDocuments({ propertyId: prop._id });
-      return { ...prop, leads: leadCount };
+      const [leadCount, bookingCount] = await Promise.all([
+        Lead.countDocuments({ propertyId: prop._id }),
+        Booking.countDocuments({ propertyId: prop._id, status: { $nin: ['Rejected', 'Cancelled'] } })
+      ]);
+      return { ...prop, leads: leadCount, bookings: bookingCount };
     }));
 
     res.json(propertiesWithCounts);

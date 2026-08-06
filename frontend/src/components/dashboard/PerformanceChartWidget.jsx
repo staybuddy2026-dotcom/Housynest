@@ -1,42 +1,61 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Chart from 'react-apexcharts';
 import { Icon } from '@iconify/react';
 
 const PerformanceChartWidget = () => {
   const [filter, setFilter] = useState('Monthly');
+  const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState({
+    labels: ['Today', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+    series: [
+      { name: 'Bookings (Vol)', type: 'column', data: [15, 25, 20, 10, 30, 25, 45, 40] },
+      { name: 'Leads (Vol)', type: 'column', data: [10, 15, 25, 15, 20, 30, 25, 20] },
+      { name: 'Bookings', type: 'line', data: [25, 45, 30, 35, 52, 48, 55, 60] },
+      { name: 'Leads', type: 'line', data: [28, 25, 42, 38, 45, 55, 58, 62] },
+      { name: 'Rent Collected', type: 'line', data: [25, 30, 45, 40, 58, 42, 65, 100] }
+    ]
+  });
+
   const [hiddenSeries, setHiddenSeries] = useState({
     Bookings: false,
     Leads: false,
     'Rent Collected': false
   });
 
-  const series = [
-    {
-      name: 'Bookings (Vol)',
-      type: 'column',
-      data: [15, 25, 20, 10, 30, 25, 45, 40]
-    },
-    {
-      name: 'Leads (Vol)',
-      type: 'column',
-      data: [10, 15, 25, 15, 20, 30, 25, 20]
-    },
-    {
-      name: 'Bookings',
-      type: 'line',
-      data: [25, 45, 30, 35, 52, 48, 55, 60]
-    },
-    {
-      name: 'Leads',
-      type: 'line',
-      data: [28, 25, 42, 38, 45, 55, 58, 62]
-    },
-    {
-      name: 'Rent Collected',
-      type: 'line',
-      data: [25, 30, 45, 40, 58, 42, 65, 100]
-    }
-  ];
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('accessToken');
+        const res = await fetch(`/api/users/owner/analytics/performance?filter=${filter}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setChartData({
+            labels: data.labels,
+            series: [
+              { name: 'Bookings (Vol)', type: 'column', data: data.series.bookings },
+              { name: 'Leads (Vol)', type: 'column', data: data.series.leads },
+              { name: 'Bookings', type: 'line', data: data.series.bookingsRevenue },
+              { name: 'Leads', type: 'line', data: data.series.leads },
+              { name: 'Rent Collected', type: 'line', data: data.series.rentCollected }
+            ]
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch analytics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAnalytics();
+  }, [filter]);
+
+  // We removed the static series array
 
   const options = {
     chart: {
@@ -62,9 +81,9 @@ const PerformanceChartWidget = () => {
       type: ['solid', 'solid', 'solid', 'solid', 'solid'],
       opacity: [0.4, 0.4, 1, 1, 1],
     },
-    labels: ['Today', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+    labels: chartData.labels,
     xaxis: {
-      categories: ['Today', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+      categories: chartData.labels,
       tickPlacement: 'on',
       labels: {
         style: { colors: '#94a3b8', fontWeight: 600 }
@@ -81,15 +100,44 @@ const PerformanceChartWidget = () => {
         }
       }
     },
-    yaxis: {
-      labels: {
-        style: { colors: '#94a3b8', fontWeight: 600 },
-        formatter: (value) => {
-          return `₹${value}k`;
-        },
-        offsetX: -10
+    yaxis: [
+      {
+        // 0: Bookings (Vol) -> Right Axis (Volume)
+        opposite: true,
+        show: true,
+        labels: {
+          style: { colors: '#94a3b8', fontWeight: 600 },
+          formatter: (value) => Math.round(value)
+        }
       },
-    },
+      {
+        // 1: Leads (Vol) -> Sync with Bookings (Vol)
+        show: false,
+        seriesName: 'Bookings (Vol)'
+      },
+      {
+        // 2: Bookings (Line) -> Sync with Rent Collected (Revenue)
+        show: false,
+        seriesName: 'Rent Collected'
+      },
+      {
+        // 3: Leads (Line) -> Sync with Bookings (Vol)
+        show: false,
+        seriesName: 'Bookings (Vol)'
+      },
+      {
+        // 4: Rent Collected -> Left Axis (Revenue)
+        show: true,
+        labels: {
+          style: { colors: '#0AA87D', fontWeight: 600 },
+          formatter: (value) => {
+            if (value >= 1000) return `₹${(value / 1000).toFixed(1)}k`;
+            return `₹${value}`;
+          }
+        },
+        seriesName: 'Rent Collected'
+      }
+    ],
     grid: {
       borderColor: '#f1f5f9',
       strokeDashArray: 4,
@@ -134,9 +182,14 @@ const PerformanceChartWidget = () => {
         fontFamily: 'inherit'
       },
       y: {
-        formatter: function (y) {
+        formatter: function (y, { seriesIndex }) {
           if (typeof y !== "undefined") {
-            return `₹${y}k`;
+            // Bookings Line (index 2) or Rent Collected (index 4) show ₹
+            if (seriesIndex === 4 || seriesIndex === 2) {
+              return `₹${y.toLocaleString()}`;
+            }
+            // Otherwise it's Bookings (Vol)/Leads (Vol)/Leads Count
+            return `${y}`;
           }
           return y;
         }
@@ -214,7 +267,19 @@ const PerformanceChartWidget = () => {
       </div>
 
       <div className="h-[320px] w-full relative z-10 mt-6">
-        <Chart options={options} series={series} type="line" height="100%" width="100%" />
+        {loading ? (
+          <div className="h-[350px] w-full flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-brand-teal/20 border-t-brand-teal rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <Chart
+            options={options}
+            series={chartData.series}
+            type="line"
+            height={350}
+            width="100%"
+          />
+        )}
       </div>
     </div>
   );

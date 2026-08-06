@@ -6,6 +6,7 @@ import Contract from '../models/Contract.js';
 import Visit from '../models/Visit.js';
 import Booking from '../models/Booking.js';
 import Property from '../models/Property.js';
+import RentInvoice from '../models/RentInvoice.js';
 import { sendBlockEmail, sendUnblockEmail } from './authController.js';
 
 export const getUserProfile = async (req, res) => {
@@ -359,5 +360,117 @@ export const getLawyerOwners = async (req, res) => {
     res.json(ownersWithStatus);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch owners', error: error.message });
+  }
+};
+
+export const getOwnerPerformanceAnalytics = async (req, res) => {
+  try {
+    const ownerId = req.user._id;
+    const { filter = 'Monthly' } = req.query; // 'Monthly', 'Weekly', 'Daily'
+
+    const now = new Date();
+    let startDate;
+    let labels = [];
+
+    // Helper to generate empty buckets
+    if (filter === 'Monthly') {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1); // Last 6 months
+      
+      for(let i = 0; i < 6; i++) {
+        let d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+        labels.push(d.toLocaleString('default', { month: 'short' }));
+      }
+    } else if (filter === 'Weekly') {
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - (7 * 5)); // Last 6 weeks
+      startDate.setHours(0,0,0,0);
+      
+      for(let i = 0; i < 6; i++) {
+        let d = new Date(startDate);
+        d.setDate(d.getDate() + (i * 7));
+        labels.push(`W${Math.ceil(d.getDate() / 7)} ${d.toLocaleString('default', { month: 'short' })}`);
+      }
+    } else { // Daily
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 6); // Last 7 days
+      startDate.setHours(0,0,0,0);
+      
+      for(let i = 0; i < 7; i++) {
+        let d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        labels.push(d.toLocaleString('default', { weekday: 'short' }));
+      }
+    }
+
+    // 1. Get Bookings (Counts)
+    const bookings = await Booking.find({
+      ownerId,
+      createdAt: { $gte: startDate },
+      status: { $in: ['Pending Payment', 'Confirmed', 'Reserved', 'Active', 'Completed'] }
+    });
+
+    // 2. Get Leads (Counts)
+    const leads = await Lead.find({
+      ownerId,
+      createdAt: { $gte: startDate }
+    });
+
+    // 3. Get Rent Invoices (Revenue)
+    const invoices = await RentInvoice.find({
+      ownerId,
+      status: 'Paid',
+      createdAt: { $gte: startDate }
+    });
+
+    // Bucket data
+    let bookingsData = new Array(labels.length).fill(0);
+    let bookingsRevenueData = new Array(labels.length).fill(0);
+    let leadsData = new Array(labels.length).fill(0);
+    let rentData = new Array(labels.length).fill(0);
+
+    const getBucketIndex = (dateObj) => {
+      if (filter === 'Monthly') {
+        return (dateObj.getFullYear() - startDate.getFullYear()) * 12 + (dateObj.getMonth() - startDate.getMonth());
+      } else if (filter === 'Weekly') {
+        return Math.floor((dateObj - startDate) / (1000 * 60 * 60 * 24 * 7));
+      } else {
+        return Math.floor((dateObj - startDate) / (1000 * 60 * 60 * 24));
+      }
+    };
+
+    bookings.forEach(b => {
+      let idx = getBucketIndex(new Date(b.createdAt));
+      if (idx >= 0 && idx < labels.length) {
+        bookingsData[idx]++;
+        if (b.paymentDetails && b.paymentDetails.amount) {
+          bookingsRevenueData[idx] += b.paymentDetails.amount;
+        }
+      }
+    });
+
+    leads.forEach(l => {
+      let idx = getBucketIndex(new Date(l.createdAt));
+      if (idx >= 0 && idx < labels.length) leadsData[idx]++;
+    });
+
+    invoices.forEach(i => {
+      let dateToUse = i.paidAt || i.createdAt; // fallback
+      let idx = getBucketIndex(new Date(dateToUse));
+      if (idx >= 0 && idx < labels.length) rentData[idx] += (i.amount || 0);
+    });
+
+    res.json({
+      labels,
+      series: {
+        bookings: bookingsData,
+        bookingsRevenue: bookingsRevenueData,
+        leads: leadsData,
+        rentCollected: rentData
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({ message: 'Failed to fetch analytics', error: error.message });
   }
 };

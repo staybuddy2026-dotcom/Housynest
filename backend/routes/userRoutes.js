@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserProfile, updateUserProfile, toggleSavedProperty, getAllUsers, getNotificationCounts, uploadProfilePic, changePassword, toggleBlockUser, getLawyerRequests, updateLawyerStatus, getLawyerOwners } from '../controllers/userController.js';
+import { getUserProfile, updateUserProfile, toggleSavedProperty, getAllUsers, getNotificationCounts, uploadProfilePic, changePassword, toggleBlockUser, getLawyerRequests, updateLawyerStatus, getLawyerOwners, getOwnerPerformanceAnalytics } from '../controllers/userController.js';
 import { protect } from '../middlewares/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
@@ -16,5 +16,6 @@ router.get('/admin/lawyer-requests', protect, getLawyerRequests);
 router.patch('/admin/lawyer-requests/:id/status', protect, updateLawyerStatus);
 router.put('/change-password', protect, changePassword);
 router.get('/lawyer/owners', protect, getLawyerOwners);
+router.get('/owner/analytics/performance', protect, getOwnerPerformanceAnalytics);
 
 export default router;

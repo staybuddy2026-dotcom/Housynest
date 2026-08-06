@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
-import { ReactLenis } from 'lenis/react';
 
 const OwnerBookingRequests = () => {
   const [activeTab, setActiveTab] = useState('All');
@@ -103,19 +102,6 @@ const OwnerBookingRequests = () => {
 
   const tabs = ['All', 'Pending Approval', 'Approved', 'Rejected'];
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'PENDING APPROVAL':
-        return 'bg-amber-100 text-amber-700';
-      case 'APPROVED':
-        return 'bg-blue-100 text-blue-700';
-      case 'REJECTED':
-        return 'bg-red-100 text-red-700';
-      default:
-        return 'bg-slate-100 text-slate-700';
-    }
-  };
-
   const filteredRequests = requests.filter(req => {
     let matchesTabLogic = true;
     if (activeTab === 'Pending Approval') matchesTabLogic = req.status === 'PENDING APPROVAL';
@@ -134,8 +120,17 @@ const OwnerBookingRequests = () => {
     { title: `₹ ${requests.reduce((acc, curr) => acc + parseInt(curr.token.replace(/\D/g, '') || 0), 0).toLocaleString()}`, subtitle: 'Total Request Revenue', desc: 'From Tokens', icon: 'lucide:indian-rupee', color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
   ];
 
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'APPROVED': return 'bg-emerald-50 text-emerald-600 border border-emerald-100';
+      case 'PENDING APPROVAL': return 'bg-amber-50 text-amber-600 border border-amber-100';
+      case 'REJECTED': return 'bg-rose-50 text-rose-600 border border-rose-100';
+      default: return 'bg-slate-50 text-slate-500 border border-slate-200';
+    }
+  };
+
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] min-h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto w-full relative">
+    <div className="flex flex-col h-auto md:h-[calc(100vh-100px)] min-h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto w-full relative pb-24 md:pb-0">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Booking Requests</h1>
@@ -143,11 +138,11 @@ const OwnerBookingRequests = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-2xl font-extrabold text-[#062F26]">{stat.title}</h3>
+          <div key={idx} className={`bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group ${idx === 4 ? 'col-span-2 md:col-span-1' : ''}`}>
+            <div className="flex justify-between items-start mb-3 sm:mb-4">
+              <h3 className="text-xl sm:text-2xl font-extrabold text-[#062F26]">{stat.title}</h3>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${stat.bgColor} ${stat.borderColor} group-hover:scale-110 transition-transform duration-300`}>
                 <Icon icon={stat.icon} className={`w-4 h-4 ${stat.color}`} />
               </div>
@@ -196,23 +191,98 @@ const OwnerBookingRequests = () => {
           ))}
         </div>
 
-        {/* Table */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white min-h-0">
-          <table className="w-full min-w-[1000px] text-left border-collapse">
-            <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
-              <tr>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Request</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Customer</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Property / Bed</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move - In Date</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent / Token</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredRequests.map((req) => (
+        {/* Responsive Content Container */}
+        <div className="flex-1 overflow-y-visible md:overflow-y-auto custom-scrollbar bg-white min-h-0 relative">
+          
+          {/* Mobile View (Cards) */}
+          <div className="md:hidden flex flex-col p-4 gap-4">
+            {filteredRequests.map(req => (
+              <div 
+                key={req.id}
+                className={`bg-white rounded-xl border p-4 shadow-sm transition-all ${selectedRequest?.id === req.id ? 'border-brand-teal bg-brand-teal/5' : 'border-slate-100 hover:border-slate-200 hover:shadow-md'}`}
+                onClick={() => setSelectedRequest(req)}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-bold text-[#062F26]">{req.customer}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">{req.id} • {req.date}</p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${getStatusStyle(req.status)}`}>
+                    {req.status}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Property</p>
+                    <p className="text-sm font-bold text-slate-700 truncate">{req.property}</p>
+                    <p className="text-xs font-medium text-slate-500 mt-0.5 truncate">{req.bed}</p>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Financials</p>
+                    <p className="text-sm font-bold text-slate-700">{req.rent}</p>
+                    <p className="text-xs font-bold text-[#25D366] mt-0.5">Token: {req.token}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100">
+                  <div className="flex flex-col">
+                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Move-in</p>
+                     <p className="text-sm font-bold text-slate-700">{req.moveIn}</p>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    {req.status === 'PENDING APPROVAL' ? (
+                      <>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleUpdateStatus(req._id, 'Rejected'); }}
+                          disabled={processingId === req._id}
+                          className="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 flex items-center justify-center transition-colors disabled:opacity-50"
+                        >
+                          <Icon icon="lucide:x" className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleUpdateStatus(req._id, 'Pending Payment'); }}
+                          disabled={processingId === req._id}
+                          className="px-4 h-9 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 flex items-center justify-center transition-colors shadow-sm disabled:bg-emerald-400"
+                        >
+                          {processingId === req._id ? <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" /> : 'Approve'}
+                        </button>
+                      </>
+                    ) : (
+                      <button className="px-3 h-9 rounded-lg bg-slate-50 text-slate-400 text-xs font-bold flex items-center justify-center border border-slate-100">
+                        Action Taken
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {filteredRequests.length === 0 && (
+              <div className="py-12 flex flex-col items-center justify-center text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+                <Icon icon="lucide:search-x" className="w-10 h-10 mb-3 text-slate-300" />
+                <p className="text-sm font-medium text-slate-500">No booking requests found.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop View (Table) */}
+          <div className="hidden md:block w-full">
+            <table className="w-full min-w-[1000px] text-left border-collapse">
+              <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
+                <tr>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Request</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Customer</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Property / Bed</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move - In Date</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent / Token</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredRequests.map((req) => (
                 <tr 
                   key={req.id} 
                   className={`hover:bg-[#F8F9FA] transition-colors group cursor-pointer ${selectedRequest?.id === req.id ? 'bg-[#F8F9FA]' : ''}`}
@@ -295,6 +365,7 @@ const OwnerBookingRequests = () => {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 
