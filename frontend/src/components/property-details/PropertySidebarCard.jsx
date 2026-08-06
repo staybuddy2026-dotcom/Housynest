@@ -13,7 +13,7 @@ const PropertySidebarCard = ({
   setIsShareModalOpen,
   setIsScheduleModalOpen,
   setIsReportModalOpen,
-  setIsInquiryModalOpen,
+  setIsLeadModalOpen,
   setIsBookNowModalOpen,
   toast
 }) => {
@@ -269,16 +269,16 @@ const PropertySidebarCard = ({
                 onClick={() => {
                   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
                   if (!isAuthenticated) {
-                    toast.error('Login is required to send an inquiry');
+                    toast.error('Login is required to send an lead');
                     navigate('/login');
                     return;
                   }
-                  setIsInquiryModalOpen(true);
+                  setIsLeadModalOpen(true);
                 }}
                 className="w-full cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition-colors flex justify-center items-center gap-2"
               >
                 <Icon icon="lucide:message-circle-question" className="w-4 h-4" />
-                Send Inquiry
+                Send Lead
               </button>
             </div>
 

@@ -8,7 +8,7 @@ We help PG owners in Ahmedabad & Gandhinagar get more tenants through our platfo
 
 Currently, we are offering FREE listing and promotion for early partners.
 
-Would you like to list your PG with us and get more inquiries?
+Would you like to list your PG with us and get more leads?
 
 Reply YES and we will get you started.`;
 

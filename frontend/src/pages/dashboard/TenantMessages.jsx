@@ -42,10 +42,10 @@ const TenantMessages = () => {
 
   const emitTyping = () => {
     if (socketRef.current && activeChatIdRef.current) {
-      socketRef.current.emit('typing', { inquiryId: activeChatIdRef.current, userId: user.id || user._id });
+      socketRef.current.emit('typing', { leadId: activeChatIdRef.current, userId: user.id || user._id });
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => {
-        socketRef.current.emit('stopTyping', { inquiryId: activeChatIdRef.current, userId: user.id || user._id });
+        socketRef.current.emit('stopTyping', { leadId: activeChatIdRef.current, userId: user.id || user._id });
       }, 2000);
     }
   };
@@ -67,12 +67,12 @@ const TenantMessages = () => {
 
     const handleNewNotification = (data) => {
       setConversations(prev => prev.map(conv => {
-        if (conv.id === data.inquiryId) {
+        if (conv.id === data.leadId) {
           return {
             ...conv,
             lastMessage: data.message.text,
             time: new Date(data.message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            unread: activeChatIdRef.current === data.inquiryId ? 0 : (conv.unread || 0) + 1
+            unread: activeChatIdRef.current === data.leadId ? 0 : (conv.unread || 0) + 1
           };
         }
         return conv;
@@ -114,10 +114,10 @@ const TenantMessages = () => {
   }, [user?.id, user?._id]);
 
   useEffect(() => {
-    const fetchInquiriesAsConversations = async () => {
+    const fetchLeadsAsConversations = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const res = await fetch('/api/inquiries/tenant', {
+        const res = await fetch('/api/leads/tenant', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -135,12 +135,12 @@ const TenantMessages = () => {
               avatarColor: 'bg-teal-100 text-teal-700',
               profilePic: inq.ownerId?.profilePic,
               property: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
-              propertyContext: `Subject: ${inq.subject || 'Inquiry'}`,
+              propertyContext: `Subject: ${inq.subject || 'Lead'}`,
               lastMessage: inq.message,
               time: new Date(inq.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               date: new Date(inq.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
               unread: inq.unreadCount || 0,
-              rawInquiry: inq
+              rawLead: inq
             };
           });
           setConversations(mappedConversations);
@@ -155,19 +155,19 @@ const TenantMessages = () => {
       }
     };
 
-    fetchInquiriesAsConversations();
+    fetchLeadsAsConversations();
 
-    const handleInquirySent = () => {
-      fetchInquiriesAsConversations();
+    const handleLeadSent = () => {
+      fetchLeadsAsConversations();
     };
     
     if (socketRef.current) {
-      socketRef.current.on('inquirySent', handleInquirySent);
+      socketRef.current.on('leadSent', handleLeadSent);
     }
 
     return () => {
       if (socketRef.current) {
-        socketRef.current.off('inquirySent', handleInquirySent);
+        socketRef.current.off('leadSent', handleLeadSent);
       }
     };
   }, []);
@@ -201,7 +201,7 @@ const TenantMessages = () => {
               avatarColor: 'bg-slate-100 text-slate-700',
               profilePic: user.profilePic,
               isMe: true,
-              text: activeChat.rawInquiry.message,
+              text: activeChat.rawLead.message,
               time: activeChat.time,
               date: activeChat.date
             };
@@ -272,7 +272,7 @@ const TenantMessages = () => {
         });
 
         setConversations(prev => prev.map(c => {
-          if (c.id === (message.inquiryId || activeChatId)) {
+          if (c.id === (message.leadId || activeChatId)) {
             return {
               ...c,
               lastMessage: message.text,
@@ -312,7 +312,7 @@ const TenantMessages = () => {
 
     if (socketRef.current && typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
-      socketRef.current.emit('stopTyping', { inquiryId: activeChatId, userId: user.id || user._id });
+      socketRef.current.emit('stopTyping', { leadId: activeChatId, userId: user.id || user._id });
     }
 
     try {

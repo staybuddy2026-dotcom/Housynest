@@ -1,5 +1,5 @@
 import Contract from '../models/Contract.js';
-import Inquiry from '../models/Inquiry.js';
+import Lead from '../models/Lead.js';
 import { getIo } from '../socket.js';
 import { sendGenericEmail } from '../utils/emailService.js';
 import { cloudinary } from '../config/cloudinary.js';
@@ -348,14 +348,14 @@ export const getBookedTenants = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    const inquiries = await Inquiry.find({ ownerId: contract.ownerId })
+    const leads = await Lead.find({ ownerId: contract.ownerId })
       .populate('senderId', 'fullName email')
       .sort({ createdAt: -1 });
 
     const uniqueTenants = [];
     const seenIds = new Set();
     
-    inquiries.forEach(inq => {
+    leads.forEach(inq => {
       if (inq.senderId && !seenIds.has(inq.senderId._id.toString())) {
         seenIds.add(inq.senderId._id.toString());
         uniqueTenants.push({

@@ -17,14 +17,14 @@ const RecentMessagesWidget = () => {
     const fetchMessages = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch('/api/inquiries/owner', {
+        const response = await fetch('/api/leads/owner', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.ok) {
-          const inquiries = await response.json();
-          // Take top 3 most recent inquiries
-          const recent = inquiries.slice(0, 3).map((inq, idx) => {
+          const leads = await response.json();
+          // Take top 3 most recent leads
+          const recent = leads.slice(0, 3).map((inq, idx) => {
             const date = new Date(inq.createdAt);
             const today = new Date();
             const yesterday = new Date(today);
@@ -46,7 +46,7 @@ const RecentMessagesWidget = () => {
               id: inq._id,
               name,
               time: timeStr,
-              message: inq.message || 'Sent an inquiry.',
+              message: inq.message || 'Sent an lead.',
               unread: !inq.isRead,
               initials,
               color: colors[idx % colors.length]

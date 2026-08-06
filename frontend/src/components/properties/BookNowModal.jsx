@@ -409,7 +409,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                 type="button"
                 onClick={() => {
                   onClose();
-                  navigate('/dashboard/inquiries');
+                  navigate('/dashboard/leads');
                 }}
                 className="flex-1 py-3.5 px-5 rounded-xl bg-[#062F26] text-white font-bold text-xs hover:bg-brand-teal transition-all shadow-md cursor-pointer"
               >

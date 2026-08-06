@@ -13,7 +13,7 @@ const defaultStats = [
     iconColor: 'text-brand-teal',
   },
   {
-    title: 'New Inquiries',
+    title: 'New Leads',
     value: '12',
     subtitle: 'In last 7 days',
     icon: 'lucide:message-circle-question',
@@ -92,14 +92,16 @@ const StatCards = ({ data: initialData }) => {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const [propertiesRes, inquiriesRes] = await Promise.all([
+      const [propertiesRes, leadsRes, bookingsRes] = await Promise.all([
         fetch('/api/properties/owner', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/inquiries/owner', { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch('/api/leads/owner', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/bookings/owner', { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
-      if (propertiesRes.ok && inquiriesRes.ok) {
+      if (propertiesRes.ok && leadsRes.ok && bookingsRes.ok) {
         const properties = await propertiesRes.json();
-        const inquiries = await inquiriesRes.json();
+        const leads = await leadsRes.json();
+        const bookings = await bookingsRes.json();
 
         const total = properties.length;
         const active = properties.filter(p => p.status === 'Active' || p.status === 'Approved').length;
@@ -115,41 +117,29 @@ const StatCards = ({ data: initialData }) => {
             subtitle: `${active} Active • ${inactive} Inactive`
           };
 
-          // New Inquiries
-          const newInquiries = inquiries.filter(inq => inq.status === 'New').length;
+          // New Leads
+          const newLeads = leads.filter(inq => inq.status === 'New').length;
           newStats[1] = {
             ...newStats[1],
-            value: newInquiries.toString(),
+            value: newLeads.toString(),
             subtitle: 'Awaiting your action'
           };
 
           // Total Bookings
-          const totalBookings = properties.reduce((acc, p) => acc + (p.bookings || 0), 0);
           newStats[2] = {
             ...newStats[2],
-            value: totalBookings.toString(),
+            value: bookings.length.toString(),
             subtitle: 'Across all listings'
           };
 
           // Total Tenants
-          let totalTenants = 0;
-          properties.forEach(p => {
-            if (p.floors) {
-              p.floors.forEach(f => {
-                if (f.rooms) {
-                  f.rooms.forEach(r => {
-                    if (r.beds) {
-                      totalTenants += r.beds.filter(b => b.status === 'Occupied').length;
-                    }
-                  });
-                }
-              });
-            }
-          });
+          const activeTenantsCount = bookings.filter(b => 
+            ['Confirmed', 'Reserved', 'Active', 'Completed'].includes(b.status)
+          ).length;
 
           newStats[3] = {
             ...newStats[3],
-            value: totalTenants.toString(),
+            value: activeTenantsCount.toString(),
             subtitle: 'Currently residing'
           };
 
@@ -185,7 +175,7 @@ const StatCards = ({ data: initialData }) => {
 
     // Removed newNotification socket listener since Unread Messages card is gone
 
-    const onNewInquiry = () => {
+    const onNewLead = () => {
       setStats(prev => {
         const newStats = [...prev];
         const currentVal = parseInt(newStats[1].value) || 0;
@@ -194,10 +184,10 @@ const StatCards = ({ data: initialData }) => {
       });
     };
 
-    socket.on('newInquiry', onNewInquiry);
+    socket.on('newLead', onNewLead);
 
     return () => {
-      socket.off('newInquiry', onNewInquiry);
+      socket.off('newLead', onNewLead);
     };
   }, [user, initialData]);
 

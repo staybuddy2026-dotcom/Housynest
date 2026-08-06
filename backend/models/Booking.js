@@ -21,6 +21,10 @@ const bookingSchema = new mongoose.Schema({
     enum: ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active', 'Rejected', 'Cancelled', 'Completed'],
     default: 'Pending Request'
   },
+  propertyType: {
+    type: String,
+    enum: ['PG', 'Tenant'],
+  },
   
   // Booking timing details
   moveInDate: {
@@ -49,14 +53,6 @@ const bookingSchema = new mongoose.Schema({
     relation: String,
     phone: String
   },
-
-  // KYC Docs (from the booking form)
-  kycDocs: [{
-    docType: String, // e.g., 'Aadhar Card', 'PAN Card'
-    docNumber: String,
-    url: String,
-    public_id: String
-  }],
 
   // Selected Room/Bed (For PGs)
   roomDetails: {

@@ -1,6 +1,6 @@
 import User from '../models/User.js';
 import Message from '../models/Message.js';
-import Inquiry from '../models/Inquiry.js';
+import Lead from '../models/Lead.js';
 import LawyerRequest from '../models/LawyerRequest.js';
 import Contract from '../models/Contract.js';
 import Visit from '../models/Visit.js';
@@ -111,23 +111,23 @@ export const getNotificationCounts = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // 1. Unread Messages (Where sender is not me and isRead is false, and I am part of the inquiry)
-    // First, find all inquiries where user is owner or sender
-    const userInquiries = await Inquiry.find({
+    // 1. Unread Messages (Where sender is not me and isRead is false, and I am part of the lead)
+    // First, find all leads where user is owner or sender
+    const userLeads = await Lead.find({
       $or: [{ ownerId: userId }, { senderId: userId }]
     }).select('_id');
 
-    const inquiryIds = userInquiries.map(inq => inq._id);
+    const leadIds = userLeads.map(inq => inq._id);
 
     const unreadMessagesCount = await Message.countDocuments({
-      inquiryId: { $in: inquiryIds },
+      leadId: { $in: leadIds },
       senderId: { $ne: userId },
       isRead: false
     });
 
-    // 2. New Inquiries (Requests)
-    // Depending on user role: if Owner, count inquiries where they are the ownerId and isRead is false
-    const newInquiriesCount = await Inquiry.countDocuments({
+    // 2. New Leads (Requests)
+    // Depending on user role: if Owner, count leads where they are the ownerId and isRead is false
+    const newLeadsCount = await Lead.countDocuments({
       ownerId: userId,
       isRead: false
     });
@@ -165,7 +165,7 @@ export const getNotificationCounts = async (req, res) => {
 
     res.json({
       unreadMessages: unreadMessagesCount,
-      newRequests: newInquiriesCount,
+      newRequests: newLeadsCount,
       newLawyerRequests: newLawyerRequestsCount,
       newVisits: newVisitsCount,
       newBookingRequests: newBookingRequestsCount,

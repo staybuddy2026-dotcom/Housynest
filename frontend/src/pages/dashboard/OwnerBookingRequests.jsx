@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import { ReactLenis } from 'lenis/react';
 
 const OwnerBookingRequests = () => {
   const [activeTab, setActiveTab] = useState('All');
@@ -8,6 +9,7 @@ const OwnerBookingRequests = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -80,7 +82,6 @@ const OwnerBookingRequests = () => {
   };
 
   const requests = bookings
-    .filter(b => getStatusMapping(b.status) === 'PENDING APPROVAL' || getStatusMapping(b.status) === 'REJECTED')
     .map(b => ({
       _id: b._id,
       id: b._id.substring(b._id.length - 8).toUpperCase(),
@@ -89,13 +90,15 @@ const OwnerBookingRequests = () => {
       phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
       email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
       property: b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
+      propertyType: b.propertyId?.propertyType || 'N/A',
       bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
       moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
       rent: `₹ ${b.paymentDetails?.amount?.toLocaleString() || 0}`,
       token: `₹ ${b.paymentDetails?.amount?.toLocaleString() || 0}`,
       paymentStatus: b.paymentDetails?.status || 'Pending',
       status: getStatusMapping(b.status),
-      originalStatus: b.status
+      originalStatus: b.status,
+      raw: b
     }));
 
   const tabs = ['All', 'Pending Approval', 'Approved', 'Rejected'];
@@ -132,7 +135,7 @@ const OwnerBookingRequests = () => {
   ];
 
   return (
-    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto w-full relative pb-24 lg:pb-8">
+    <div className="flex flex-col h-[calc(100vh-100px)] min-h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto w-full relative">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Booking Requests</h1>
@@ -158,7 +161,7 @@ const OwnerBookingRequests = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden min-h-0">
         
         {/* Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/30">
@@ -194,7 +197,7 @@ const OwnerBookingRequests = () => {
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-auto custom-scrollbar bg-white">
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white min-h-0">
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
               <tr>
@@ -210,7 +213,11 @@ const OwnerBookingRequests = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredRequests.map((req) => (
-                <tr key={req.id} className="hover:bg-[#F8F9FA] transition-colors group">
+                <tr 
+                  key={req.id} 
+                  className={`hover:bg-[#F8F9FA] transition-colors group cursor-pointer ${selectedRequest?.id === req.id ? 'bg-[#F8F9FA]' : ''}`}
+                  onClick={() => setSelectedRequest(req)}
+                >
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm group-hover:text-brand-teal transition-colors">{req.id}</div>
                     <div className="text-[11px] font-medium text-slate-400 mt-1">{req.date}</div>
@@ -224,6 +231,7 @@ const OwnerBookingRequests = () => {
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{req.property}</div>
+                    <div className="text-[11px] font-medium text-slate-500 mt-0.5">{req.propertyType}</div>
                     <div className="text-[11px] font-medium text-slate-400 mt-1">{req.bed}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
@@ -249,7 +257,7 @@ const OwnerBookingRequests = () => {
                       {req.status === 'PENDING APPROVAL' ? (
                         <div className="flex items-center gap-2">
                           <button 
-                            onClick={() => handleUpdateStatus(req._id, 'Pending Payment')}
+                            onClick={(e) => { e.stopPropagation(); handleUpdateStatus(req._id, 'Pending Payment'); }}
                             disabled={processingId === req._id}
                             className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center justify-center min-w-[72px]"
                           >
@@ -260,7 +268,7 @@ const OwnerBookingRequests = () => {
                             )}
                           </button>
                           <button 
-                            onClick={() => handleUpdateStatus(req._id, 'Rejected')}
+                            onClick={(e) => { e.stopPropagation(); handleUpdateStatus(req._id, 'Rejected'); }}
                             disabled={processingId === req._id}
                             className="px-3 py-1.5 bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-600 hover:text-red-600 disabled:text-slate-400 disabled:hover:bg-white disabled:hover:border-slate-200 text-xs font-bold rounded-lg transition-colors shadow-sm"
                           >
@@ -288,6 +296,109 @@ const OwnerBookingRequests = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Side Drawer Overlay */}
+      {selectedRequest && (
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 transition-opacity"
+          onClick={() => setSelectedRequest(null)}
+        />
+      )}
+
+      {/* Side Drawer */}
+      <div
+        className={`fixed top-0 right-0 h-full w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${
+          selectedRequest ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {selectedRequest && (
+          <>
+            {/* Drawer Header */}
+            <div className="p-6 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-brand-teal/10 text-brand-teal font-bold flex items-center justify-center text-lg shadow-inner">
+                  {selectedRequest.customer.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[#062F26]">{selectedRequest.customer}</h2>
+                  <p className="text-sm font-medium text-slate-500">{selectedRequest.property} - {selectedRequest.bed}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedRequest(null)}
+                className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+              >
+                <Icon icon="lucide:x" className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Drawer Content */}
+            <ReactLenis
+              className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50"
+              options={{ smoothTouch: true }}
+            >
+              <div className="p-6 space-y-6">
+                
+
+                {/* Personal Information */}
+                <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                  <h4 className="text-sm font-bold text-[#062F26] mb-4">Personal Information</h4>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                      <span className="text-sm font-medium text-slate-500">Phone</span>
+                      <span className="text-sm font-bold text-slate-800">{selectedRequest.raw.personalInfo?.mobileNumber || selectedRequest.raw.tenantId?.phone || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                      <span className="text-sm font-medium text-slate-500">Email</span>
+                      <span className="text-sm font-bold text-slate-800 truncate max-w-[200px]">{selectedRequest.raw.personalInfo?.email || selectedRequest.raw.tenantId?.email || 'N/A'}</span>
+                    </div>
+                    {selectedRequest.raw.personalInfo?.dob && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Date of Birth</span>
+                        <span className="text-sm font-bold text-slate-800">{new Date(selectedRequest.raw.personalInfo.dob).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {selectedRequest.raw.personalInfo?.gender && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Gender</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedRequest.raw.personalInfo.gender}</span>
+                      </div>
+                    )}
+                    {selectedRequest.raw.personalInfo?.institutionName && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Institution</span>
+                        <span className="text-sm font-bold text-slate-800 text-right">{selectedRequest.raw.personalInfo.institutionName}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Emergency Contact */}
+                {selectedRequest.raw.emergencyContact?.name && (
+                  <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                    <h4 className="text-sm font-bold text-[#062F26] mb-4">Emergency Contact</h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Name</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedRequest.raw.emergencyContact.name}</span>
+                      </div>
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Relationship</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedRequest.raw.emergencyContact.relation}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-slate-500">Phone</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedRequest.raw.emergencyContact.phone}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+              </div>
+            </ReactLenis>
+          </>
+        )}
       </div>
     </div>
   );

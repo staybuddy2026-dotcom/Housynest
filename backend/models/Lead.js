@@ -1,29 +1,63 @@
 import mongoose from 'mongoose';
 
-const leadSchema = new mongoose.Schema(
-  {
-    phone: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    ownerName: {
-      type: String,
-      default: '',
-    },
-    pgName: {
-      type: String,
-      default: '',
-    },
-    status: {
-      type: String,
-      enum: ['Interested', 'Not Interested', 'Listed'],
-      default: 'Interested',
-    },
+const leadSchema = new mongoose.Schema({
+  propertyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Property',
+    required: true
   },
-  { timestamps: true }
-);
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  senderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  moveInDate: {
+    type: Date,
+  },
+  occupants: {
+    type: String,
+  },
+  gender: {
+    type: String,
+  },
+  contactMethod: {
+    type: String,
+  },
+  subject: {
+    type: String,
+  },
+  floorName: {
+    type: String,
+  },
+  roomName: {
+    type: String,
+  },
+  bedName: {
+    type: String,
+  },
+  agreedToShareDetails: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  status: {
+    type: String,
+    enum: ['New', 'Contacted', 'In Discussion', 'Closed', 'Cancelled'],
+    default: 'New'
+  },
+  isRead: {
+    type: Boolean,
+    default: false
+  }
+}, { timestamps: true });
 
-const Lead = mongoose.model('Lead', leadSchema);
-
-export default Lead;
+export default mongoose.model('Lead', leadSchema);

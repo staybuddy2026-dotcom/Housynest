@@ -127,7 +127,7 @@ const Sidebar = ({ onClose, isMobile }) => {
     joinUserRoom(user.id || user._id);
 
     const onNewNotification = () => setCounts(prev => ({ ...prev, unreadMessages: prev.unreadMessages + 1 }));
-    const onNewInquiry = () => setCounts(prev => ({ ...prev, newRequests: prev.newRequests + 1 }));
+    const onNewLead = () => setCounts(prev => ({ ...prev, newRequests: prev.newRequests + 1 }));
     const onVisitUpdate = () => {
       // Re-fetch counts when visit updates (new visit or status change)
       const fetchCounts = async () => {
@@ -160,13 +160,13 @@ const Sidebar = ({ onClose, isMobile }) => {
     };
 
     socket.on('newNotification', onNewNotification);
-    socket.on('newInquiry', onNewInquiry);
+    socket.on('newLead', onNewLead);
     socket.on('visit_update', onVisitUpdate);
     socket.on('newBookingRequest', onNewBookingRequest);
 
     return () => {
       socket.off('newNotification', onNewNotification);
-      socket.off('newInquiry', onNewInquiry);
+      socket.off('newLead', onNewLead);
       socket.off('visit_update', onVisitUpdate);
       socket.off('newBookingRequest', onNewBookingRequest);
     };
@@ -198,11 +198,11 @@ const Sidebar = ({ onClose, isMobile }) => {
     { name: 'Dashboard', icon: 'lucide:home', path: '/owner/dashboard' },
     { name: 'My Listings', icon: 'lucide:building-2', path: '/owner/listings' },
     { name: 'Visits', icon: 'lucide:calendar-days', path: '/owner/visits', badge: counts.newVisits > 0 ? counts.newVisits : null },
-    { name: 'Inquiries', icon: 'lucide:message-circle-question', path: '/owner/inquiries', badge: counts.newRequests > 0 ? counts.newRequests : null },
+    { name: 'Leads', icon: 'lucide:message-circle-question', path: '/owner/leads', badge: counts.newRequests > 0 ? counts.newRequests : null },
     { name: 'Booking Requests', icon: 'lucide:calendar-search', path: '/owner/booking-requests', badge: counts.newBookingRequests > 0 ? counts.newBookingRequests : null },
     { name: 'Bookings', icon: 'lucide:book-open-check', path: '/owner/bookings', badge: counts.newBookings > 0 ? counts.newBookings : null },
     { name: 'Tenants', icon: 'lucide:users-2', path: '/owner/tenants' },
-    { name: 'Rent Collection', icon: 'lucide:wallet', path: '/owner/payments' },
+    { name: 'Rent Collection', icon: 'lucide:wallet', path: '/owner/rent-collection' },
     { name: 'Messages', icon: 'lucide:message-square', path: '/owner/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
     // { name: 'Lawyer Requests', icon: 'lucide:users', path: '/owner/lawyer-requests', badge: counts.newLawyerRequests > 0 ? counts.newLawyerRequests : null },
     // { name: 'Contracts', icon: 'lucide:file-text', path: '/owner/contracts', badge: counts.newOwnerContracts > 0 ? counts.newOwnerContracts : null },

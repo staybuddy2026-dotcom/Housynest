@@ -2,26 +2,26 @@ import { useState, useEffect } from 'react';
 import Chart from 'react-apexcharts';
 import { Icon } from '@iconify/react';
 
-const InquiriesChartWidget = () => {
+const LeadsChartWidget = () => {
   const [series, setSeries] = useState([0, 0, 0, 0]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchInquiries = async () => {
+    const fetchLeads = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch('/api/inquiries/owner', {
+        const response = await fetch('/api/leads/owner', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (response.ok) {
-          const inquiries = await response.json();
+          const leads = await response.json();
           let newCount = 0;
           let contactedCount = 0;
           let discussionCount = 0;
           let closedCount = 0;
 
-          inquiries.forEach(inq => {
+          leads.forEach(inq => {
             if (inq.status === 'New') newCount++;
             else if (inq.status === 'Contacted') contactedCount++;
             else if (inq.status === 'In Discussion') discussionCount++;
@@ -31,13 +31,13 @@ const InquiriesChartWidget = () => {
           setSeries([newCount, contactedCount, discussionCount, closedCount]);
         }
       } catch (error) {
-        console.error("Failed to fetch inquiries for chart:", error);
+        console.error("Failed to fetch leads for chart:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInquiries();
+    fetchLeads();
   }, []);
 
   const options = {
@@ -146,7 +146,7 @@ const InquiriesChartWidget = () => {
       theme: 'light',
       y: {
         formatter: function (value) {
-          return value + " inquiries"
+          return value + " leads"
         }
       }
     }
@@ -158,7 +158,7 @@ const InquiriesChartWidget = () => {
       <div className="absolute top-0 right-0 w-40 h-40 bg-linear-to-bl from-brand-teal/5 to-transparent rounded-full -mr-20 -mt-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       <div className="flex items-center justify-between mb-6 relative z-10">
-        <h3 className="text-lg font-bold text-[#062F26]">Inquiries Overview</h3>
+        <h3 className="text-lg font-bold text-[#062F26]">Leads Overview</h3>
         <div className="relative">
           <select className="appearance-none bg-slate-50 border border-slate-200 text-slate-600 hover:text-[#062F26] hover:border-brand-teal/50 transition-colors text-xs font-bold rounded-lg pl-3 pr-8 py-1.5 outline-none cursor-pointer focus:ring-2 focus:ring-brand-teal/20">
             <option>This Week</option>
@@ -173,7 +173,7 @@ const InquiriesChartWidget = () => {
         {loading ? (
           <Icon icon="lucide:loader-2" className="w-6 h-6 animate-spin text-brand-teal" />
         ) : series.every(v => v === 0) ? (
-          <p className="text-sm font-semibold text-slate-400">No inquiries yet</p>
+          <p className="text-sm font-semibold text-slate-400">No leads yet</p>
         ) : (
           <Chart options={options} series={series} type="donut" width="100%" height="100%" />
         )}
@@ -182,4 +182,4 @@ const InquiriesChartWidget = () => {
   );
 };
 
-export default InquiriesChartWidget;
+export default LeadsChartWidget;

@@ -39,25 +39,25 @@ export const initSocket = (server) => {
       socket.emit('onlineUsersList', onlineUsersList);
     });
 
-    // Join a specific chat room for an inquiry
-    socket.on('joinChatRoom', (inquiryId) => {
-      socket.join(`inquiry_${inquiryId}`);
-      console.log(`Socket ${socket.id} joined inquiry chat ${inquiryId}`);
+    // Join a specific chat room for an lead
+    socket.on('joinChatRoom', (leadId) => {
+      socket.join(`lead_${leadId}`);
+      console.log(`Socket ${socket.id} joined lead chat ${leadId}`);
     });
 
     // Leave a specific chat room
-    socket.on('leaveChatRoom', (inquiryId) => {
-      socket.leave(`inquiry_${inquiryId}`);
-      console.log(`Socket ${socket.id} left inquiry chat ${inquiryId}`);
+    socket.on('leaveChatRoom', (leadId) => {
+      socket.leave(`lead_${leadId}`);
+      console.log(`Socket ${socket.id} left lead chat ${leadId}`);
     });
 
     // Typing events
-    socket.on('typing', ({ inquiryId, userId }) => {
-      socket.to(`inquiry_${inquiryId}`).emit('userTyping', { inquiryId, userId });
+    socket.on('typing', ({ leadId, userId }) => {
+      socket.to(`lead_${leadId}`).emit('userTyping', { leadId, userId });
     });
 
-    socket.on('stopTyping', ({ inquiryId, userId }) => {
-      socket.to(`inquiry_${inquiryId}`).emit('userStopTyping', { inquiryId, userId });
+    socket.on('stopTyping', ({ leadId, userId }) => {
+      socket.to(`lead_${leadId}`).emit('userStopTyping', { leadId, userId });
     });
 
     socket.on('disconnect', () => {

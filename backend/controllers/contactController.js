@@ -8,7 +8,7 @@ export const sendContactMessage = async (req, res) => {
       return res.status(400).json({ message: 'Name, email, and message are required' });
     }
 
-    const emailSubject = `New Contact Form Submission: ${topic || 'General Inquiry'}`;
+    const emailSubject = `New Contact Form Submission: ${topic || 'General Lead'}`;
     const emailText = `
 You have received a new message from the contact form on HousyNest.
 

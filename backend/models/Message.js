@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
-  inquiryId: {
+  leadId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Inquiry',
+    ref: 'Lead',
     required: true
   },
   senderId: {

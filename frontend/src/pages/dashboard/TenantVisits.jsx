@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const TenantVisits = () => {
   const [visits, setVisits] = useState([]);
@@ -120,18 +121,15 @@ const TenantVisits = () => {
 
         {/* Property Filter */}
         <div className="w-full lg:w-48 relative shrink-0">
-          <Icon icon="lucide:building-2" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <select
-            value={filterProperty}
-            onChange={(e) => setFilterProperty(e.target.value)}
-            className="w-full pl-10 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 appearance-none focus:outline-none focus:border-[#0AA87D] transition-all"
-          >
-            <option value="">All Properties</option>
-            {uniqueProperties.map(prop => (
-              <option key={prop} value={prop}>{prop}</option>
-            ))}
-          </select>
-          <Icon icon="lucide:chevron-down" className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          <CustomDropdown
+            icon="lucide:building-2"
+            placeholder="All Properties"
+            value={filterProperty || "All Properties"}
+            options={["All Properties", ...uniqueProperties]}
+            onChange={(val) => setFilterProperty(val === "All Properties" ? "" : val)}
+            containerClassName="w-full"
+            buttonClassName="py-2 !border-slate-200 hover:!border-slate-300 bg-slate-50 text-slate-700 font-semibold"
+          />
         </div>
 
         {/* Date Filter */}
@@ -146,18 +144,15 @@ const TenantVisits = () => {
 
         {/* Time Filter */}
         <div className="w-full lg:w-40 relative shrink-0">
-          <Icon icon="lucide:clock" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <select
-            value={filterTime}
-            onChange={(e) => setFilterTime(e.target.value)}
-            className="w-full pl-10 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 appearance-none focus:outline-none focus:border-[#0AA87D] transition-all"
-          >
-            <option value="">All Times</option>
-            <option value="morning">Morning</option>
-            <option value="afternoon">Afternoon</option>
-            <option value="evening">Evening</option>
-          </select>
-          <Icon icon="lucide:chevron-down" className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          <CustomDropdown
+            icon="lucide:clock"
+            placeholder="All Times"
+            value={filterTime ? filterTime.charAt(0).toUpperCase() + filterTime.slice(1) : "All Times"}
+            options={["All Times", "Morning", "Afternoon", "Evening"]}
+            onChange={(val) => setFilterTime(val === "All Times" ? "" : val.toLowerCase())}
+            containerClassName="w-full"
+            buttonClassName="py-2 !border-slate-200 hover:!border-slate-300 bg-slate-50 text-slate-700 font-semibold"
+          />
         </div>
 
         {/* Clear Filters */}
@@ -195,12 +190,12 @@ const TenantVisits = () => {
             <table className="w-full text-left border-collapse">
               <thead className="bg-white sticky top-0 z-20">
                 <tr>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 w-2/5">Property Details</th>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Schedule</th>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Owner Name</th>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Contact</th>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Status</th>
-                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap border-b border-slate-100">Property Details</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap border-b border-slate-100">Schedule</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap border-b border-slate-100">Owner Name</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap border-b border-slate-100">Contact</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap border-b border-slate-100">Status</th>
+                  <th className="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap border-b border-slate-100 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

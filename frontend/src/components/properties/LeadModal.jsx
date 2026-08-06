@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import Lenis from 'lenis';
+import CustomDropdown from '../list-property/CustomDropdown';
 
 const SUBJECTS = [
   'Room Availability',
@@ -15,7 +16,7 @@ const SUBJECTS = [
   'Other'
 ];
 
-const InquiryModal = ({ isOpen, onClose, property }) => {
+const LeadModal = ({ isOpen, onClose, property }) => {
   const [formData, setFormData] = useState({
     moveInDate: '',
     occupants: '1',
@@ -23,7 +24,10 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
     contactMethod: 'WhatsApp',
     subject: '',
     message: '',
-    agreedToShareDetails: false
+    agreedToShareDetails: false,
+    floorName: '',
+    roomName: '',
+    bedName: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +71,7 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
       return;
     }
     if (!formData.message.trim()) {
-      toast.error('Please enter your inquiry message');
+      toast.error('Please enter your lead message');
       return;
     }
 
@@ -81,12 +85,12 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        toast.error('You must be logged in to send an inquiry');
+        toast.error('You must be logged in to send an lead');
         setIsLoading(false);
         return;
       }
 
-      const response = await fetch('/api/inquiries', {
+      const response = await fetch('/api/leads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,10 +106,10 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to send inquiry');
+        throw new Error(data.message || 'Failed to send lead');
       }
 
-      toast.success('Inquiry sent successfully to the owner!');
+      toast.success('Lead sent successfully to the owner!');
       setFormData({
         moveInDate: '',
         occupants: '1',
@@ -117,7 +121,7 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
       });
       onClose();
     } catch (error) {
-      console.error('Error sending inquiry:', error);
+      console.error('Error sending lead:', error);
       toast.error(error.message || 'Something went wrong');
     } finally {
       setIsLoading(false);
@@ -133,7 +137,7 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-2 text-[#062F26]">
             <Icon icon="lucide:message-circle-question" className="w-5 h-5" />
-            <h3 className="font-bold text-base">Send Inquiry</h3>
+            <h3 className="font-bold text-base">Send Lead</h3>
           </div>
           <button
             onClick={onClose}
@@ -146,7 +150,7 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
         {/* Content Wrapper */}
         <div ref={wrapperRef} className="overflow-hidden relative flex-1 min-h-0">
           <div ref={contentRef} className="p-6">
-            <form onSubmit={handleSubmit} id="inquiry-form" className="space-y-4">
+            <form onSubmit={handleSubmit} id="lead-form" className="space-y-4">
               <p className="text-sm text-slate-500 mb-2">
                 Have a question about <span className="font-bold text-[#062F26]">{property?.title || 'Property'}</span>? Send a direct message to the owner.
               </p>
@@ -174,21 +178,80 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
                     SUBJECT <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <select
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleChange}
-                      required
-                      className="w-full appearance-none bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-all"
-                    >
-                      <option value="" disabled>Select Subject</option>
-                      {SUBJECTS.map((sub, i) => (
-                        <option key={i} value={sub}>{sub}</option>
-                      ))}
-                    </select>
-                    <Icon icon="lucide:chevron-down" className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <CustomDropdown
+                      placeholder="Select Subject"
+                      value={formData.subject || "Select Subject"}
+                      options={["Select Subject", ...SUBJECTS]}
+                      onChange={(val) => setFormData(prev => ({ ...prev, subject: val === "Select Subject" ? "" : val }))}
+                      containerClassName="w-full"
+                      buttonClassName="py-2.5 !border-slate-200 bg-[#F8FAFC] text-slate-800"
+                    />
                   </div>
                 </div>
+
+                {/* PG Specific Fields */}
+                {property?.propertyType === 'PG' && property?.floors?.length > 0 && (
+                  <>
+                    {/* Floor */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                        SELECT FLOOR
+                      </label>
+                      <div className="relative">
+                        <CustomDropdown
+                          placeholder="Any Floor"
+                          value={formData.floorName || "Any Floor"}
+                          options={["Any Floor", ...property.floors.map(f => f.floorName)]}
+                          onChange={(val) => {
+                            setFormData(prev => ({ ...prev, floorName: val === "Any Floor" ? "" : val, roomName: '', bedName: '' }));
+                          }}
+                          containerClassName="w-full"
+                          buttonClassName="py-2.5 !border-slate-200 bg-[#F8FAFC] text-slate-800"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Room */}
+                    {formData.floorName && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                          SELECT ROOM
+                        </label>
+                        <div className="relative">
+                          <CustomDropdown
+                            placeholder="Any Room"
+                            value={formData.roomName || "Any Room"}
+                            options={["Any Room", ...(property.floors.find(f => f.floorName === formData.floorName)?.rooms.map(room => room.roomName) || [])]}
+                            onChange={(val) => {
+                              setFormData(prev => ({ ...prev, roomName: val === "Any Room" ? "" : val, bedName: '' }));
+                            }}
+                            containerClassName="w-full"
+                            buttonClassName="py-2.5 !border-slate-200 bg-[#F8FAFC] text-slate-800"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bed */}
+                    {formData.roomName && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                          SELECT BED
+                        </label>
+                        <div className="relative">
+                          <CustomDropdown
+                            placeholder="Any Bed"
+                            value={formData.bedName || "Any Bed"}
+                            options={["Any Bed", ...(property.floors.find(f => f.floorName === formData.floorName)?.rooms.find(r => r.roomName === formData.roomName)?.beds.map(bed => bed.bedName) || [])]}
+                            onChange={(val) => setFormData(prev => ({ ...prev, bedName: val === "Any Bed" ? "" : val }))}
+                            containerClassName="w-full"
+                            buttonClassName="py-2.5 !border-slate-200 bg-[#F8FAFC] text-slate-800"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
 
                 {/* Number of Occupants */}
                 <div>
@@ -196,17 +259,14 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
                     NUMBER OF OCCUPANTS
                   </label>
                   <div className="relative">
-                    <select
-                      name="occupants"
+                    <CustomDropdown
+                      placeholder="1"
                       value={formData.occupants}
-                      onChange={handleChange}
-                      className="w-full appearance-none bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-all"
-                    >
-                      {['1', '2', '3', '4+'].map(num => (
-                        <option key={num} value={num}>{num}</option>
-                      ))}
-                    </select>
-                    <Icon icon="lucide:chevron-down" className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      options={['1', '2', '3', '4+']}
+                      onChange={(val) => setFormData(prev => ({ ...prev, occupants: val }))}
+                      containerClassName="w-full"
+                      buttonClassName="py-2.5 !border-slate-200 bg-[#F8FAFC] text-slate-800"
+                    />
                   </div>
                 </div>
 
@@ -316,12 +376,12 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
           </button>
           <button
             type="submit"
-            form="inquiry-form"
+            form="lead-form"
             disabled={isLoading || !formData.agreedToShareDetails}
-            className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-[#537267] hover:bg-[#435e54] transition-colors shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-[#062F26] hover:bg-[#062F26] transition-colors shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? <Icon icon="eos-icons:loading" className="w-4 h-4" /> : <Icon icon="lucide:send" className="w-4 h-4" />}
-            Send Inquiry
+            Send Lead
           </button>
         </div>
       </div>
@@ -329,4 +389,4 @@ const InquiryModal = ({ isOpen, onClose, property }) => {
   );
 };
 
-export default InquiryModal;
+export default LeadModal;

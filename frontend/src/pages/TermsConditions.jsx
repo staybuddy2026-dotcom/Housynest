@@ -60,7 +60,7 @@ const termsData = [
         <p className="mb-4">All users agree to:</p>
         <ul className="list-disc pl-5 mb-4 space-y-2">
           <li>Provide accurate and truthful information on the platform.</li>
-          <li>Not post false, misleading, or fraudulent listings or inquiries.</li>
+          <li>Not post false, misleading, or fraudulent listings or leads.</li>
           <li>Not use the platform to harass, threaten, or harm other users.</li>
           <li>Not attempt to scrape, copy, or extract data from the platform without written permission.</li>
           <li>Not impersonate any person or misrepresent their identity or affiliation.</li>

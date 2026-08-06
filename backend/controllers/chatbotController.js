@@ -54,9 +54,9 @@ export const handleChat = async (req, res) => {
     if (currentUser) {
       roleContext = `User Role: ${currentUser.role}. User Name: ${currentUser.fullName}.`;
       if (currentUser.role === 'tenant') {
-        roleContext += " Can manage their bookings, inquiries, payments, agreements, and schedule visits.";
+        roleContext += " Can manage their bookings, leads, payments, agreements, and schedule visits.";
       } else if (currentUser.role === 'owner') {
-        roleContext += " Can manage their properties, inquiries, analytics, verifications, and earnings.";
+        roleContext += " Can manage their properties, leads, analytics, verifications, and earnings.";
       } else if (currentUser.role === 'admin') {
         roleContext += " Can manage property approvals, users, statistics, revenue, and reports.";
       }

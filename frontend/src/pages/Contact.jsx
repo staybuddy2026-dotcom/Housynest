@@ -218,7 +218,7 @@ const Contact = () => {
                     <option value="rent">I want to rent a property</option>
                     <option value="list">I want to list my property</option>
                     <option value="support">General Support</option>
-                    <option value="other">Other Inquiry</option>
+                    <option value="other">Other Lead</option>
                   </select>
                   <label htmlFor="contactTopic" className="absolute left-10 px-1 transition-all duration-300 pointer-events-none z-10 text-slate-400 peer-focus:text-[#062F26] top-0 -translate-y-1/2 text-xs bg-white rounded-sm">
                     How can we help you?

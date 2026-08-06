@@ -1,11 +1,13 @@
 import express from 'express';
-import { protect, admin } from '../middlewares/authMiddleware.js';
-import { createLead, getLeads, updateLeadStatus } from '../controllers/leadController.js';
+import { createLead, getOwnerLeads, getTenantLeads, markLeadAsRead, updateLeadStatus } from '../controllers/leadController.js';
+import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/', protect, admin, createLead);
-router.get('/', protect, admin, getLeads);
-router.patch('/:id/status', protect, admin, updateLeadStatus);
+router.post('/', protect, createLead);
+router.get('/owner', protect, getOwnerLeads);
+router.get('/tenant', protect, getTenantLeads);
+router.put('/:id/read', protect, markLeadAsRead);
+router.put('/:id/status', protect, updateLeadStatus);
 
 export default router;

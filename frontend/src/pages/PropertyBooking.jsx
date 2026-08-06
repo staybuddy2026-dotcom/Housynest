@@ -295,7 +295,6 @@ const PropertyBooking = () => {
           phone: emergencyPhone,
           relation: emergencyRelationship
         },
-        kycDocs: [], // To be added when document upload is wired to backend
         roomDetails: {
           roomName: selectedRoom?.roomName || null,
           sharingType: selectedRoom?.sharingType || null,

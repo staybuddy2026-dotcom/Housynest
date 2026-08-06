@@ -237,7 +237,7 @@ const OwnerListings = () => {
             const image = (rawListing.images && rawListing.images.length > 0) ? rawListing.images[0].url : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800';
             const addedOn = rawListing.createdAt ? new Date(rawListing.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Unknown';
             const views = rawListing.views || 0;
-            const inquiries = rawListing.inquiries || 0;
+            const leads = rawListing.leads || 0;
             const bookings = rawListing.bookings || 0;
             const status = rawListing.status || 'Pending';
 
@@ -314,8 +314,8 @@ const OwnerListings = () => {
                       </div>
                       <div className="flex-1 flex items-center justify-center gap-1 border-r border-slate-200">
                         <Icon icon="lucide:message-square" className="w-3.5 h-3.5 text-orange-500" />
-                        <span className="text-xs font-bold text-slate-700">{inquiries}</span>
-                        <span className="text-[9px] font-semibold text-slate-400 uppercase mt-0.5">Inquiries</span>
+                        <span className="text-xs font-bold text-slate-700">{leads}</span>
+                        <span className="text-[9px] font-semibold text-slate-400 uppercase mt-0.5">Leads</span>
                       </div>
                       <div className="flex-1 flex items-center justify-center gap-1">
                         <Icon icon="lucide:calendar-check" className="w-3.5 h-3.5 text-brand-teal" />
@@ -416,9 +416,9 @@ const OwnerListings = () => {
                       <Icon icon="lucide:eye" className="w-3.5 h-3.5 text-blue-500" />
                       <span className="text-xs font-bold text-blue-700">{views}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-orange-50/50 border border-orange-100 rounded-lg" title="Inquiries">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-orange-50/50 border border-orange-100 rounded-lg" title="Leads">
                       <Icon icon="lucide:message-square" className="w-3.5 h-3.5 text-orange-500" />
-                      <span className="text-xs font-bold text-orange-700">{inquiries}</span>
+                      <span className="text-xs font-bold text-orange-700">{leads}</span>
                     </div>
                     <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg" title="Bookings">
                       <Icon icon="lucide:calendar-check" className="w-3.5 h-3.5 text-brand-teal" />

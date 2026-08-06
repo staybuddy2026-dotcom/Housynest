@@ -43,10 +43,10 @@ const BookingSuccessCard = ({
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
           type="button"
-          onClick={() => navigate('/tenant/requests')}
+          onClick={() => navigate('/tenant/bookings')}
           className="flex-1 py-3.5 px-5 rounded-xl bg-[#062F26] hover:bg-[#0AA87D] text-[#FAF6F0] font-bold text-xs transition-colors shadow-md cursor-pointer"
         >
-          Go to Stay Requests Dashboard
+          Go to My Bookings
         </button>
         <button
           type="button"

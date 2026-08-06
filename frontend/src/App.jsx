@@ -19,13 +19,14 @@ import DashboardLayout from './layouts/DashboardLayout';
 import OwnerDashboard from './pages/dashboard/OwnerDashboard';
 import OwnerListings from './pages/dashboard/OwnerListings';
 import OwnerVisits from './pages/dashboard/OwnerVisits';
-import OwnerInquiries from './pages/dashboard/OwnerInquiries';
+import OwnerLeads from './pages/dashboard/OwnerLeads';
 import OwnerMessages from './pages/dashboard/OwnerMessages';
 import OwnerLawyerRequests from './pages/dashboard/OwnerLawyerRequests';
 import OwnerContracts from './pages/dashboard/OwnerContracts';
 import OwnerProfile from './pages/dashboard/OwnerProfile';
 import OwnerReports from './pages/dashboard/OwnerReports';
 import OwnerPayments from './pages/dashboard/OwnerPayments';
+import OwnerRentTracking from './pages/dashboard/OwnerRentTracking';
 import OwnerBookings from './pages/dashboard/OwnerBookings';
 import OwnerBookingRequests from './pages/dashboard/OwnerBookingRequests';
 import OwnerTenants from './pages/dashboard/OwnerTenants';
@@ -93,8 +94,8 @@ function App() {
       window.dispatchEvent(new CustomEvent('globalNewNotification', { detail: data }));
     });
 
-    socket.on('newInquiry', (data) => {
-      toast.success(`New Inquiry received!`, {
+    socket.on('newLead', (data) => {
+      toast.success(`New Lead received!`, {
         duration: 3000,
       });
       window.dispatchEvent(new CustomEvent('globalNewNotification', { detail: data }));
@@ -154,7 +155,7 @@ function App() {
 
     return () => {
       socket.off('newNotification');
-      socket.off('newInquiry');
+      socket.off('newLead');
       socket.off('newLawyerRequest');
       socket.off('lawyerRequestUpdated');
       socket.off('newOwnerContract');
@@ -237,7 +238,7 @@ const router = createBrowserRouter(
             <Route path="dashboard" element={<OwnerDashboard />} />
             <Route path="listings" element={<OwnerListings />} />
             <Route path="visits" element={<OwnerVisits />} />
-            <Route path="inquiries" element={<OwnerInquiries />} />
+            <Route path="leads" element={<OwnerLeads />} />
             <Route path="messages" element={<OwnerMessages />} />
             <Route path="lawyer-requests" element={<OwnerLawyerRequests />} />
             <Route path="contracts" element={<OwnerContracts />} />
@@ -247,6 +248,7 @@ const router = createBrowserRouter(
             <Route path="profile" element={<OwnerProfile />} />
             <Route path="reports" element={<OwnerReports />} />
             <Route path="payments" element={<OwnerPayments />} />
+            <Route path="rent-collection" element={<OwnerRentTracking />} />
             {/* Additional owner routes can go here */}
           </Route>
 

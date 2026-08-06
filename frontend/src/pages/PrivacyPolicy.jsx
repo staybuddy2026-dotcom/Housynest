@@ -43,7 +43,7 @@ const privacyData = [
         <ul className="list-disc pl-5 mb-4 space-y-2">
           <li>Create and manage your account.</li>
           <li>Display property listings and connect tenants with landlords.</li>
-          <li>Send you notifications about inquiries, messages, and account activity.</li>
+          <li>Send you notifications about leads, messages, and account activity.</li>
           <li>Improve and personalize your experience on the platform.</li>
           <li>Respond to your support requests and resolve disputes.</li>
           <li>Send service-related communications (e.g., account verification, password reset).</li>

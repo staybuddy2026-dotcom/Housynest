@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import { ReactLenis } from 'lenis/react';
 
 const OwnerBookings = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -46,7 +48,7 @@ const OwnerBookings = () => {
       phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
       email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
       property: b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
-      propertyType: b.propertyId?.propertyCategory || 'N/A',
+      propertyType: b.propertyId?.propertyType || 'N/A',
       bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
       moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
       movedOut: b.expectedMoveOutDate ? new Date(b.expectedMoveOutDate).toISOString().split('T')[0] : null,
@@ -102,6 +104,7 @@ const OwnerBookings = () => {
       })(),
       status: getStatusMapping(b.status),
       source: b.propertyId?.bookingType === 'Direct Booking' ? 'DIRECT' : 'REQUEST',
+      raw: b,
     }));
 
   const stats = [
@@ -197,12 +200,16 @@ const OwnerBookings = () => {
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move - In Date</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment Info</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Source</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredBookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-[#F8F9FA] transition-colors group cursor-pointer">
+                <tr 
+                  key={booking.id}
+                  className={`hover:bg-[#F8F9FA] transition-colors group cursor-pointer ${selectedBooking?.id === booking.id ? 'bg-[#F8F9FA]' : ''}`}
+                  onClick={() => setSelectedBooking(booking)}
+                >
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm group-hover:text-brand-teal transition-colors">{booking.id}</div>
                     <div className="text-[11px] font-medium text-slate-400 mt-1">{booking.date}</div>
@@ -234,9 +241,15 @@ const OwnerBookings = () => {
                       {booking.status}
                     </span>
                   </td>
-                  <td className="py-4 px-5 align-middle">
-                    <div className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase tracking-wider w-max border border-slate-200">
-                      {booking.source}
+                  <td className="py-4 px-5 align-middle text-right">
+                    <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
+                      <button 
+                        onClick={() => setSelectedBooking(booking)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-brand-teal transition-colors"
+                        title="View Details"
+                      >
+                        <Icon icon="lucide:eye" className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -255,6 +268,109 @@ const OwnerBookings = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Side Drawer Overlay */}
+      {selectedBooking && (
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 transition-opacity"
+          onClick={() => setSelectedBooking(null)}
+        />
+      )}
+
+      {/* Side Drawer */}
+      <div
+        className={`fixed top-0 right-0 h-full w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${
+          selectedBooking ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {selectedBooking && (
+          <>
+            {/* Drawer Header */}
+            <div className="p-6 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-brand-teal/10 text-brand-teal font-bold flex items-center justify-center text-lg shadow-inner">
+                  {selectedBooking.tenant.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[#062F26]">{selectedBooking.tenant}</h2>
+                  <p className="text-sm font-medium text-slate-500">{selectedBooking.property} - {selectedBooking.bed}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+              >
+                <Icon icon="lucide:x" className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Drawer Content */}
+            <ReactLenis
+              className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50"
+              options={{ smoothTouch: true }}
+            >
+              <div className="p-6 space-y-6">
+                
+
+                {/* Personal Information */}
+                <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                  <h4 className="text-sm font-bold text-[#062F26] mb-4">Personal Information</h4>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                      <span className="text-sm font-medium text-slate-500">Phone</span>
+                      <span className="text-sm font-bold text-slate-800">{selectedBooking.raw.personalInfo?.mobileNumber || selectedBooking.raw.tenantId?.phone || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                      <span className="text-sm font-medium text-slate-500">Email</span>
+                      <span className="text-sm font-bold text-slate-800 truncate max-w-[200px]">{selectedBooking.raw.personalInfo?.email || selectedBooking.raw.tenantId?.email || 'N/A'}</span>
+                    </div>
+                    {selectedBooking.raw.personalInfo?.dob && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Date of Birth</span>
+                        <span className="text-sm font-bold text-slate-800">{new Date(selectedBooking.raw.personalInfo.dob).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {selectedBooking.raw.personalInfo?.gender && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Gender</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedBooking.raw.personalInfo.gender}</span>
+                      </div>
+                    )}
+                    {selectedBooking.raw.personalInfo?.institutionName && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Institution</span>
+                        <span className="text-sm font-bold text-slate-800 text-right">{selectedBooking.raw.personalInfo.institutionName}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Emergency Contact */}
+                {selectedBooking.raw.emergencyContact?.name && (
+                  <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                    <h4 className="text-sm font-bold text-[#062F26] mb-4">Emergency Contact</h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Name</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedBooking.raw.emergencyContact.name}</span>
+                      </div>
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Relationship</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedBooking.raw.emergencyContact.relation}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-slate-500">Phone</span>
+                        <span className="text-sm font-bold text-slate-800">{selectedBooking.raw.emergencyContact.phone}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+              </div>
+            </ReactLenis>
+          </>
+        )}
       </div>
     </div>
   );

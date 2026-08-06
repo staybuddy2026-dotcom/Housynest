@@ -4,6 +4,49 @@ import User from '../models/User.js';
 import { sendGenericEmail } from '../utils/emailService.js';
 import { getIo } from '../socket.js';
 
+const updateBedStatus = async (propertyId, roomName, bedName) => {
+  if (!roomName || !bedName) return;
+  const property = await Property.findById(propertyId);
+  if (!property || property.propertyType !== 'PG') return;
+
+  // Find all active/pending bookings for this property and bed
+  const activeBookings = await Booking.find({
+    propertyId,
+    'roomDetails.roomName': roomName,
+    'roomDetails.bedName': bedName,
+    status: { $in: ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active'] }
+  });
+
+  let bedStatus = 'Vacant';
+  const hasOccupied = activeBookings.some(b => ['Confirmed', 'Active'].includes(b.status));
+  const hasReserved = activeBookings.some(b => ['Pending Request', 'Pending Payment', 'Reserved'].includes(b.status));
+
+  if (hasOccupied) {
+    bedStatus = 'Occupied';
+  } else if (hasReserved) {
+    bedStatus = 'Reserved';
+  }
+
+  let bedFound = false;
+  for (const floor of property.floors) {
+    if (bedFound) break;
+    const room = floor.rooms.find(r => r.roomName === roomName);
+    if (room) {
+      const bed = room.beds.find(b => b.bedName === bedName);
+      if (bed) {
+        if (bed.status !== 'Maintenance') {
+          bed.status = bedStatus;
+        }
+        bedFound = true;
+      }
+    }
+  }
+
+  if (bedFound) {
+    await property.save();
+  }
+};
+
 // @desc    Create a new booking
 // @route   POST /api/bookings
 // @access  Private (Tenant)
@@ -15,7 +58,6 @@ export const createBooking = async (req, res) => {
       expectedMoveOutDate,
       personalInfo,
       emergencyContact,
-      kycDocs,
       roomDetails,
       paymentDetails
     } = req.body;
@@ -35,17 +77,22 @@ export const createBooking = async (req, res) => {
       propertyId,
       ownerId: property.owner,
       tenantId: req.user._id,
+      propertyType: property.propertyType,
       status,
       moveInDate,
       expectedMoveOutDate,
       personalInfo,
       emergencyContact,
-      kycDocs,
       roomDetails,
       paymentDetails
     });
 
     const savedBooking = await booking.save();
+
+    // Update bed status based on the initial booking status
+    if (savedBooking.roomDetails?.roomName && savedBooking.roomDetails?.bedName) {
+      await updateBedStatus(savedBooking.propertyId, savedBooking.roomDetails.roomName, savedBooking.roomDetails.bedName);
+    }
 
     if (status === 'Pending Request') {
       try {
@@ -124,11 +171,12 @@ export const updateBookingStatus = async (req, res) => {
 
     const previousStatus = booking.status;
     booking.status = status;
-    
-    // Additional logic if needed (e.g., mark bed as Occupied if Confirmed)
-    // Skipping complex room availability logic for now, keeping it simple.
-
     const updatedBooking = await booking.save();
+
+    // Update bed status when booking status changes
+    if (updatedBooking.roomDetails?.roomName && updatedBooking.roomDetails?.bedName) {
+      await updateBedStatus(updatedBooking.propertyId, updatedBooking.roomDetails.roomName, updatedBooking.roomDetails.bedName);
+    }
 
     // Send email if it's being approved for payment
     if (status === 'Pending Payment' && previousStatus !== 'Pending Payment') {
@@ -191,6 +239,11 @@ export const processPayment = async (req, res) => {
 
     const updatedBooking = await booking.save();
 
+    // Update bed status when booking status changes via payment
+    if (updatedBooking.roomDetails?.roomName && updatedBooking.roomDetails?.bedName) {
+      await updateBedStatus(updatedBooking.propertyId, updatedBooking.roomDetails.roomName, updatedBooking.roomDetails.bedName);
+    }
+
     // Send confirmation email
     const tenant = await User.findById(booking.tenantId);
     const property = await Property.findById(booking.propertyId);
@@ -251,6 +304,11 @@ export const payBalance = async (req, res) => {
     booking.status = 'Confirmed';
 
     const updatedBooking = await booking.save();
+
+    // Update bed status when booking status changes via balance payment
+    if (updatedBooking.roomDetails?.roomName && updatedBooking.roomDetails?.bedName) {
+      await updateBedStatus(updatedBooking.propertyId, updatedBooking.roomDetails.roomName, updatedBooking.roomDetails.bedName);
+    }
 
     // Send confirmation email
     const tenant = await User.findById(booking.tenantId);

@@ -11,7 +11,7 @@ import PropertyListingCard from '../components/properties/PropertyListingCard';
 import ScheduleVisitModal from '../components/properties/ScheduleVisitModal';
 import ShareModal from '../components/properties/ShareModal';
 import ReportListingModal from '../components/properties/ReportListingModal';
-import InquiryModal from '../components/properties/InquiryModal';
+import LeadModal from '../components/properties/LeadModal';
 import BookNowModal from '../components/properties/BookNowModal';
 import { MOCK_PROPERTIES } from '../data/mockProperties';
 
@@ -46,7 +46,7 @@ const PropertyDetails = () => {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isBookNowModalOpen, setIsBookNowModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
@@ -445,7 +445,7 @@ const PropertyDetails = () => {
             setIsShareModalOpen={setIsShareModalOpen}
             setIsScheduleModalOpen={setIsScheduleModalOpen}
             setIsReportModalOpen={setIsReportModalOpen}
-            setIsInquiryModalOpen={setIsInquiryModalOpen}
+            setIsLeadModalOpen={setIsLeadModalOpen}
             setIsBookNowModalOpen={setIsBookNowModalOpen}
             toast={toast}
           />
@@ -613,10 +613,10 @@ const PropertyDetails = () => {
         propertyId={property?.id}
       />
 
-      {/* Inquiry Modal */}
-      <InquiryModal
-        isOpen={isInquiryModalOpen}
-        onClose={() => setIsInquiryModalOpen(false)}
+      {/* Lead Modal */}
+      <LeadModal
+        isOpen={isLeadModalOpen}
+        onClose={() => setIsLeadModalOpen(false)}
         property={property}
       />
 

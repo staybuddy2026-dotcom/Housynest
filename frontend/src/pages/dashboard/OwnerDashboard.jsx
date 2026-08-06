@@ -1,9 +1,9 @@
 import StatCards from '../../components/dashboard/StatCards';
 import MyListingsWidget from '../../components/dashboard/MyListingsWidget';
-import InquiriesChartWidget from '../../components/dashboard/InquiriesChartWidget';
+import LeadsChartWidget from '../../components/dashboard/LeadsChartWidget';
 import RecentMessagesWidget from '../../components/dashboard/RecentMessagesWidget';
 import QuickActionsWidget from '../../components/dashboard/QuickActionsWidget';
-import RecentInquiriesTable from '../../components/dashboard/RecentInquiriesTable';
+import RecentLeadsTable from '../../components/dashboard/RecentLeadsTable';
 import PerformanceChartWidget from '../../components/dashboard/PerformanceChartWidget';
 import BookingsSummaryWidget from '../../components/dashboard/BookingsSummaryWidget';
 import { Link } from 'react-router-dom';
@@ -46,13 +46,13 @@ const OwnerDashboard = () => {
         <div className="lg:col-span-2 flex flex-col gap-4">
           <PerformanceChartWidget />
           <MyListingsWidget />
-          <RecentInquiriesTable />
+          <RecentLeadsTable />
         </div>
 
         {/* Right Column (Widgets) */}
         <div className="flex flex-col gap-4">
           <BookingsSummaryWidget />
-          <InquiriesChartWidget />
+          <LeadsChartWidget />
           <RecentMessagesWidget />
           <QuickActionsWidget />
         </div>

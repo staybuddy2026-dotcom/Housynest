@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import Lenis from 'lenis';
 
-const CustomDropdown = ({ label, required, subtitle, options, value, onChange, error, placeholder = "Select" }) => {
+const CustomDropdown = ({ label, required, subtitle, options, value, onChange, error, placeholder = "Select", icon, buttonClassName = "", containerClassName = "flex flex-col gap-1 sm:gap-1.5" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -40,7 +40,7 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
   }, [isOpen]);
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5" ref={dropdownRef}>
+    <div className={`${containerClassName}`} ref={dropdownRef}>
       {label && (
         <label className="text-xs sm:text-sm font-bold text-[#062F26]">
           {label} {required && <span className="text-red-500">*</span>}
@@ -50,9 +50,12 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border ${error ? 'border-red-500' : (isOpen ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-200')} rounded-lg text-sm sm:text-sm font-medium focus:outline-none transition-all duration-200 focus:shadow-sm hover:border-slate-300 flex justify-between items-center text-left`}
+          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border ${error ? 'border-red-500' : (isOpen ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-200')} rounded-lg text-sm sm:text-sm font-medium focus:outline-none transition-all duration-200 focus:shadow-sm hover:border-slate-300 flex justify-between items-center text-left ${buttonClassName}`}
         >
-          <span className={value ? 'text-slate-800' : 'text-slate-400'}>{value || placeholder}</span>
+          <div className="flex items-center gap-2">
+            {icon && <Icon icon={icon} className="w-4 h-4 text-slate-400" />}
+            <span className={value ? 'text-slate-800' : 'text-slate-400'}>{value || placeholder}</span>
+          </div>
           <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
         

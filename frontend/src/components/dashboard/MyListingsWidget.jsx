@@ -22,7 +22,7 @@ const MyListingsWidget = () => {
           const data = await response.json();
           // Map data to match the widget structure and limit to 4
           const mappedListings = data.slice(0, 4).map(p => {
-            const title = p.pgName || p.propertyCategory || 'Property';
+            const title = p.pgName || p.societyName || p.propertyCategory || 'Property';
             const location = `${p.locality || ''}, ${p.city || ''}`.replace(/^, | , $/g, '');
             let pgPrices = [];
             if (p.propertyType === 'PG' && p.pgPricing) {
@@ -59,7 +59,7 @@ const MyListingsWidget = () => {
               propertyType: p.propertyType,
               pgPrices,
               views: p.views || 0,
-              inquiries: p.inquiries || 0,
+              leads: p.leads || 0,
               bookings: p.bookings || 0,
               image
             };
@@ -105,8 +105,8 @@ const MyListingsWidget = () => {
                 <div className="flex flex-wrap items-center gap-1.5">
                   {listing.pgPrices.slice(0, 2).map((pgPrice, idx) => (
                     <span key={idx} className="flex items-center gap-1 bg-[#EAF5F2] text-[#062F26] px-1.5 py-0.5 rounded text-[10px] font-bold border border-brand-teal/20">
-                       <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
-                       ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
+                      <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
+                      ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
                     </span>
                   ))}
                   {listing.pgPrices.length > 2 && (
@@ -127,8 +127,8 @@ const MyListingsWidget = () => {
               </div>
               <div className="flex flex-col items-center">
                 <Icon icon="lucide:message-square" className="w-4 h-4 text-slate-400 mb-1" />
-                <span className="text-sm font-bold text-[#062F26] leading-none mb-0.5">{listing.inquiries}</span>
-                <span className="text-[10px] font-semibold text-slate-400">Inquiries</span>
+                <span className="text-sm font-bold text-[#062F26] leading-none mb-0.5">{listing.leads}</span>
+                <span className="text-[10px] font-semibold text-slate-400">Leads</span>
               </div>
               <div className="flex flex-col items-center">
                 <Icon icon="lucide:calendar-check" className="w-4 h-4 text-slate-400 mb-1" />

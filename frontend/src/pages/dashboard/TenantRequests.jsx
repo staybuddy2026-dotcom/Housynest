@@ -12,7 +12,7 @@ const TenantRequests = () => {
     const fetchRequests = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const res = await fetch('/api/inquiries/tenant', {
+        const res = await fetch('/api/leads/tenant', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -51,14 +51,14 @@ const TenantRequests = () => {
 
     fetchRequests();
 
-    const handleInquirySent = (newInq) => {
+    const handleLeadSent = (newInq) => {
       fetchRequests();
     };
 
-    socket.on('inquirySent', handleInquirySent);
+    socket.on('leadSent', handleLeadSent);
 
     return () => {
-      socket.off('inquirySent', handleInquirySent);
+      socket.off('leadSent', handleLeadSent);
     };
   }, []);
 
@@ -83,7 +83,7 @@ const TenantRequests = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 px-6 pt-6 pb-4 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#062F26] tracking-tight">My Requests</h1>
-          <p className="text-sm text-slate-500 mt-1">Track your property inquiries and requests</p>
+          <p className="text-sm text-slate-500 mt-1">Track your property leads and requests</p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700">
           <Icon icon="lucide:message-square" className="w-4 h-4 text-brand-teal" />
@@ -266,7 +266,7 @@ const TenantRequests = () => {
                 <td colSpan="5" className="py-16 text-center">
                   <Icon icon="lucide:message-circle-x" className="w-12 h-12 mx-auto text-slate-300 mb-4" />
                   <h3 className="text-lg font-bold text-slate-800 mb-1">No Requests Yet</h3>
-                  <p className="text-sm text-slate-500">You haven't sent any inquiries or booking requests yet.</p>
+                  <p className="text-sm text-slate-500">You haven't sent any leads or booking requests yet.</p>
                 </td>
               </tr>
             )}

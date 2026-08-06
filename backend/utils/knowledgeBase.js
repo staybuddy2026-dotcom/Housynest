@@ -26,7 +26,7 @@ We offer zero brokerage, 24/7 support, instant booking, and secure payments.
 
 ## 5. Owner Guidelines
 - Property owners must complete a KYC verification process before listing properties.
-- Owners can manage inquiries, tenants, and earnings directly from their Owner Dashboard.
+- Owners can manage leads, tenants, and earnings directly from their Owner Dashboard.
 - Properties must adhere to safety and hygiene standards to remain active on the platform.
 
 ## 6. Tenant Guidelines

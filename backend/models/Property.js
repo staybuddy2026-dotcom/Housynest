@@ -158,7 +158,7 @@ const propertySchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  inquiries: {
+  leads: {
     type: Number,
     default: 0
   }
@@ -169,12 +169,12 @@ propertySchema.pre('deleteOne', { document: true, query: false }, async function
   try {
     const propertyId = this._id;
 
-    // 1. Delete all inquiries for this property, and their associated messages
-    const inquiries = await mongoose.model('Inquiry').find({ propertyId });
-    for (const inq of inquiries) {
-      await mongoose.model('Message').deleteMany({ inquiryId: inq._id });
+    // 1. Delete all leads for this property, and their associated messages
+    const leads = await mongoose.model('Lead').find({ propertyId });
+    for (const inq of leads) {
+      await mongoose.model('Message').deleteMany({ leadId: inq._id });
     }
-    await mongoose.model('Inquiry').deleteMany({ propertyId });
+    await mongoose.model('Lead').deleteMany({ propertyId });
 
     // 2. Delete all visits for this property
     await mongoose.model('Visit').deleteMany({ property: propertyId });
