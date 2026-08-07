@@ -40,7 +40,7 @@ const BookingStepProfile = ({
       {/* CARD 1: BOOKING INFORMATION */}
       <div className="bg-white rounded-2xl p-6 sm:p-7 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-slate-200/70 space-y-5">
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-full bg-[#0AA87D] text-white flex items-center justify-center font-extrabold text-xs shadow-xs">
+          <div className="w-7 h-7 rounded-full bg-[#0AA87D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
             1
           </div>
           <h2 className="text-xl font-bold text-[#062F26]">Booking Information</h2>
@@ -82,7 +82,7 @@ const BookingStepProfile = ({
       {/* CARD 2: PERSONAL INFORMATION & EMERGENCY CONTACT */}
       <div className="bg-white rounded-2xl p-6 sm:p-7 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-slate-200/70 space-y-6">
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-full bg-[#0AA87D] text-white flex items-center justify-center font-extrabold text-xs shadow-xs">
+          <div className="w-7 h-7 rounded-full bg-[#0AA87D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
             2
           </div>
           <h2 className="text-xl font-bold text-[#062F26]">Personal Information</h2>
@@ -248,7 +248,7 @@ const BookingStepProfile = ({
           <Icon icon="lucide:clock" className="w-4 h-4" />
         </div>
         <div className="space-y-1.5 text-xs leading-relaxed">
-          <h4 className="font-extrabold text-[#B45309] text-sm">How payments work</h4>
+          <h4 className="font-bold text-[#B45309] text-sm">How payments work</h4>
           <p className="text-[#92400E]">
             <span className="font-bold">Pay Token (40% of Rent - 100% Refundable):</span> Reserve your bed with a token equal to 40% of monthly rent (₹{tokenAmount.toLocaleString('en-IN')}). Your booking request goes to the owner for approval. Once approved, you can pay the remaining balance at Move-In.
           </p>
@@ -264,11 +264,10 @@ const BookingStepProfile = ({
           type="button"
           onClick={handleContinue}
           disabled={!isStep1Valid}
-          className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center cursor-pointer ${
-            isStep1Valid
+          className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center cursor-pointer ${isStep1Valid
               ? 'bg-[#062F26] hover:bg-[#08483B] text-white shadow-md hover:shadow-lg active:scale-98'
               : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60 shadow-none'
-          }`}
+            }`}
         >
           <span>Next</span>
         </button>

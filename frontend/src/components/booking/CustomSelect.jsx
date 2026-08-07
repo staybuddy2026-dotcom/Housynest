@@ -25,15 +25,14 @@ const CustomSelect = ({ value, onChange, options, placeholder = 'Select Option',
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
-      
+
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-4 py-3 rounded-xl border text-left flex items-center justify-between transition-all duration-200 cursor-pointer bg-white ${
-          isOpen
+        className={`w-full px-4 py-3 rounded-xl border text-left flex items-center justify-between transition-all duration-200 cursor-pointer bg-white ${isOpen
             ? 'border-[#0AA87D] ring-3 ring-[#0AA87D]/10 shadow-xs'
             : 'border-slate-300 hover:border-[#0AA87D]/50'
-        }`}
+          }`}
       >
         <span className={`text-sm font-semibold ${selectedOption ? 'text-[#062F26]' : 'text-slate-400'}`}>
           {selectedOption ? selectedOption.label : placeholder}
@@ -55,11 +54,10 @@ const CustomSelect = ({ value, onChange, options, placeholder = 'Select Option',
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`px-4 py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-between transition-colors ${
-                  isSelected
-                    ? 'bg-[#EAF5F2] text-[#062F26] font-extrabold'
+                className={`px-4 py-2.5 text-sm font-semibold cursor-pointer flex items-center justify-between transition-colors ${isSelected
+                    ? 'bg-[#EAF5F2] text-[#062F26] font-bold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-[#062F26]'
-                }`}
+                  }`}
               >
                 <span>{option.label}</span>
                 {isSelected && <Icon icon="lucide:check" className="w-4 h-4 text-[#0AA87D]" strokeWidth="3" />}

@@ -119,10 +119,10 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
           let trimmed = line.trim();
           if (!trimmed) return <div key={index} className="h-1"></div>;
           if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) {
-            return <div key={index} className="text-center font-extrabold text-sm text-[#062F26] border-b border-slate-200 pb-3 my-2 tracking-wide">{trimmed.replace(/<\/?h1>/g, '')}</div>;
+            return <div key={index} className="text-center font-bold text-sm text-[#062F26] border-b border-slate-200 pb-3 my-2 tracking-wide">{trimmed.replace(/<\/?h1>/g, '')}</div>;
           }
           if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) {
-            return <div key={index} className="font-extrabold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">{trimmed.replace(/<\/?h3>/g, '')}</div>;
+            return <div key={index} className="font-bold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">{trimmed.replace(/<\/?h3>/g, '')}</div>;
           }
           const parts = trimmed.split(/(<b>.*?<\/b>)/g);
           return (
@@ -184,7 +184,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-2xl shadow-sm">
           <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#062F26] flex items-center gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#062F26] flex items-center gap-3">
               <Icon icon="lucide:file-signature" className="w-6 h-6 sm:w-7 sm:h-7 text-[#0AA87D]" />
               {isReadOnly ? 'Rental Agreement' : 'Review & Sign Rental Agreement'}
             </h2>
@@ -204,7 +204,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
               <button
                 type="button"
                 onClick={() => handleSelectLanguage('en')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   agreementLanguage === 'en' ? 'bg-[#062F26] text-white shadow-xs' : 'text-slate-600 hover:text-[#062F26]'
                 }`}
               >
@@ -213,7 +213,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
               <button
                 type="button"
                 onClick={() => handleSelectLanguage('gu')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   agreementLanguage === 'gu' ? 'bg-[#0AA87D] text-white shadow-xs' : 'text-slate-600 hover:text-[#062F26]'
                 }`}
               >
@@ -234,7 +234,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
                   <Icon icon="lucide:file-text" className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-xs sm:text-sm text-[#062F26]">
+                  <h3 className="font-bold text-xs sm:text-sm text-[#062F26]">
                     {agreementLanguage === 'gu' ? 'મકાન ભાડા કરાર (Google Translate)' : 'Leave & License Agreement'}
                   </h3>
                   <p className="text-[11px] font-semibold text-slate-400">
@@ -278,14 +278,14 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-extrabold text-[#062F26] flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#062F26] flex items-center gap-2">
                     <Icon icon="lucide:pen-tool" className="w-4 h-4 text-[#0AA87D]" />
                     Digital eSign <span className="text-red-500">*</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">Please eSign below using your Aadhaar OTP.</p>
                 </div>
                 {isEsignVerified && (
-                  <span className="px-3 py-1 rounded-full text-[10px] font-extrabold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
                     <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
                     Document eSigned
                   </span>
@@ -334,14 +334,14 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <div className="flex items-center justify-between mt-3">
                 <div>
-                  <h3 className="text-sm font-extrabold text-[#062F26] flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#062F26] flex items-center gap-2">
                     <Icon icon="lucide:stamp" className="w-4 h-4 text-[#0AA87D]" />
                     Agreement e-Stamp <span className="text-red-500">*</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">Generate a legally binding e-Stamp paper for your rental agreement.</p>
                 </div>
                 {stampGenerated && (
-                  <span className="px-3 py-1 rounded-full text-[10px] font-extrabold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
                     <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
                     e-Stamp Ready
                   </span>

@@ -42,7 +42,7 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
               <Icon icon="mdi:star-circle" className="absolute -right-12 -bottom-12 w-64 h-64 text-brand-teal opacity-[0.03] pointer-events-none" />
 
               <div className="flex items-end gap-5 mb-10 relative z-10">
-                <h4 className="text-[64px] font-extrabold text-[#062F26] leading-none tracking-tighter">
+                <h4 className="text-[64px] font-bold text-[#062F26] leading-none tracking-tighter">
                   {reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : "0.0"}
                 </h4>
                 <div className="mb-2.5">
@@ -89,7 +89,7 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(10,168,125,0.12)] mb-6 relative z-10">
                   <Icon icon="lucide:message-square-dashed" className="w-10 h-10 text-brand-teal" />
                 </div>
-                <h4 className="text-[20px] font-extrabold text-[#062F26] mb-2 relative z-10">No reviews yet</h4>
+                <h4 className="text-[20px] font-bold text-[#062F26] mb-2 relative z-10">No reviews yet</h4>
                 <p className="text-slate-500 font-bold text-[13.5px] mb-8 max-w-[280px] text-center relative z-10">Be the first to share your experience living in this property!</p>
                 {canWriteReview && (
                   <button onClick={() => setIsReviewModalOpen(true)} className="bg-[#062F26] text-white hover:bg-[#0a473a] transition-colors font-bold text-sm px-8 py-3.5 rounded-xl shadow-[0_4px_20px_rgba(6,47,38,0.15)] flex items-center gap-2 relative z-10 hover:-translate-y-0.5">
@@ -148,8 +148,8 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
               {owner.fullName ? owner.fullName.charAt(0).toUpperCase() : 'O'}
             </div>
           )}
-          <h4 className="text-[24px] font-extrabold text-[#062F26] mb-0.5">{owner.fullName}</h4>
-          <p className="text-[12px] font-extrabold text-brand-teal mb-5 tracking-widest uppercase">Property Owner</p>
+          <h4 className="text-[24px] font-bold text-[#062F26] mb-0.5">{owner.fullName}</h4>
+          <p className="text-[12px] font-bold text-brand-teal mb-5 tracking-widest uppercase">Property Owner</p>
 
           <div className="flex flex-col gap-0 w-full mb-6">
             <div className="flex items-center gap-3 border-b border-slate-100 py-3 group">
@@ -158,7 +158,7 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
               </div>
               <div className="flex flex-col items-start">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Phone Number</span>
-                <span className="text-[15px] font-extrabold text-[#062F26] group-hover:text-brand-teal transition-colors">{owner.phone}</span>
+                <span className="text-[15px] font-bold text-[#062F26] group-hover:text-brand-teal transition-colors">{owner.phone}</span>
               </div>
             </div>
             <div className="flex items-center gap-3 border-b border-slate-100 py-3 group w-full overflow-hidden">
@@ -167,7 +167,7 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
               </div>
               <div className="flex flex-col items-start text-left flex-1 min-w-0">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Email Address</span>
-                <span className="text-[15px] font-extrabold text-[#062F26] truncate w-full group-hover:text-brand-teal transition-colors">{owner.email}</span>
+                <span className="text-[15px] font-bold text-[#062F26] truncate w-full group-hover:text-brand-teal transition-colors">{owner.email}</span>
               </div>
             </div>
             <div className="flex items-center gap-3 py-3">
@@ -176,7 +176,7 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
               </div>
               <div className="flex flex-col items-start">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Status</span>
-                <span className="text-[15px] font-extrabold text-brand-teal">Verified Profile</span>
+                <span className="text-[15px] font-bold text-brand-teal">Verified Profile</span>
               </div>
             </div>
           </div>

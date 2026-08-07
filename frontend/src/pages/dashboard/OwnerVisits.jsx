@@ -323,8 +323,8 @@ const OwnerVisits = () => {
   });
 
   return (
-    <div className="animate-fadeIn max-w-7xl 3xl:max-w-[1600px] mx-auto pb-12">
-      <div className="bg-gradient-to-r from-[#062F26] to-[#0A4739] rounded-xl px-6 py-5 mb-8 text-white shadow-xl relative overflow-hidden">
+    <div className="animate-fadeIn mx-auto pb-12">
+      <div className="bg-gradient-to-r from-[#062F26] to-[#0A4739] rounded-xl px-6 py-5 mb-4 text-white shadow-xl relative overflow-hidden">
         {/* Abstract background shapes */}
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
         <div className="absolute bottom-0 right-32 -mb-16 w-48 h-48 rounded-full bg-[#25D366]/10 blur-2xl"></div>
@@ -340,7 +340,7 @@ const OwnerVisits = () => {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-6 shrink-0">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 flex items-center gap-6 shrink-0">
             <div className="flex flex-col items-center px-2">
               <span className="text-[10px] uppercase font-bold text-[#EAF5F2]/70 tracking-widest mb-1.5">Pending Action</span>
               <span className="text-3xl font-black text-[#25D366] leading-none">{pendingCount}</span>
@@ -355,7 +355,7 @@ const OwnerVisits = () => {
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col lg:flex-row gap-4 items-center">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4 flex flex-col lg:flex-row gap-4 items-center">
         {/* Search */}
         <div className="flex-1 w-full relative">
           <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -422,7 +422,7 @@ const OwnerVisits = () => {
       </div>
 
       {filteredVisits.length > 0 ? (
-        <div className="bg-white rounded-2xl md:border border-slate-200 md:shadow-sm overflow-hidden relative">
+        <div className="bg-white rounded-xl md:border border-slate-200 md:shadow-sm overflow-hidden relative">
 
           {/* Mobile View */}
           <div className="md:hidden flex flex-col gap-4">

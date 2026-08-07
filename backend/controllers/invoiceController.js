@@ -9,14 +9,47 @@ import Property from '../models/Property.js';
 // @access  Private (Owner)
 export const getOwnerInvoices = async (req, res) => {
   try {
-    const invoices = await RentInvoice.find({ ownerId: req.user._id })
-      .populate('propertyId', 'pgName propertyCategory')
+    let invoices = await RentInvoice.find({ ownerId: req.user._id })
+      .populate('propertyId', 'pgName societyName propertyCategory')
       .populate('tenantId', 'fullName email phone')
       .populate({
         path: 'bookingId',
         select: 'roomDetails personalInfo'
       })
-      .sort('-dueDate');
+      .lean();
+      
+    // Inject initial booking payments
+    const bookings = await Booking.find({ ownerId: req.user._id, 'paymentDetails.status': 'Paid', moveInDate: { $exists: true } })
+      .populate('propertyId', 'pgName societyName propertyCategory')
+      .populate('tenantId', 'fullName email phone')
+      .lean();
+      
+    for (const b of bookings) {
+      const moveIn = new Date(b.moveInDate);
+      const endOfFirstMonth = new Date(moveIn);
+      endOfFirstMonth.setMonth(endOfFirstMonth.getMonth() + 1);
+      
+      invoices.push({
+        _id: b._id,
+        bookingId: {
+          _id: b._id,
+          roomDetails: b.roomDetails,
+          personalInfo: b.personalInfo
+        },
+        tenantId: b.tenantId,
+        ownerId: b.ownerId,
+        propertyId: b.propertyId,
+        amount: b.paymentDetails.amount,
+        dueDate: moveIn,
+        billingPeriodStart: moveIn,
+        billingPeriodEnd: endOfFirstMonth,
+        status: 'Paid',
+        paymentMethod: b.paymentDetails.paymentMethod,
+        paidAt: b.paymentDetails.paidAt || b.createdAt
+      });
+    }
+
+    invoices.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
     res.json(invoices);
   } catch (error) {
     console.error('Error fetching owner invoices:', error);
@@ -29,9 +62,44 @@ export const getOwnerInvoices = async (req, res) => {
 // @access  Private (Tenant)
 export const getTenantInvoices = async (req, res) => {
   try {
-    const invoices = await RentInvoice.find({ tenantId: req.user._id })
-      .populate('propertyId', 'pgName propertyCategory')
-      .sort('-dueDate');
+    let invoices = await RentInvoice.find({ tenantId: req.user._id })
+      .populate('propertyId', 'pgName societyName propertyCategory')
+      .populate({
+        path: 'bookingId',
+        select: 'roomDetails'
+      })
+      .lean();
+
+    // Inject initial booking payments
+    const bookings = await Booking.find({ tenantId: req.user._id, 'paymentDetails.status': 'Paid', moveInDate: { $exists: true } })
+      .populate('propertyId', 'pgName societyName propertyCategory')
+      .lean();
+      
+    for (const b of bookings) {
+      const moveIn = new Date(b.moveInDate);
+      const endOfFirstMonth = new Date(moveIn);
+      endOfFirstMonth.setMonth(endOfFirstMonth.getMonth() + 1);
+      
+      invoices.push({
+        _id: b._id,
+        bookingId: {
+          _id: b._id,
+          roomDetails: b.roomDetails
+        },
+        tenantId: b.tenantId,
+        ownerId: b.ownerId,
+        propertyId: b.propertyId,
+        amount: b.paymentDetails.amount,
+        dueDate: moveIn,
+        billingPeriodStart: moveIn,
+        billingPeriodEnd: endOfFirstMonth,
+        status: 'Paid',
+        paymentMethod: b.paymentDetails.paymentMethod,
+        paidAt: b.paymentDetails.paidAt || b.createdAt
+      });
+    }
+
+    invoices.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
     res.json(invoices);
   } catch (error) {
     console.error('Error fetching tenant invoices:', error);

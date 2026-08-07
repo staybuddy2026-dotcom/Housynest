@@ -61,7 +61,8 @@ const PropertyBooking = () => {
   const [emergencyRelationship, setEmergencyRelationship] = useState('Father');
 
   // Payment Selection ('token' or 'full')
-  const [paymentType, setPaymentType] = useState('token');
+  const initialIsPG = stateData.property ? (stateData.property.type === 'PG' || stateData.property.propertyType === 'PG') : true;
+  const [paymentType, setPaymentType] = useState(initialIsPG ? 'token' : 'full');
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   // Document Verification (Step 2)
@@ -142,12 +143,18 @@ const PropertyBooking = () => {
   const propLocation = property?.location || property?.locality || 'Bhandup West, Mumbai';
   const isPG = property?.propertyType === 'PG' || property?.type === 'PG';
 
+  useEffect(() => {
+    if (property && !isPG) {
+      setPaymentType('full');
+    }
+  }, [property, isPG]);
+
   // Base pricing calculations (Token Amount is strictly 40% of Monthly Rent + ₹300 Stamp Fees)
   const stampFees = 300;
   const rawRent = selectedRoom?.rent || property?.monthlyRent || property?.price || property?.rent || 12000;
-  const baseRent = typeof rawRent === 'number' ? rawRent : (parseInt(String(rawRent).replace(/,/g, ''), 10) || 12000);
-  const deposit = selectedRoom?.deposit ? Number(selectedRoom.deposit) : (property?.deposit ? parseInt(String(property.deposit).replace(/,/g, ''), 10) : baseRent);
-  const maintenance = property?.maintenanceCharges ? parseInt(String(property.maintenanceCharges).replace(/,/g, ''), 10) : 0;
+  const baseRent = typeof rawRent === 'number' ? rawRent : (parseInt(String(rawRent).replace(/\D/g, ''), 10) || 12000);
+  const deposit = selectedRoom?.deposit ? (Number(selectedRoom.deposit) || 0) : (property?.securityAmount ? (parseInt(String(property.securityAmount).replace(/\D/g, ''), 10) || baseRent) : baseRent);
+  const maintenance = property?.maintenanceCharges ? (parseInt(String(property.maintenanceCharges).replace(/\D/g, ''), 10) || 0) : 0;
 
   // 40% Token Amount vs Full Amount (both include ₹300 stamp & agreement fees)
   const tokenAmount = Math.round(baseRent * 0.40);
@@ -361,6 +368,7 @@ const PropertyBooking = () => {
                 currentStep={currentStep}
                 handleStepClick={handleStepClick}
                 paymentType={paymentType}
+                isPG={isPG}
               />
 
               {/* STEP 1: COMPLETE PROFILE */}
@@ -418,6 +426,7 @@ const PropertyBooking = () => {
               {/* STEP 3: TERMS & PAYMENT AGREEMENT */}
               {currentStep === 3 && (
                 <BookingStepPayment
+                  isPG={isPG}
                   paymentType={paymentType}
                   propTitle={propTitle}
                   propLocation={propLocation}
@@ -448,6 +457,7 @@ const PropertyBooking = () => {
 
             {/* RIGHT STICKY SIDEBAR COLUMN (~32% width) */}
             <BookingSidebarCard
+              isPG={isPG}
               propTitle={propTitle}
               propLocation={propLocation}
               moveInDate={moveInDate}
@@ -474,6 +484,7 @@ const PropertyBooking = () => {
         ) : (
           /* SUCCESS SCREEN */
           <BookingSuccessCard
+            isPG={isPG}
             bookingRef={bookingRef}
             firstName={firstName}
             selectedBedName={selectedBedName}

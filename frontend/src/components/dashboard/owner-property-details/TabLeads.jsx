@@ -168,11 +168,11 @@ const TabLeads = ({ leads, loadingLeads, setLeads, property }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSelectedLead(null)} />
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fadeInUp">
-            
+
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-xl font-extrabold text-[#062F26]">Lead Details</h2>
-              <button 
+              <h2 className="text-xl font-bold text-[#062F26]">Lead Details</h2>
+              <button
                 onClick={() => setSelectedLead(null)}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
               >
@@ -182,7 +182,7 @@ const TabLeads = ({ leads, loadingLeads, setLeads, property }) => {
 
             {/* Modal Body */}
             <div className="p-6 space-y-6">
-              
+
               {/* User Info */}
               <div className="flex items-center gap-4">
                 <div className={`w-14 h-14 rounded-full flex items-center justify-center font-bold text-2xl shadow-inner shrink-0 ${selectedLead.senderId?.profilePic ? 'bg-transparent' : 'bg-brand-teal text-white'}`}>

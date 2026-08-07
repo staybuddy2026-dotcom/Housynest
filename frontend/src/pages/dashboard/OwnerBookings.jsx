@@ -47,7 +47,7 @@ const OwnerBookings = () => {
       tenant: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
       phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
       email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
-      property: b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
+      property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
       propertyType: b.propertyId?.propertyType || 'N/A',
       bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
       moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
@@ -64,14 +64,14 @@ const OwnerBookings = () => {
                 const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
                 let baseType = 'Single';
                 let isAC = false;
-                
+
                 if (room) {
-                    baseType = room.sharingType || 'Single';
-                    isAC = room.isAC;
+                  baseType = room.sharingType || 'Single';
+                  isAC = room.isAC;
                 } else if (b.roomDetails?.sharingType) {
-                    const st = b.roomDetails.sharingType;
-                    baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
-                    isAC = st.includes('(AC)');
+                  const st = b.roomDetails.sharingType;
+                  baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+                  isAC = st.includes('(AC)');
                 }
 
                 const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
@@ -132,17 +132,17 @@ const OwnerBookings = () => {
     }
   };
 
-  const filteredBookings = bookingData.filter(bk => 
-    bk.tenant.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    bk.phone.includes(searchQuery) || 
+  const filteredBookings = bookingData.filter(bk =>
+    bk.tenant.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    bk.phone.includes(searchQuery) ||
     bk.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     bk.property.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto w-full relative pb-24 lg:pb-8">
+    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative pb-24 lg:pb-8">
       {/* Header */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Bookings</h1>
           <p className="text-sm text-slate-500 font-medium">Active bookings created after approval of booking requests or via direct booking.</p>
@@ -154,11 +154,11 @@ const OwnerBookings = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         {stats.map((stat, idx) => (
           <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-2xl font-extrabold text-[#062F26]">{stat.title}</h3>
+              <h3 className="text-2xl font-bold text-[#062F26]">{stat.title}</h3>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${stat.bgColor} ${stat.borderColor} group-hover:scale-110 transition-transform duration-300`}>
                 <Icon icon={stat.icon} className={`w-4 h-4 ${stat.color}`} />
               </div>
@@ -173,15 +173,15 @@ const OwnerBookings = () => {
 
       {/* Main Content Area */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden">
-        
+
         {/* Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/30">
           {/* Search */}
           <div className="relative w-full sm:w-96 group">
             <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search by name, phone, booking id, or property..." 
+            <input
+              type="text"
+              placeholder="Search by name, phone, booking id, or property..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm"
@@ -205,7 +205,7 @@ const OwnerBookings = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredBookings.map((booking) => (
-                <tr 
+                <tr
                   key={booking.id}
                   className={`hover:bg-[#F8F9FA] transition-colors group cursor-pointer ${selectedBooking?.id === booking.id ? 'bg-[#F8F9FA]' : ''}`}
                   onClick={() => setSelectedBooking(booking)}
@@ -243,7 +243,7 @@ const OwnerBookings = () => {
                   </td>
                   <td className="py-4 px-5 align-middle text-right">
                     <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
-                      <button 
+                      <button
                         onClick={() => setSelectedBooking(booking)}
                         className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-brand-teal transition-colors"
                         title="View Details"
@@ -254,7 +254,7 @@ const OwnerBookings = () => {
                   </td>
                 </tr>
               ))}
-              
+
               {filteredBookings.length === 0 && (
                 <tr>
                   <td colSpan="7" className="py-12 text-center">
@@ -280,9 +280,8 @@ const OwnerBookings = () => {
 
       {/* Side Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${
-          selectedBooking ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed top-0 right-0 h-full w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${selectedBooking ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         {selectedBooking && (
           <>
@@ -311,7 +310,7 @@ const OwnerBookings = () => {
               options={{ smoothTouch: true }}
             >
               <div className="p-6 space-y-6">
-                
+
 
                 {/* Personal Information */}
                 <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
@@ -366,7 +365,7 @@ const OwnerBookings = () => {
                     </div>
                   </div>
                 )}
-                
+
               </div>
             </ReactLenis>
           </>

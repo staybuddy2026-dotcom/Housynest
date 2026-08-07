@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icon } from '@iconify/react';
 
-const TabRentCollection = ({ bookings, property, setSelectedTenant }) => {
+const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) => {
   const rentItems = [];
   const today = new Date();
 
@@ -26,22 +26,29 @@ const TabRentCollection = ({ bookings, property, setSelectedTenant }) => {
       rentAmount = Number(property.monthlyRent.replace(/\D/g, ''));
     }
 
-    const todayDate = new Date();
-    const moveInDate = booking.moveInDate ? new Date(booking.moveInDate) : new Date(booking.createdAt);
-    let nextDueDate = new Date(todayDate.getFullYear(), todayDate.getMonth(), moveInDate.getDate());
-
-    if (nextDueDate < todayDate) {
-      nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-    }
-
-    const diffMs = nextDueDate - todayDate;
-    const daysDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-
+    const bookingInvoices = (invoices || []).filter(i => 
+      i.bookingId === booking._id || (i.bookingId && i.bookingId._id === booking._id)
+    );
+    const unpaidInvoice = bookingInvoices.find(i => i.status === 'Pending' || i.status === 'Overdue');
+    const latestPaid = bookingInvoices.filter(i => i.status === 'Paid').sort((a,b) => new Date(b.dueDate) - new Date(a.dueDate))[0];
+    
     let status = 'Paid';
-    if (daysDue <= 7 && daysDue > 0) {
-      status = 'Due';
-    } else if (nextDueDate < todayDate) {
-      status = 'Overdue';
+    let nextDueDate = null;
+    let daysDue = 0;
+    
+    if (unpaidInvoice) {
+        status = unpaidInvoice.status === 'Overdue' ? 'Overdue' : 'Due';
+        rentAmount = unpaidInvoice.amount;
+        nextDueDate = new Date(unpaidInvoice.dueDate);
+        const diffMs = nextDueDate - new Date();
+        daysDue = Math.abs(Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    } else if (latestPaid) {
+        status = 'Paid';
+        nextDueDate = new Date(latestPaid.paidAt || latestPaid.dueDate);
+    } else {
+        const moveInDate = booking.moveInDate ? new Date(booking.moveInDate) : new Date(booking.createdAt);
+        nextDueDate = new Date(new Date().getFullYear(), new Date().getMonth(), moveInDate.getDate());
+        if (nextDueDate < new Date()) nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
 
     totalExpected += rentAmount;
@@ -166,7 +173,7 @@ const TabRentCollection = ({ bookings, property, setSelectedTenant }) => {
                     <p className="text-sm font-bold text-slate-700">₹{item.rentAmount.toLocaleString('en-IN')}</p>
                   </div>
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Due Date</p>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">{item.status === 'Paid' ? 'Paid On' : 'Due Date'}</p>
                     <p className="text-sm font-bold text-slate-700">{item.dueDate}</p>
                     {item.daysDue > 0 && <p className={`text-[10px] font-bold mt-0.5 ${item.status === 'Overdue' ? 'text-rose-500' : 'text-amber-500'}`}>{item.daysDue} days {item.status === 'Overdue' ? 'late' : 'left'}</p>}
                   </div>
@@ -199,7 +206,7 @@ const TabRentCollection = ({ bookings, property, setSelectedTenant }) => {
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Contact</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent</th>
-                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Due Date</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Due / Paid On</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-center">History</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>

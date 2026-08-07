@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const bookingSchema = new mongoose.Schema({
+  bookingId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',
@@ -75,5 +81,11 @@ const bookingSchema = new mongoose.Schema({
     paidAt: Date
   }
 }, { timestamps: true });
+
+bookingSchema.pre('save', function() {
+  if (!this.bookingId) {
+    this.bookingId = 'BKG-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+  }
+});
 
 export default mongoose.model('Booking', bookingSchema);

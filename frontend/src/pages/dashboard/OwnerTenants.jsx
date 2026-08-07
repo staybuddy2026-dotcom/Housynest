@@ -16,98 +16,94 @@ const OwnerTenants = () => {
     const fetchTenants = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const res = await fetch('/api/bookings/owner', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const bookings = await res.json();
+        const [bookingsRes, invoicesRes] = await Promise.all([
+          fetch('/api/bookings/owner', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/invoices/owner', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        if (bookingsRes.ok && invoicesRes.ok) {
+          const bookings = await bookingsRes.json();
+          const invoices = await invoicesRes.json();
           const activeTenants = bookings
             .filter(b => b.status === 'Confirmed' || b.status === 'Reserved' || b.status === 'Active' || b.status === 'Completed')
             .map((b) => {
               const name = b.tenantId?.fullName || (b.personalInfo?.firstName ? b.personalInfo.firstName + ' ' + (b.personalInfo.lastName || '') : 'Unknown');
               const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-              
+
               const rentInfo = (() => {
-                 const isToken = b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)';
-                 
-                 const getPricing = () => {
-                   if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
-                     const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
-                     const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
-                     let baseType = 'Single';
-                     let isAC = false;
-                     
-                     if (room) {
-                         baseType = room.sharingType || 'Single';
-                         isAC = room.isAC;
-                     } else if (b.roomDetails?.sharingType) {
-                         const st = b.roomDetails.sharingType;
-                         baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
-                         isAC = st.includes('(AC)');
-                     }
+                const isToken = b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)';
 
-                     const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
-                     const pricing = b.propertyId.pgPricing?.[typeStr];
-                     if (pricing) {
-                       return {
-                         rent: Number(pricing.rentPerBed?.replace(/\D/g, '') || 0),
-                         deposit: Number(pricing.depositPerBed?.replace(/\D/g, '') || 0),
-                         maintenance: 0
-                       };
-                     }
-                   }
-                   return {
-                     rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
-                     deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0),
-                     maintenance: Number(b.propertyId?.maintenanceCharges?.replace(/\D/g, '') || 0)
-                   };
-                 };
+                const getPricing = () => {
+                  if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
+                    const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
+                    const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
+                    let baseType = 'Single';
+                    let isAC = false;
 
-                 const pricing = getPricing();
+                    if (room) {
+                      baseType = room.sharingType || 'Single';
+                      isAC = room.isAC;
+                    } else if (b.roomDetails?.sharingType) {
+                      const st = b.roomDetails.sharingType;
+                      baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+                      isAC = st.includes('(AC)');
+                    }
 
-                 if (b.status === 'Reserved') {
-                   const stampFees = 300;
-                   const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
-                   const due = fullAmount > 0 ? fullAmount - Number(b.paymentDetails?.amount || 0) : 0;
-                   return { due, paid: b.paymentDetails?.amount || 0, dueType: 'Move-In Due', dueDate: new Date(b.createdAt) };
-                 } else if (b.status === 'Active' || b.status === 'Confirmed') {
-                   const today = new Date();
-                   const moveInDate = b.moveInDate ? new Date(b.moveInDate) : new Date(b.createdAt);
-                   let nextDueDate = new Date(today.getFullYear(), today.getMonth(), moveInDate.getDate());
-                   
-                   if (nextDueDate < today) {
-                     nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-                   }
+                    const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
+                    const pricing = b.propertyId.pgPricing?.[typeStr];
+                    if (pricing) {
+                      return {
+                        rent: Number(pricing.rentPerBed?.replace(/\D/g, '') || 0),
+                        deposit: Number(pricing.depositPerBed?.replace(/\D/g, '') || 0),
+                        maintenance: 0
+                      };
+                    }
+                  }
+                  return {
+                    rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
+                    deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0),
+                    maintenance: Number(b.propertyId?.maintenanceCharges?.replace(/\D/g, '') || 0)
+                  };
+                };
 
-                   const diffMs = nextDueDate - today;
-                   const daysDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+                const pricing = getPricing();
 
-                   if ((daysDue <= 7 && daysDue > 0) || nextDueDate < today) {
-                      return { due: pricing.rent, paid: 0, dueType: 'Rent Due', dueDate: nextDueDate };
-                   } else {
-                      return { due: 0, paid: pricing.rent, dueType: 'No Dues', dueDate: null };
-                   }
-                 }
-                 
-                 return { due: 0, paid: b.paymentDetails?.amount || 0, dueType: 'No Dues', dueDate: null };
+                if (b.status === 'Reserved') {
+                  const stampFees = 300;
+                  const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
+                  const due = fullAmount > 0 ? fullAmount - Number(b.paymentDetails?.amount || 0) : 0;
+                  return { due, paid: b.paymentDetails?.amount || 0, dueType: 'Move-In Due', dueDate: new Date(b.createdAt) };
+                } else if (b.status === 'Active' || b.status === 'Confirmed') {
+                  const bookingInvoices = invoices.filter(i =>
+                    i.bookingId === b._id || (i.bookingId && i.bookingId._id === b._id)
+                  );
+                  const unpaidInvoice = bookingInvoices.find(i => i.status === 'Pending' || i.status === 'Overdue');
+
+                  if (unpaidInvoice) {
+                    return { due: unpaidInvoice.amount, paid: 0, dueType: unpaidInvoice.status === 'Overdue' ? 'Overdue' : 'Rent Due', dueDate: new Date(unpaidInvoice.dueDate) };
+                  } else {
+                    return { due: 0, paid: pricing.rent, dueType: 'No Dues', dueDate: null };
+                  }
+                }
+
+                return { due: 0, paid: b.paymentDetails?.amount || 0, dueType: 'No Dues', dueDate: null };
               })();
 
               const isToken = b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)';
-              
+
               const pricing = (() => {
                 if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
                   const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
                   const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
                   let baseType = 'Single';
                   let isAC = false;
-                  
+
                   if (room) {
-                      baseType = room.sharingType || 'Single';
-                      isAC = room.isAC;
+                    baseType = room.sharingType || 'Single';
+                    isAC = room.isAC;
                   } else if (b.roomDetails?.sharingType) {
-                      const st = b.roomDetails.sharingType;
-                      baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
-                      isAC = st.includes('(AC)');
+                    const st = b.roomDetails.sharingType;
+                    baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+                    isAC = st.includes('(AC)');
                   }
 
                   const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
@@ -131,7 +127,7 @@ const OwnerTenants = () => {
                 initials: initials,
                 email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
                 phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
-                property: b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
+                property: b.propertyId?.pgName || b.propertyId?.societyName || b.propertyId?.propertyCategory || 'Property',
                 propertyType: b.propertyId?.propertyType || 'N/A',
                 room: b.roomDetails?.roomName || 'N/A',
                 roomNumber: b.roomDetails?.roomName || 'N/A',
@@ -179,14 +175,14 @@ const OwnerTenants = () => {
   );
 
   return (
-    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-[1600px] mx-auto w-full relative pb-24 lg:pb-8">
+    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative pb-24 lg:pb-8">
       {/* Header */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Tenants</h1>
           <p className="text-sm text-slate-500 font-medium">Manage tenant information and status.</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsAddModalOpen(true)}
           className="flex items-center gap-2 bg-[#062F26] hover:bg-brand-teal text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all shadow-sm shrink-0"
         >
@@ -196,11 +192,11 @@ const OwnerTenants = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {stats.map((stat, idx) => (
           <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-2xl font-extrabold text-[#062F26]">{stat.title}</h3>
+              <h3 className="text-2xl font-bold text-[#062F26]">{stat.title}</h3>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${stat.bgColor} ${stat.borderColor} group-hover:scale-110 transition-transform duration-300`}>
                 <Icon icon={stat.icon} className={`w-4 h-4 ${stat.color}`} />
               </div>
@@ -271,7 +267,7 @@ const OwnerTenants = () => {
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{t.property}</div>
                     <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t.propertyType}</div>
-                    <div className="text-[11px] font-medium text-slate-400 mt-1">{t.room} • {t.bed}</div>
+                    {t.propertyType === 'PG' && <div className="text-[11px] font-medium text-slate-400 mt-1">{t.room} • {t.bed}</div>}
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{t.rent}</div>
@@ -282,7 +278,7 @@ const OwnerTenants = () => {
                     <div className={`text-[11px] font-bold mt-1 tracking-wide flex items-center gap-1 ${t.rentDueAmount > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
                       {t.dueStr}
                       {t.rentDueAmount > 0 && t.dueDateStr && (
-                         <span className="text-slate-400 font-medium ml-1">(Due {t.dueDateStr})</span>
+                        <span className="text-slate-400 font-medium ml-1">(Due {t.dueDateStr})</span>
                       )}
                     </div>
                   </td>
@@ -296,7 +292,7 @@ const OwnerTenants = () => {
                           Remind Now
                         </button>
                       )}
-                      <button 
+                      <button
                         onClick={() => setSelectedTenant(t)}
                         className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-brand-teal transition-colors"
                         title="View Details"
@@ -323,7 +319,7 @@ const OwnerTenants = () => {
         </div>
       </div>
 
-      <TenantDetailsDrawer 
+      <TenantDetailsDrawer
         selectedTenant={selectedTenant}
         onClose={() => setSelectedTenant(null)}
         getPaymentStyle={(status) => {

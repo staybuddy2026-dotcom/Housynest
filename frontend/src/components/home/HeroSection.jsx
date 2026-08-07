@@ -5,9 +5,9 @@ import hero2 from '../../assets/hero2.png';
 import hero3 from '../../assets/hero3.png';
 
 const heroCards = [
-  { id: 1, image: hero1, title: 'Luxury PG', locationArea: 'Koramangala,', locationCity: 'Bangalore', rating: '4.8' },
-  { id: 2, image: hero2, title: 'Modern Home', locationArea: 'HSR Layout,', locationCity: 'Bangalore', rating: '4.9' },
-  { id: 3, image: hero3, title: 'Co-living Space', locationArea: 'Indiranagar,', locationCity: 'Bangalore', rating: '4.7' },
+  { id: 1, image: hero1, title: 'Luxury PG', locationArea: 'Navrangpura,', locationCity: 'Ahmedabad', rating: '4.8' },
+  { id: 2, image: hero2, title: 'Modern Home', locationArea: 'Infocity,', locationCity: 'Gandhinagar', rating: '4.9' },
+  { id: 3, image: hero3, title: 'Co-living Space', locationArea: 'Satellite,', locationCity: 'Ahmedabad', rating: '4.7' },
 ];
 
 const featureCards = [

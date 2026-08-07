@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import Property from '../models/Property.js';
 import User from '../models/User.js';
+import mongoose from 'mongoose';
 import { sendGenericEmail } from '../utils/emailService.js';
 import { getIo } from '../socket.js';
 
@@ -62,6 +63,11 @@ export const createBooking = async (req, res) => {
       paymentDetails
     } = req.body;
 
+    // Validate propertyId
+    if (!mongoose.Types.ObjectId.isValid(propertyId)) {
+      return res.status(400).json({ message: 'Invalid property ID. This seems to be a mock property rather than a real one in the database.' });
+    }
+
     // Verify property exists
     const property = await Property.findById(propertyId);
     if (!property) {
@@ -107,8 +113,14 @@ export const createBooking = async (req, res) => {
 
     res.status(201).json(savedBooking);
   } catch (error) {
+    const fs = await import('fs');
+    fs.appendFileSync('booking_error.log', JSON.stringify({ body: req.body, error: error.message, stack: error.stack }) + '\n');
     console.error('Create booking error:', error);
-    res.status(500).json({ message: 'Server error creating booking' });
+    res.status(500).json({ 
+      message: 'Server error creating booking', 
+      error: error.message, 
+      stack: process.env.NODE_ENV === 'production' ? null : error.stack 
+    });
   }
 };
 
@@ -118,7 +130,7 @@ export const createBooking = async (req, res) => {
 export const getOwnerBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ ownerId: req.user._id })
-      .populate('propertyId', 'pgName propertyCategory propertyType images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
+      .populate('propertyId', 'pgName societyName propertyCategory propertyType images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
       .populate('tenantId', 'fullName email phone profilePic')
       .sort('-createdAt');
     res.json(bookings);
@@ -134,7 +146,7 @@ export const getOwnerBookings = async (req, res) => {
 export const getTenantBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ tenantId: req.user._id })
-      .populate('propertyId', 'pgName propertyCategory propertyType images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
+      .populate('propertyId', 'pgName societyName propertyCategory propertyType images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
       .populate('ownerId', 'fullName email phone profilePic')
       .sort('-createdAt');
     res.json(bookings);

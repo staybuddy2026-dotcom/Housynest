@@ -28,16 +28,16 @@ const TenantRentPayment = () => {
       if (bookRes.ok && invRes.ok) {
         const bookData = await bookRes.json();
         const invData = await invRes.json();
-        
+
         const currentBooking = bookData.find(b => b._id === id);
         if (currentBooking) {
           setBooking(currentBooking);
-          const bookingInvoices = invData.filter(i => 
+          const bookingInvoices = invData.filter(i =>
             i.bookingId === id || (i.bookingId && i.bookingId._id === id) || i.bookingId === currentBooking._id
           );
           setInvoices(bookingInvoices);
           let invoiceToPay = bookingInvoices.find(i => i.status === 'Pending' || i.status === 'Overdue');
-          
+
           if (!invoiceToPay && (currentBooking.status === 'Pending Payment' || currentBooking.status === 'Reserved')) {
             const moveIn = new Date(currentBooking.moveInDate || new Date());
             const endOfFirstMonth = new Date(moveIn);
@@ -49,14 +49,14 @@ const TenantRentPayment = () => {
                 const room = floor?.rooms?.find(r => r.roomName === currentBooking.roomDetails.roomName);
                 let baseType = 'Single';
                 let isAC = false;
-                
+
                 if (room) {
-                    baseType = room.sharingType || 'Single';
-                    isAC = room.isAC;
+                  baseType = room.sharingType || 'Single';
+                  isAC = room.isAC;
                 } else if (currentBooking.roomDetails?.sharingType) {
-                    const st = currentBooking.roomDetails.sharingType;
-                    baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
-                    isAC = st.includes('(AC)');
+                  const st = currentBooking.roomDetails.sharingType;
+                  baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+                  isAC = st.includes('(AC)');
                 }
                 const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
                 const pricing = currentBooking.propertyId.pgPricing?.[typeStr];
@@ -80,7 +80,7 @@ const TenantRentPayment = () => {
             const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
             const paymentMethod = currentBooking.paymentDetails?.paymentMethod || '';
             const isTokenMethod = paymentMethod.includes('Token');
-            
+
             if (currentBooking.status === 'Pending Payment') {
               const amountDue = isTokenMethod ? Number(currentBooking.paymentDetails?.amount || 0) : fullAmount;
               invoiceToPay = {
@@ -122,7 +122,7 @@ const TenantRentPayment = () => {
               };
             }
           }
-          
+
           setPendingInvoice(invoiceToPay);
         } else {
           toast.error('Booking not found');
@@ -143,7 +143,7 @@ const TenantRentPayment = () => {
       const token = localStorage.getItem('accessToken');
       let url = `/api/invoices/${pendingInvoice._id}/pay`;
       let reqOptions = { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } };
-      
+
       if (pendingInvoice.paymentStage === 'token_or_full') {
         url = `/api/bookings/${booking._id}/pay`;
         reqOptions.method = 'PUT';
@@ -153,7 +153,7 @@ const TenantRentPayment = () => {
         reqOptions.headers['Content-Type'] = 'application/json';
         reqOptions.body = JSON.stringify({ amount: pendingInvoice.amount });
       }
-      
+
       const res = await fetch(url, reqOptions);
       if (res.ok) {
         toast.success('Rent Paid Successfully!');
@@ -209,7 +209,7 @@ const TenantRentPayment = () => {
   let daysDue = 0;
   let hoursDue = 0;
   let minsDue = 0;
-  
+
   if (pendingInvoice) {
     const nextDueDate = new Date(pendingInvoice.dueDate);
     const today = new Date();
@@ -221,23 +221,6 @@ const TenantRentPayment = () => {
 
   // Get paid invoices for history
   const pastInvoices = invoices.filter(inv => inv.status === 'Paid');
-
-  // Inject the initial booking payment as the first month's history
-  if (booking.paymentDetails?.status === 'Paid' && booking.moveInDate) {
-    const moveIn = new Date(booking.moveInDate);
-    const endOfFirstMonth = new Date(moveIn);
-    endOfFirstMonth.setMonth(endOfFirstMonth.getMonth() + 1);
-    
-    pastInvoices.push({
-      _id: 'initial_booking_payment',
-      billingPeriodStart: moveIn.toISOString(),
-      billingPeriodEnd: endOfFirstMonth.toISOString(),
-      amount: booking.paymentDetails.amount || rentAmount,
-      dueDate: moveIn.toISOString(),
-      paidAt: booking.paymentDetails.paidAt || booking.createdAt,
-      status: 'Paid'
-    });
-  }
 
   // Sort newest first
   pastInvoices.sort((a, b) => new Date(b.billingPeriodStart) - new Date(a.billingPeriodStart));
@@ -262,7 +245,7 @@ const TenantRentPayment = () => {
 
         <div className="flex-1 space-y-4 w-full">
           <div>
-            <h1 className="text-xl font-extrabold text-[#062F26]">{propertyName}</h1>
+            <h1 className="text-xl font-bold text-[#062F26]">{propertyName}</h1>
             <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
               <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-slate-400" />
               {location}
@@ -306,7 +289,7 @@ const TenantRentPayment = () => {
                   </div>
                   <div>
                     <p className="text-[11px] text-slate-500 font-medium mb-0.5">Next Rent Due On</p>
-                    <p className="text-base font-extrabold text-[#062F26]">{formatDate(new Date(pendingInvoice.dueDate))}</p>
+                    <p className="text-base font-bold text-[#062F26]">{formatDate(new Date(pendingInvoice.dueDate))}</p>
                   </div>
                 </div>
               </div>
@@ -361,7 +344,7 @@ const TenantRentPayment = () => {
                     <th className="p-4 font-bold">Month</th>
                     <th className="p-4 font-bold">Rent Period</th>
                     <th className="p-4 font-bold">Amount</th>
-                    <th className="p-4 font-bold">Due Date</th>
+                    <th className="p-4 font-bold">Paid On</th>
                     <th className="p-4 font-bold">Status</th>
                     <th className="p-4 font-bold text-right">Action</th>
                   </tr>
@@ -373,7 +356,7 @@ const TenantRentPayment = () => {
                         <td className="p-4 font-bold">{formatMonth(new Date(inv.billingPeriodStart))}</td>
                         <td className="p-4 text-slate-500">{formatDate(new Date(inv.billingPeriodStart))} - {formatDate(new Date(inv.billingPeriodEnd))}</td>
                         <td className="p-4 font-bold text-[#062F26]">₹{inv.amount.toLocaleString()}</td>
-                        <td className="p-4 text-slate-500">{formatDate(new Date(inv.dueDate))}</td>
+                        <td className="p-4 text-slate-500">{formatDate(new Date(inv.paidAt || inv.dueDate))}</td>
                         <td className="p-4"><span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 font-bold text-[10px] rounded border border-emerald-100">Paid</span></td>
                         <td className="p-4 text-right">
                           <button className="text-[#0AA87D] hover:text-[#062F26] font-bold text-[11px] flex items-center justify-end gap-1.5 transition-colors ml-auto cursor-pointer">
@@ -479,7 +462,7 @@ const TenantRentPayment = () => {
                   )}
                   <div className="flex justify-between items-center text-base pt-4 border-t border-dashed border-slate-200">
                     <span className="font-bold text-[#062F26]">{pendingInvoice.paymentStage === 'balance' ? 'Remaining Balance' : 'Total Due Amount'}</span>
-                    <span className="text-xl font-extrabold text-[#0AA87D]">₹{pendingInvoice.amount.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-[#0AA87D]">₹{pendingInvoice.amount.toLocaleString()}</span>
                   </div>
                 </>
               ) : (
@@ -498,7 +481,7 @@ const TenantRentPayment = () => {
                   </div>
                   <div className="flex justify-between items-center text-base">
                     <span className="font-bold text-[#062F26]">Total Amount</span>
-                    <span className="text-xl font-extrabold text-[#0AA87D]">₹{pendingInvoice ? pendingInvoice.amount.toLocaleString() : 0}</span>
+                    <span className="text-xl font-bold text-[#0AA87D]">₹{pendingInvoice ? pendingInvoice.amount.toLocaleString() : 0}</span>
                   </div>
                 </>
               )}

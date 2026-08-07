@@ -223,20 +223,20 @@ const PropertyListingCard = ({ property }) => {
                     rentPerBed: pricingMap[type]
                   }));
                 }
-                
+
                 if (pgPrices.length === 0) {
                   pgPrices = property.rooms && property.rooms.length > 0 ? property.rooms : [
                     { sharingType: 'Single', rentPerBed: property.price || 0 },
                     { sharingType: 'Double', rentPerBed: parseInt(String(property.price || 0).replace(/,/g, '') || 0) * 0.6 }
                   ];
                 }
-                
+
                 return pgPrices.slice(0, 3).map((room, idx) => (
                   <div key={idx} className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5 bg-[#EAF5F2] rounded-lg px-1 sm:px-2 py-1.5 transition-colors group-hover:bg-[#d8efe8] overflow-hidden">
                     <Icon icon={room.sharingType?.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3.5 h-3.5 text-brand-teal stroke-[2.5] shrink-0" />
                     <div className="flex flex-col gap-0 text-left min-w-0">
                       <span className="text-[9px] sm:text-[10px] font-bold text-brand-teal leading-tight truncate">{room.sharingType?.split(' ')[0]}</span>
-                      <span className="text-[10px] sm:text-[11px] font-extrabold text-[#062F26] leading-tight truncate">₹{Number(room.rentPerBed || 0).toLocaleString('en-IN')}</span>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-[#062F26] leading-tight truncate">₹{Number(room.rentPerBed || 0).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 ));

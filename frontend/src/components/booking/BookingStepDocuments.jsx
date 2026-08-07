@@ -58,7 +58,7 @@ const BookingStepDocuments = ({
             <Icon icon="lucide:fingerprint" className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-extrabold text-[#062F26] text-sm">Aadhaar eKYC</h3>
+            <h3 className="font-bold text-[#062F26] text-sm">Aadhaar eKYC</h3>
             <p className="text-xs text-slate-600 mt-0.5">Instant verification via Aadhaar OTP</p>
           </div>
         </div>
@@ -134,11 +134,10 @@ const BookingStepDocuments = ({
           type="button"
           onClick={handleContinue}
           disabled={!isStep2Valid}
-          className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center cursor-pointer ${
-            isStep2Valid
+          className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center cursor-pointer ${isStep2Valid
               ? 'bg-[#062F26] hover:bg-[#08483B] text-white shadow-md hover:shadow-lg active:scale-98'
               : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60 shadow-none'
-          }`}
+            }`}
         >
           <span>Next</span>
         </button>

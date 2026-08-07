@@ -114,6 +114,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
   const [selectedTenant, setSelectedTenant] = useState(null);
 
   const [bookings, setBookings] = useState([]);
+  const [invoices, setInvoices] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [bookingsFetched, setBookingsFetched] = useState(false);
 
@@ -176,13 +177,16 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
       setLoadingBookings(true);
       try {
         const token = localStorage.getItem('accessToken');
-        const res = await fetch('/api/bookings/owner', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const propertyBookings = data.filter(b => b.propertyId && b.propertyId._id === propertyId);
+        const [bookingsRes, invoicesRes] = await Promise.all([
+          fetch('/api/bookings/owner', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/invoices/owner', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        if (bookingsRes.ok && invoicesRes.ok) {
+          const bookingsData = await bookingsRes.json();
+          const invoicesData = await invoicesRes.json();
+          const propertyBookings = bookingsData.filter(b => b.propertyId && b.propertyId._id === propertyId);
           setBookings(propertyBookings);
+          setInvoices(invoicesData);
           setBookingsFetched(true);
         }
       } catch (error) {
@@ -208,7 +212,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
 
   if (!property) return null;
 
-  const title = property.pgName || property.propertyCategory || 'Property';
+  const title = property.pgName || property.societyName || property.propertyCategory || 'Property';
   const location = property.locality ? `${property.locality}, ${property.city || ''}` : (property.address || 'Location Unknown');
   const status = property.status || 'Pending';
   const isPG = property.propertyType === 'PG';
@@ -392,7 +396,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                     )}
                   </>
                 )}
-              {property.propertyType === 'PG' && pgPricesList.length > 0 ? (
+              {isPG && pgPricesList.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap">
                   {pgPricesList.map((p, idx) => (
                     <div key={idx} className="flex items-center gap-1.5 bg-brand-teal/5 border border-brand-teal/20 px-2 py-0.5 rounded text-[11px] font-bold text-[#062F26]">
@@ -401,7 +405,8 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                     </div>
                   ))}
                 </div>
-              ) : (
+              )}
+              {isPG && pgPricesList.length === 0 && (
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-[#062F26]">{displayRent}</span><span className="text-xs text-slate-400">/month</span>
                 </div>
@@ -442,13 +447,13 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
         {activeTab === 'Overview' && <TabOverview property={property} status={status} currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex} />}
         {activeTab === 'Rooms & Beds' && <TabRoomsAndBeds property={property} bookings={bookings} />}
         {activeTab === 'Property Details' && <TabPropertyDetails property={property} />}
-        {activeTab === 'Tenants' && <TabTenants bookings={bookings} property={property} tenantSearchQuery={tenantSearchQuery} setSelectedTenant={setSelectedTenant} />}
-        {activeTab === 'Rent Collection' && <TabRentCollection bookings={bookings} property={property} setSelectedTenant={setSelectedTenant} />}
+        {activeTab === 'Tenants' && <TabTenants bookings={bookings} invoices={invoices} property={property} tenantSearchQuery={tenantSearchQuery} setSelectedTenant={setSelectedTenant} />}
+        {activeTab === 'Rent Collection' && <TabRentCollection bookings={bookings} invoices={invoices} property={property} setSelectedTenant={setSelectedTenant} />}
         {activeTab === 'Leads' && <TabLeads leads={leads} loadingLeads={loadingLeads} setLeads={setLeads} property={property} />}
         {activeTab === 'Bookings' && <TabBookings bookings={bookings} loadingBookings={loadingBookings} setBookings={setBookings} />}
         {activeTab === 'Rules & Regulations' && <TabRules property={property} />}
         {activeTab === 'Contract Agreement' && <TabContract property={property} />}
-        {activeTab === 'Reports' && <TabReports property={property} />}
+        {activeTab === 'Reports' && <TabReports property={property} invoices={invoices} />}
       </div>
 
       <TenantDetailsDrawer

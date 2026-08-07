@@ -1,8 +1,9 @@
-
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import connectDB from './config/db.js';
 import { initSocket } from './socket.js';
@@ -39,9 +40,21 @@ const server = createServer(app);
 initSocket(server);
 
 // Middlewares
+app.use(helmet()); // Set security HTTP headers
 app.use(cors({ origin: 'http://localhost:5173', credentials: true })); // Important for cookies
 app.use(express.json());
 app.use(cookieParser());
+
+// Global Rate limiting
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+app.use('/api', globalLimiter);
+
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -82,9 +95,10 @@ app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
   res.status(500).json({
     message: err.message || 'Internal Server Error',
-    stack: err.stack
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack
   });
 });
+
 
 const PORT = process.env.PORT || 5000;
 

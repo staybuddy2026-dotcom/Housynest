@@ -274,7 +274,7 @@ const OwnerLeads = () => {
 
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-xl font-extrabold text-[#062F26]">Lead Details</h2>
+              <h2 className="text-xl font-bold text-[#062F26]">Lead Details</h2>
               <button
                 onClick={() => setSelectedLead(null)}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"

@@ -13,6 +13,13 @@ import { sendGenericEmail } from '../utils/emailService.js';
 export const createProperty = async (req, res) => {
   try {
     const propertyData = req.body;
+    
+    // Prevent Mass Assignment of protected fields
+    delete propertyData.status;
+    delete propertyData.isVerified;
+    delete propertyData.views;
+    delete propertyData.leads;
+    delete propertyData.owner;
 
     // Convert complex objects/arrays from stringified JSON if needed (multipart/form-data sends complex objects as strings)
     const jsonFields = ['rooms', 'floors', 'pgPricing'];
@@ -140,6 +147,13 @@ export const updateProperty = async (req, res) => {
     }
 
     const propertyData = req.body;
+
+    // Prevent Mass Assignment of protected fields
+    delete propertyData.status;
+    delete propertyData.isVerified;
+    delete propertyData.views;
+    delete propertyData.leads;
+    delete propertyData.owner;
 
     // Convert complex objects/arrays from stringified JSON if needed
     const jsonFields = ['rooms', 'floors', 'pgPricing'];

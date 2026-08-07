@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 
 const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
@@ -89,89 +89,153 @@ By proceeding with occupation of the premises, the Licensee acknowledges that th
 <b>Date:</b> [agreement_date]`;
 
 const TabContract = ({ property }) => {
+  const [showContractFormat, setShowContractFormat] = useState(false);
+
+  // Mock data for tenant contracts
+  const tenantContracts = [
+    { id: 1, tenantName: 'Rahul Kumar', room: 'Room 101', bed: 'Bed A', date: '12 Aug 2026', status: 'Signed', size: '2.4 MB' },
+    { id: 2, tenantName: 'Amit Singh', room: 'Room 102', bed: 'Bed B', date: '05 Aug 2026', status: 'Signed', size: '1.8 MB' },
+    { id: 3, tenantName: 'Priya Sharma', room: 'Room 201', bed: 'Private', date: '28 Jul 2026', status: 'Signed', size: '2.1 MB' },
+  ];
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Contract Agreement Card */}
       <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm w-full">
-        <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
-          <div className="w-12 h-12 bg-[#EAF5F2] text-brand-teal rounded-xl flex items-center justify-center shrink-0">
-            <Icon icon="lucide:file-text" className="w-6 h-6" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-[#EAF5F2] text-brand-teal rounded-xl flex items-center justify-center shrink-0">
+              <Icon icon="lucide:file-text" className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-[#062F26]">
+                {showContractFormat ? 'Contract Format' : 'Tenant Contracts'}
+              </h3>
+              <p className="text-sm font-medium text-slate-500 mt-1">
+                {showContractFormat
+                  ? "Review the property's base contract format"
+                  : "View and download signed tenant agreements"}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-[#062F26]">Contract Agreement</h3>
-            <p className="text-sm font-medium text-slate-500 mt-1">Review the property's terms and conditions</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowContractFormat(!showContractFormat)}
+            className="px-4 py-2 bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-[#062F26] rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <Icon icon={showContractFormat ? "lucide:users" : "lucide:file-cog"} width="16" />
+            {showContractFormat ? 'View Tenant Contracts' : 'Contract Format'}
+          </button>
         </div>
 
-        {property.ownerContract?.isCustomized || property.ownerContract?.url ? (
+        {showContractFormat ? (
           <>
-            <p className="text-sm text-slate-500 font-medium mb-4">
-              Official customized owner contract stored in Cloudinary
-            </p>
-            <div className="bg-[#EAF5F2]/50 border border-brand-teal/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center font-bold shrink-0">
-                  <Icon icon="lucide:file-type-2" width="22" />
+            {property.ownerContract?.isCustomized || property.ownerContract?.url ? (
+              <>
+                <p className="text-sm text-slate-500 font-medium mb-4">
+                  Official customized owner contract stored in Cloudinary
+                </p>
+                <div className="bg-[#EAF5F2]/50 border border-brand-teal/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center font-bold shrink-0">
+                      <Icon icon="lucide:file-type-2" width="22" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-[#062F26] truncate max-w-[200px] sm:max-w-md">
+                        {property.ownerContract?.fileName || 'Owner Contract Agreement.pdf'}
+                      </p>
+                      <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                        <Icon icon="lucide:cloud-check" width="12" className="text-brand-teal" /> Stored in Cloudinary
+                      </span>
+                    </div>
+                  </div>
+                  {property.ownerContract?.url && (
+                    <a
+                      href={property.ownerContract.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-all flex items-center justify-center gap-2 shadow-sm shrink-0"
+                    >
+                      <Icon icon="lucide:external-link" width="16" />
+                      Open in New Tab
+                    </a>
+                  )}
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-[#062F26] truncate max-w-[200px] sm:max-w-md">
-                    {property.ownerContract?.fileName || 'Owner Contract Agreement.pdf'}
-                  </p>
-                  <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                    <Icon icon="lucide:cloud-check" width="12" className="text-brand-teal" /> Stored in Cloudinary
-                  </span>
-                </div>
-              </div>
-              {property.ownerContract?.url && (
-                <a
-                  href={property.ownerContract.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-all flex items-center justify-center gap-2 shadow-sm shrink-0"
-                >
-                  <Icon icon="lucide:external-link" width="16" />
-                  Open in New Tab
-                </a>
-              )}
-            </div>
 
-            {/* Embedded PDF Viewer */}
-            {property.ownerContract?.url && (
-              <div className="mt-6 w-full h-[600px] md:h-[700px] rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                <iframe
-                  src={`${property.ownerContract.url}#view=FitH`}
-                  title="Contract Agreement"
-                  className="w-full h-full"
-                />
+                {/* Embedded PDF Viewer */}
+                {property.ownerContract?.url && (
+                  <div className="mt-6 w-full h-[600px] md:h-[700px] rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                    <iframe
+                      src={`${property.ownerContract.url}#view=FitH`}
+                      title="Contract Agreement"
+                      className="w-full h-full"
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-[#FAF6F0] border border-[#F3EFE9] rounded-xl p-5 md:p-6 flex flex-col gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold shrink-0">
+                    <Icon icon="lucide:shield-check" width="24" />
+                  </div>
+                  <div>
+                    <p className="text-base font-bold text-[#062F26]">
+                      {property.ownerContract?.isCustomized ? 'Customized Agreement' : 'Standard Agreement'}
+                    </p>
+                    <p className="text-sm font-medium text-slate-500">
+                      {property.ownerContract?.isCustomized ? 'Using customized contract text' : 'Using Housynest\'s default standardized contract'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Embedded Text Viewer */}
+                <div className="w-full h-[600px] md:h-[700px] rounded-xl overflow-y-auto custom-scrollbar border border-slate-200 bg-white p-6 md:p-8" data-lenis-prevent="true">
+                  <div
+                    className="prose prose-sm md:prose-base max-w-none text-slate-700 whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{
+                      __html: property.ownerContract?.isCustomized && property.ownerContract?.contractTextEn
+                        ? property.ownerContract.contractTextEn
+                        : DEFAULT_ENGLISH_AGREEMENT
+                    }}
+                  />
+                </div>
               </div>
             )}
           </>
         ) : (
-          <div className="bg-[#FAF6F0] border border-[#F3EFE9] rounded-xl p-5 md:p-6 flex flex-col gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold shrink-0">
-                <Icon icon="lucide:shield-check" width="24" />
-              </div>
-              <div>
-                <p className="text-base font-bold text-[#062F26]">
-                  {property.ownerContract?.isCustomized ? 'Customized Agreement' : 'Standard Agreement'}
-                </p>
-                <p className="text-sm font-medium text-slate-500">
-                  {property.ownerContract?.isCustomized ? 'Using customized contract text' : 'Using Housynest\'s default standardized contract'}
-                </p>
-              </div>
-            </div>
+          <div className="space-y-4">
+            <div className="grid gap-4">
+              {tenantContracts.map((contract) => (
+                <div key={contract.id} className="bg-white border border-slate-200 hover:border-brand-teal/40 transition-colors rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:shadow-md">
+                  <div className="flex items-start sm:items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+                      <Icon icon="lucide:user" className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#062F26] text-base">{contract.tenantName}</h4>
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-xs font-medium text-slate-500">
+                        <span className="flex items-center gap-1"><Icon icon="lucide:door-closed" className="w-3.5 h-3.5" /> {contract.room} ({contract.bed})</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1"><Icon icon="lucide:calendar" className="w-3.5 h-3.5" /> {contract.date}</span>
+                        <span>•</span>
+                        <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-200">{contract.status}</span>
+                      </div>
+                    </div>
+                  </div>
 
-            {/* Embedded Text Viewer */}
-            <div className="w-full h-[600px] md:h-[700px] rounded-xl overflow-y-auto custom-scrollbar border border-slate-200 bg-white p-6 md:p-8" data-lenis-prevent="true">
-              <div
-                className="prose prose-sm md:prose-base max-w-none text-slate-700 whitespace-pre-wrap"
-                dangerouslySetInnerHTML={{
-                  __html: property.ownerContract?.isCustomized && property.ownerContract?.contractTextEn
-                    ? property.ownerContract.contractTextEn
-                    : DEFAULT_ENGLISH_AGREEMENT
-                }}
-              />
+                  <div className="flex items-center gap-2 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                    <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#EAF5F2] text-[#0AA87D] hover:bg-[#0AA87D] hover:text-white transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                      <Icon icon="lucide:eye" width="16" />
+                      View
+                    </button>
+                    <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                      <Icon icon="lucide:download" width="16" />
+                      Download
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

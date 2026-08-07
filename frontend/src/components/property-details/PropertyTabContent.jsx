@@ -111,7 +111,7 @@ const PropertyTabContent = ({
                                 {room.beds?.map((bed, bIdx) => (
                                   <div key={bIdx} className={`group/bed relative w-6 h-10 border-[1.5px] rounded flex items-end justify-center pb-1 shadow-sm transition-transform group-hover:scale-110 ${bed.status === 'Occupied' ? 'border-red-500/60 bg-red-500/10' : bed.status === 'Reserved' || bed.status === 'Notice' ? 'border-orange-500/60 bg-orange-500/10' : 'border-[#0AA87D]/60 bg-[#0AA87D]/10'}`}>
                                     <div className={`w-3.5 h-3 rounded-sm shadow-inner ${bed.status === 'Occupied' ? 'bg-red-500/70' : bed.status === 'Reserved' || bed.status === 'Notice' ? 'bg-orange-500/70' : 'bg-[#0AA87D]/70'}`}></div>
-                                    
+
                                     {/* Tooltip */}
                                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 hidden group-hover/bed:flex flex-col items-center z-50 pointer-events-none">
                                       <div className="bg-[#062F26] text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-brand-teal/20 flex items-center gap-1.5">
@@ -240,7 +240,7 @@ const PropertyTabContent = ({
                                   <Icon icon="lucide:building-2" className="w-5 h-5" />
                                 </div>
                                 <div>
-                                  <h4 className="text-[15px] font-extrabold text-[#062F26] leading-none mb-1.5">{floor.floorName}</h4>
+                                  <h4 className="text-[15px] font-bold text-[#062F26] leading-none mb-1.5">{floor.floorName}</h4>
                                   <p className="text-xs font-bold text-slate-500 leading-none">{floorRooms.length} Rooms</p>
                                 </div>
                               </div>
@@ -254,7 +254,7 @@ const PropertyTabContent = ({
                                   </div>
                                   <div className="flex flex-col justify-center">
                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Total Beds</span>
-                                    <span className="text-[15px] font-extrabold text-[#062F26] leading-none">{totalBeds}</span>
+                                    <span className="text-[15px] font-bold text-[#062F26] leading-none">{totalBeds}</span>
                                   </div>
                                 </div>
 
@@ -266,7 +266,7 @@ const PropertyTabContent = ({
                                   </div>
                                   <div className="flex flex-col justify-center">
                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Available</span>
-                                    <span className={`text-[15px] font-extrabold leading-none ${availableBeds > 0 ? 'text-brand-teal' : 'text-red-500'}`}>{availableBeds}</span>
+                                    <span className={`text-[15px] font-bold leading-none ${availableBeds > 0 ? 'text-brand-teal' : 'text-red-500'}`}>{availableBeds}</span>
                                   </div>
                                 </div>
                               </div>
@@ -324,7 +324,7 @@ const PropertyTabContent = ({
 
                                         <div className="relative z-10">
                                           <div className="flex justify-between items-start mb-2 gap-2">
-                                            <h4 className="text-[17px] font-extrabold text-[#062F26]">{room.roomName || `Room ${roomIdx + 1}`}</h4>
+                                            <h4 className="text-[17px] font-bold text-[#062F26]">{room.roomName || `Room ${roomIdx + 1}`}</h4>
                                             <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md shrink-0 ${vacant === 0 ? 'bg-red-50' : occupied > 0 ? 'bg-orange-50' : 'bg-[#EAF5F2]'}`}>
                                               <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span>
                                               <span className={`text-[9px] font-bold uppercase tracking-wider ${statusColor}`}>{statusText}</span>

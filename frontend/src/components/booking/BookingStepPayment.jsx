@@ -91,6 +91,7 @@ By proceeding with occupation of the premises, the Licensee acknowledges that th
 <b>Date:</b> [agreement_date]`;
 
 const BookingStepPayment = ({
+  isPG,
   paymentType,
   propTitle,
   propLocation,
@@ -239,7 +240,7 @@ const BookingStepPayment = ({
 
           if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) {
             return (
-              <div key={index} className="text-center font-extrabold text-sm text-[#062F26] border-b border-slate-200 pb-3 my-2 tracking-wide">
+              <div key={index} className="text-center font-bold text-sm text-[#062F26] border-b border-slate-200 pb-3 my-2 tracking-wide">
                 {trimmed.replace(/<\/?h1>/g, '')}
               </div>
             );
@@ -247,7 +248,7 @@ const BookingStepPayment = ({
 
           if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) {
             return (
-              <div key={index} className="font-extrabold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">
+              <div key={index} className="font-bold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">
                 {trimmed.replace(/<\/?h3>/g, '')}
               </div>
             );
@@ -273,7 +274,7 @@ const BookingStepPayment = ({
 
   return (
     <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-slate-200/70 space-y-6 animate-fadeIn">
-      
+
       {/* HEADER SECTION */}
       <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
@@ -281,8 +282,8 @@ const BookingStepPayment = ({
             {paymentType === 'token' ? 'Terms & Conditions' : 'Agreement & Payment'}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            {paymentType === 'token' 
-              ? 'Please review and accept the terms to proceed with token payment' 
+            {paymentType === 'token'
+              ? 'Please review and accept the terms to proceed with token payment'
               : 'Review the rental agreement and complete the payment'}
           </p>
         </div>
@@ -290,29 +291,27 @@ const BookingStepPayment = ({
         {/* DYNAMIC LANGUAGE SWITCHER BADGES */}
         {paymentType === 'full' && (
           <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-          <button
-            type="button"
-            onClick={() => handleSelectLanguage('en')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
-              agreementLanguage === 'en'
-                ? 'bg-[#062F26] text-white shadow-xs'
-                : 'text-slate-600 hover:text-[#062F26]'
-            }`}
-          >
-            🌐 English
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSelectLanguage('gu')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
-              agreementLanguage === 'gu'
-                ? 'bg-[#0AA87D] text-white shadow-xs'
-                : 'text-slate-600 hover:text-[#062F26]'
-            }`}
-          >
-            🌐 ગુજરાતી (Google Translate)
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => handleSelectLanguage('en')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${agreementLanguage === 'en'
+                  ? 'bg-[#062F26] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-[#062F26]'
+                }`}
+            >
+              🌐 English
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectLanguage('gu')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${agreementLanguage === 'gu'
+                  ? 'bg-[#0AA87D] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-[#062F26]'
+                }`}
+            >
+              🌐 ગુજરાતી (Google Translate)
+            </button>
+          </div>
         )}
       </div>
 
@@ -320,143 +319,142 @@ const BookingStepPayment = ({
       {paymentType === 'full' && (
         <>
           <div className="border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs">
-        
-        {/* Accordion Header */}
-        <div
-          onClick={() => setIsAgreementCollapsed(!isAgreementCollapsed)}
-          className="bg-slate-50 p-4 border-b border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-100/60 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EAF5F2] text-[#0AA87D] flex items-center justify-center shrink-0">
-              <Icon icon="lucide:file-text" className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-xs sm:text-sm text-[#062F26]">
-                {agreementLanguage === 'gu' ? 'મકાન ભાડા કરાર (Google Translate)' : 'Leave & License Agreement'}
-              </h3>
-              <p className="text-[11px] font-semibold text-slate-400">
-                {agreementLanguage === 'gu' ? 'ગુજરાતી અનુવાદ' : 'Owner Customized Contract Text'}
-              </p>
-            </div>
-          </div>
 
-          <button
-            type="button"
-            className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-[#062F26]"
-          >
-            <Icon icon={isAgreementCollapsed ? "lucide:chevron-down" : "lucide:chevron-up"} className="w-4 h-4" />
-            <span>{isAgreementCollapsed ? 'Expand' : 'Collapse'}</span>
-          </button>
-        </div>
-
-        {/* Scrollable Agreement Text Body */}
-        {!isAgreementCollapsed && (
-          <div
-            data-lenis-prevent="true"
-            className="p-5 max-h-80 overflow-y-auto overscroll-contain bg-white text-xs text-slate-700 leading-relaxed font-sans space-y-4 scroll-smooth border-t border-slate-100"
-            style={{
-              scrollbarWidth: 'thin',
-              scrollbarColor: '#0AA87D #EAF5F2'
-            }}
-          >
-            {agreementLanguage === 'en' ? (
-              /* DYNAMIC ENGLISH CONTRACT */
-              renderFormattedContractLines(customContractText || DEFAULT_CONTRACT_TEXT)
-            ) : (
-              /* DYNAMIC GUJARATI TRANSLATION OF OWNER'S CUSTOMIZED CONTRACT */
-              isTranslatingText ? (
-                <div className="flex items-center justify-center py-8 text-slate-500 gap-2 font-semibold">
-                  <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin text-[#0AA87D]" />
-                  <span>Translating agreement into Gujarati via Google Translate...</span>
+            {/* Accordion Header */}
+            <div
+              onClick={() => setIsAgreementCollapsed(!isAgreementCollapsed)}
+              className="bg-slate-50 p-4 border-b border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-100/60 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#EAF5F2] text-[#0AA87D] flex items-center justify-center shrink-0">
+                  <Icon icon="lucide:file-text" className="w-5 h-5" />
                 </div>
-              ) : (
-                renderFormattedContractLines(translatedGujaratiText || customContractTextGu || DEFAULT_CONTRACT_TEXT)
-              )
-            )}
-          </div>
-        )}
+                <div>
+                  <h3 className="font-bold text-xs sm:text-sm text-[#062F26]">
+                    {agreementLanguage === 'gu' ? 'મકાન ભાડા કરાર (Google Translate)' : 'Leave & License Agreement'}
+                  </h3>
+                  <p className="text-[11px] font-semibold text-slate-400">
+                    {agreementLanguage === 'gu' ? 'ગુજરાતી અનુવાદ' : 'Owner Customized Contract Text'}
+                  </p>
+                </div>
+              </div>
 
-      </div>
-
-      {/* DIGITAL SIGNATURE SECTION */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-extrabold text-[#062F26] flex items-center gap-2">
-              <Icon icon="lucide:pen-tool" className="w-4 h-4 text-[#0AA87D]" />
-              Digital eSign <span className="text-red-500">*</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Please eSign below using your Aadhaar OTP to acknowledge and agree to the rental agreement terms.
-            </p>
-          </div>
-          {isEsignVerified && (
-            <span className="px-3 py-1 rounded-full text-[10px] font-extrabold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
-              <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
-              Document eSigned
-            </span>
-          )}
-        </div>
-
-        {!isEsignVerified ? (
-          <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col gap-4 mt-2">
-            {!showEsignOtp ? (
               <button
                 type="button"
-                onClick={handleSendEsignOtp}
-                className="w-fit px-6 py-3 rounded-xl font-bold text-xs bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition-all flex items-center gap-2"
+                className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-[#062F26]"
               >
-                <Icon icon="lucide:file-signature" className="w-4 h-4" />
-                Send OTP for eSign
+                <Icon icon={isAgreementCollapsed ? "lucide:chevron-down" : "lucide:chevron-up"} className="w-4 h-4" />
+                <span>{isAgreementCollapsed ? 'Expand' : 'Collapse'}</span>
               </button>
-            ) : (
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
-                  placeholder="Enter 6-digit eSign OTP"
-                  value={esignOtp}
-                  onChange={(e) => setEsignOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
-                />
-                <button
-                  type="button"
-                  onClick={handleVerifyEsign}
-                  disabled={isVerifyingEsign || esignOtp.length < 6}
-                  className={`px-6 py-3 rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 ${
-                    isVerifyingEsign || esignOtp.length < 6
-                      ? 'bg-indigo-400 text-white cursor-not-allowed'
-                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  }`}
-                >
-                  {isVerifyingEsign ? (
-                    <>
-                      <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
-                      Affixing Signature...
-                    </>
+            </div>
+
+            {/* Scrollable Agreement Text Body */}
+            {!isAgreementCollapsed && (
+              <div
+                data-lenis-prevent="true"
+                className="p-5 max-h-80 overflow-y-auto overscroll-contain bg-white text-xs text-slate-700 leading-relaxed font-sans space-y-4 scroll-smooth border-t border-slate-100"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#0AA87D #EAF5F2'
+                }}
+              >
+                {agreementLanguage === 'en' ? (
+                  /* DYNAMIC ENGLISH CONTRACT */
+                  renderFormattedContractLines(customContractText || DEFAULT_CONTRACT_TEXT)
+                ) : (
+                  /* DYNAMIC GUJARATI TRANSLATION OF OWNER'S CUSTOMIZED CONTRACT */
+                  isTranslatingText ? (
+                    <div className="flex items-center justify-center py-8 text-slate-500 gap-2 font-semibold">
+                      <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin text-[#0AA87D]" />
+                      <span>Translating agreement into Gujarati via Google Translate...</span>
+                    </div>
                   ) : (
-                    <>
-                      <Icon icon="lucide:file-signature" className="w-4 h-4" />
-                      Verify & eSign
-                    </>
-                  )}
-                </button>
+                    renderFormattedContractLines(translatedGujaratiText || customContractTextGu || DEFAULT_CONTRACT_TEXT)
+                  )
+                )}
+              </div>
+            )}
+
+          </div>
+
+          {/* DIGITAL SIGNATURE SECTION */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-[#062F26] flex items-center gap-2">
+                  <Icon icon="lucide:pen-tool" className="w-4 h-4 text-[#0AA87D]" />
+                  Digital eSign <span className="text-red-500">*</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Please eSign below using your Aadhaar OTP to acknowledge and agree to the rental agreement terms.
+                </p>
+              </div>
+              {isEsignVerified && (
+                <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
+                  <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
+                  Document eSigned
+                </span>
+              )}
+            </div>
+
+            {!isEsignVerified ? (
+              <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col gap-4 mt-2">
+                {!showEsignOtp ? (
+                  <button
+                    type="button"
+                    onClick={handleSendEsignOtp}
+                    className="w-fit px-6 py-3 rounded-xl font-bold text-xs bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition-all flex items-center gap-2"
+                  >
+                    <Icon icon="lucide:file-signature" className="w-4 h-4" />
+                    Send OTP for eSign
+                  </button>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      placeholder="Enter 6-digit eSign OTP"
+                      value={esignOtp}
+                      onChange={(e) => setEsignOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyEsign}
+                      disabled={isVerifyingEsign || esignOtp.length < 6}
+                      className={`px-6 py-3 rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 ${isVerifyingEsign || esignOtp.length < 6
+                          ? 'bg-indigo-400 text-white cursor-not-allowed'
+                          : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        }`}
+                    >
+                      {isVerifyingEsign ? (
+                        <>
+                          <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
+                          Affixing Signature...
+                        </>
+                      ) : (
+                        <>
+                          <Icon icon="lucide:file-signature" className="w-4 h-4" />
+                          Verify & eSign
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-2 p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 shadow-sm flex items-center justify-between animate-fadeIn">
+                <div className="flex items-center gap-3">
+                  <Icon icon="lucide:shield-check" className="w-6 h-6" />
+                  <div>
+                    <h4 className="font-bold text-sm">Successfully eSigned</h4>
+                    <p className="text-xs opacity-90 mt-0.5">Your booking agreement has been digitally signed using Aadhaar eSign.</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-        ) : (
-          <div className="mt-2 p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 shadow-sm flex items-center justify-between animate-fadeIn">
-            <div className="flex items-center gap-3">
-              <Icon icon="lucide:shield-check" className="w-6 h-6" />
-              <div>
-                <h4 className="font-bold text-sm">Successfully eSigned</h4>
-                <p className="text-xs opacity-90 mt-0.5">Your booking agreement has been digitally signed using Aadhaar eSign.</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
 
-      <style>{`
+          <style>{`
         @keyframes stamp-press {
           0% { transform: scale(1.8) rotate(-15deg); opacity: 0; }
           100% { transform: scale(1) rotate(0deg); opacity: 1; }
@@ -466,81 +464,80 @@ const BookingStepPayment = ({
         }
       `}</style>
 
-      {/* E-STAMP GENERATION SECTION */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-extrabold text-[#062F26] flex items-center gap-2">
-              <Icon icon="lucide:stamp" className="w-4 h-4 text-[#0AA87D]" />
-              Agreement e-Stamp <span className="text-red-500">*</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Generate a legally binding e-Stamp paper for your rental agreement (₹300 stamp duty included in payment).
-            </p>
-          </div>
-          {stampGenerated && (
-            <span className="px-3 py-1 rounded-full text-[10px] font-extrabold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
-              <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
-              e-Stamp Ready
-            </span>
-          )}
-        </div>
+          {/* E-STAMP GENERATION SECTION */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-[#062F26] flex items-center gap-2">
+                  <Icon icon="lucide:stamp" className="w-4 h-4 text-[#0AA87D]" />
+                  Agreement e-Stamp <span className="text-red-500">*</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Generate a legally binding e-Stamp paper for your rental agreement (₹300 stamp duty included in payment).
+                </p>
+              </div>
+              {stampGenerated && (
+                <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
+                  <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
+                  e-Stamp Ready
+                </span>
+              )}
+            </div>
 
-        {!stampGenerated ? (
-          <div className={`border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 mt-2 transition-all min-h-[104px] ${isGeneratingStamp ? 'bg-emerald-50/50 justify-center' : 'bg-slate-50/50 justify-between'}`}>
-            {isGeneratingStamp ? (
-              <div className="flex items-center gap-4 animate-in fade-in duration-300">
-                 <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center animate-stamp-press border-2 border-emerald-500 text-emerald-600 shadow-sm shadow-emerald-200 shrink-0">
-                   <Icon icon="lucide:stamp" className="w-7 h-7" />
-                 </div>
-                 <div>
-                   <h4 className="font-bold text-base text-emerald-800">Affixing e-Stamp...</h4>
-                   <p className="text-xs text-emerald-600 mt-0.5 animate-pulse">Please wait while the document is stamped</p>
-                 </div>
+            {!stampGenerated ? (
+              <div className={`border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 mt-2 transition-all min-h-[104px] ${isGeneratingStamp ? 'bg-emerald-50/50 justify-center' : 'bg-slate-50/50 justify-between'}`}>
+                {isGeneratingStamp ? (
+                  <div className="flex items-center gap-4 animate-in fade-in duration-300">
+                    <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center animate-stamp-press border-2 border-emerald-500 text-emerald-600 shadow-sm shadow-emerald-200 shrink-0">
+                      <Icon icon="lucide:stamp" className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-base text-emerald-800">Affixing e-Stamp...</h4>
+                      <p className="text-xs text-emerald-600 mt-0.5 animate-pulse">Please wait while the document is stamped</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
+                        <Icon icon="lucide:file-badge-2" className="w-6 h-6 text-slate-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm text-[#062F26]">Generate ₹300 e-Stamp</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">Required before final confirmation</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleGenerateStamp}
+                      disabled={!isEsignVerified}
+                      className={`px-6 py-3 rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 ${!isEsignVerified
+                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-70'
+                          : 'bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer'
+                        }`}
+                    >
+                      <Icon icon="lucide:stamp" className="w-4 h-4" />
+                      Generate e-Stamp
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
-              <>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
-                    <Icon icon="lucide:file-badge-2" className="w-6 h-6 text-slate-400" />
+              <div className="mt-2 p-4 bg-[#FFFDF0] text-[#B45309] rounded-xl border border-[#FCD34D] shadow-sm flex items-center justify-between animate-fadeIn">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm border border-[#FCD34D]">
+                    <Icon icon="lucide:stamp" className="w-5 h-5 text-[#D97706]" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-[#062F26]">Generate ₹300 e-Stamp</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Required before final confirmation</p>
+                    <h4 className="font-bold text-sm">e-Stamp Paper Attached</h4>
+                    <p className="text-xs opacity-90 mt-0.5">A legal ₹300 e-Stamp has been affixed to your signed agreement.</p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleGenerateStamp}
-                  disabled={!isEsignVerified}
-                  className={`px-6 py-3 rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 ${
-                    !isEsignVerified
-                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-70'
-                      : 'bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer'
-                  }`}
-                >
-                  <Icon icon="lucide:stamp" className="w-4 h-4" />
-                  Generate e-Stamp
+                <button type="button" className="text-xs font-bold text-[#D97706] hover:underline flex items-center gap-1 cursor-pointer">
+                  <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
+                  Preview
                 </button>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="mt-2 p-4 bg-[#FFFDF0] text-[#B45309] rounded-xl border border-[#FCD34D] shadow-sm flex items-center justify-between animate-fadeIn">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm border border-[#FCD34D]">
-                <Icon icon="lucide:stamp" className="w-5 h-5 text-[#D97706]" />
               </div>
-              <div>
-                <h4 className="font-bold text-sm">e-Stamp Paper Attached</h4>
-                <p className="text-xs opacity-90 mt-0.5">A legal ₹300 e-Stamp has been affixed to your signed agreement.</p>
-              </div>
-            </div>
-            <button type="button" className="text-xs font-bold text-[#D97706] hover:underline flex items-center gap-1 cursor-pointer">
-              <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
-              Preview
-            </button>
-          </div>
             )}
           </div>
         </>
@@ -556,7 +553,7 @@ const BookingStepPayment = ({
             className="mt-0.5 w-4 h-4 text-[#0AA87D] rounded border-slate-300 focus:ring-[#0AA87D]"
           />
           <span className="text-xs text-slate-700 font-semibold leading-relaxed">
-            {paymentType === 'token' 
+            {paymentType === 'token'
               ? 'I agree to the Terms and Conditions and Privacy Policy'
               : 'I agree to sign the rental agreement digitally and accept the Terms and Conditions'} <span className="text-red-500">*</span>
           </span>
@@ -581,10 +578,12 @@ const BookingStepPayment = ({
           <Icon icon="lucide:clock" className="w-4 h-4" />
         </div>
         <div className="space-y-1.5 text-xs leading-relaxed">
-          <h4 className="font-extrabold text-[#B45309] text-sm">How payments work</h4>
-          <p className="text-[#92400E]">
-            <span className="font-bold">Pay Token:</span> Reserve your bed with a fully refundable token. Your booking request goes to the owner for approval. Once approved, you can pay the remaining amount later from your Stay Requests section.
-          </p>
+          <h4 className="font-bold text-[#B45309] text-sm">How payments work</h4>
+          {isPG && (
+            <p className="text-[#92400E]">
+              <span className="font-bold">Pay Token:</span> Reserve your bed with a fully refundable token. Your booking request goes to the owner for approval. Once approved, you can pay the remaining amount later from your Stay Requests section.
+            </p>
+          )}
           <p className="text-[#92400E]">
             <span className="font-bold">Pay Full Amount:</span> Pay the complete amount now to instantly confirm your stay. There&apos;s no separate approval step. If the bed is unavailable, your payment is refunded as per BedR&apos;s policy.
           </p>
@@ -622,11 +621,10 @@ const BookingStepPayment = ({
             handleContinue();
           }}
           disabled={!isStep3Valid || isSubmitting}
-          className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center cursor-pointer ${
-            isStep3Valid && !isSubmitting
+          className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center cursor-pointer ${isStep3Valid && !isSubmitting
               ? 'bg-[#0B4F48] hover:bg-[#083D37] text-white shadow-md hover:shadow-lg active:scale-98'
               : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60 shadow-none'
-          }`}
+            }`}
         >
           {isSubmitting ? (
             <>

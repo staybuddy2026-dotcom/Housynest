@@ -2,6 +2,7 @@ import React from 'react';
 import { Icon } from '@iconify/react';
 
 const BookingSidebarCard = ({
+  isPG,
   propTitle,
   propLocation,
   moveInDate,
@@ -26,17 +27,17 @@ const BookingSidebarCard = ({
   return (
     <div className="lg:col-span-4 sticky top-6 space-y-4">
       <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden border border-slate-200/80">
-        
+
         {/* DARK BLUE/TEAL HEADER BLOCK */}
         <div className="bg-[#062F26] text-white p-5 space-y-2">
-          <h3 className="font-extrabold text-base sm:text-lg leading-snug">
+          <h3 className="font-bold text-base sm:text-lg leading-snug">
             {propTitle}
           </h3>
           <p className="text-xs text-slate-300 flex items-center gap-1 font-medium">
             <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-[#0AA87D]" />
             {propLocation}
           </p>
-          
+
           {/* Badges row with Move-In Date, Sharing Type, Room & Bed */}
           <div className="flex flex-wrap items-center gap-2 pt-2 text-[11px] font-semibold text-emerald-200 border-t border-white/10">
             <span className="flex items-center gap-1">
@@ -60,53 +61,53 @@ const BookingSidebarCard = ({
 
         {/* CARD BODY CONTENT */}
         <div className="p-5 space-y-5">
-          
-          {/* PAY TOKEN VS PAY FULL TOGGLE CARDS */}
-          <div className="grid grid-cols-2 gap-2.5">
-            {/* Pay Token Option Card (40% Token - 100% Refundable) */}
-            <button
-              type="button"
-              onClick={() => setPaymentType('token')}
-              className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer ${
-                paymentType === 'token'
-                  ? 'border-[#0AA87D] bg-[#EAF5F2] ring-2 ring-[#0AA87D]/10'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
-            >
-              {paymentType === 'token' && (
-                <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#0AA87D] border-2 border-white shadow-xs"></div>
-              )}
-              <p className="text-xs font-extrabold text-[#062F26]">Pay Token (40%)</p>
-              <p className="text-[10px] font-bold text-[#0AA87D]">Reserve Bed • 100% Refundable</p>
-            </button>
 
-            {/* Pay Full Option Card */}
-            <button
-              type="button"
-              onClick={() => setPaymentType('full')}
-              className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer ${
-                paymentType === 'full'
-                  ? 'border-[#062F26] bg-[#EAF5F2] ring-2 ring-[#062F26]/10'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
-            >
-              {paymentType === 'full' && (
-                <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#062F26] border-2 border-white shadow-xs"></div>
-              )}
-              <p className="text-xs font-extrabold text-[#062F26]">Pay Full</p>
-              <p className="text-[10px] font-semibold text-slate-500">Confirm Now</p>
-            </button>
-          </div>
+          {/* PAY TOKEN VS PAY FULL TOGGLE CARDS */}
+          {isPG && (
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Pay Token Option Card (40% Token - 100% Refundable) */}
+              <button
+                type="button"
+                onClick={() => setPaymentType('token')}
+                className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer ${paymentType === 'token'
+                    ? 'border-[#0AA87D] bg-[#EAF5F2] ring-2 ring-[#0AA87D]/10'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+              >
+                {paymentType === 'token' && (
+                  <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#0AA87D] border-2 border-white shadow-xs"></div>
+                )}
+                <p className="text-xs font-bold text-[#062F26]">Pay Token (40%)</p>
+                <p className="text-[10px] font-bold text-[#0AA87D]">Reserve Bed • 100% Refundable</p>
+              </button>
+
+              {/* Pay Full Option Card */}
+              <button
+                type="button"
+                onClick={() => setPaymentType('full')}
+                className={`relative p-3 rounded-xl border-2 text-left transition-all duration-200 cursor-pointer ${paymentType === 'full'
+                    ? 'border-[#062F26] bg-[#EAF5F2] ring-2 ring-[#062F26]/10'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+              >
+                {paymentType === 'full' && (
+                  <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[#062F26] border-2 border-white shadow-xs"></div>
+                )}
+                <p className="text-xs font-bold text-[#062F26]">Pay Full</p>
+                <p className="text-[10px] font-semibold text-slate-500">Confirm Now</p>
+              </button>
+            </div>
+          )}
 
           {/* PAY NOW DISPLAY BOX */}
           <div className="bg-[#FFFDF0] border border-[#FCD34D] rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#B45309]">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#B45309]">
                   PAY NOW
                 </span>
                 {paymentType === 'token' && (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30">
                     100% Refundable
                   </span>
                 )}
@@ -122,7 +123,7 @@ const BookingSidebarCard = ({
             </div>
 
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-extrabold text-[#062F26]">
+              <span className="text-3xl font-bold text-[#062F26]">
                 ₹{payNowAmount.toLocaleString('en-IN')}
               </span>
             </div>
@@ -148,7 +149,7 @@ const BookingSidebarCard = ({
                       <span>Stamp & Agreement Fees:</span>
                       <span className="font-bold">₹{stampFees.toLocaleString('en-IN')}</span>
                     </div>
-                    <div className="flex justify-between font-extrabold text-[#0AA87D] pt-1.5 border-t border-slate-200/80">
+                    <div className="flex justify-between font-bold text-[#0AA87D] pt-1.5 border-t border-slate-200/80">
                       <span>Total Token Amount (Pay Now):</span>
                       <span>₹{tokenPayableNow.toLocaleString('en-IN')}</span>
                     </div>
@@ -168,7 +169,7 @@ const BookingSidebarCard = ({
                         <span className="font-bold text-[#062F26]">₹{maintenance.toLocaleString('en-IN')}</span>
                       </div>
                     )}
-                    <div className="flex justify-between font-extrabold text-[#EF4444] pt-1.5 border-t border-slate-200/80">
+                    <div className="flex justify-between font-bold text-[#EF4444] pt-1.5 border-t border-slate-200/80">
                       <span>Total Remaining (Pay at Move-In):</span>
                       <span>₹{((baseRent - tokenAmount) + deposit + maintenance).toLocaleString('en-IN')}</span>
                     </div>
@@ -191,7 +192,7 @@ const BookingSidebarCard = ({
                       <span>Stamp & Agreement Fees:</span>
                       <span className="font-bold">₹{stampFees.toLocaleString('en-IN')}</span>
                     </div>
-                    <div className="flex justify-between font-extrabold text-[#0AA87D] pt-1.5 border-t border-slate-200/80">
+                    <div className="flex justify-between font-bold text-[#0AA87D] pt-1.5 border-t border-slate-200/80">
                       <span>Total Full Amount (Pay Now):</span>
                       <span>₹{fullPayableNow.toLocaleString('en-IN')}</span>
                     </div>
@@ -206,11 +207,10 @@ const BookingSidebarCard = ({
             type="button"
             onClick={handleFinalBookingSubmit}
             disabled={!isAllStepsValid || isSubmitting}
-            className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 shadow-md flex justify-center items-center active:scale-98 ${
-              isAllStepsValid && !isSubmitting
+            className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 shadow-md flex justify-center items-center active:scale-98 ${isAllStepsValid && !isSubmitting
                 ? 'bg-[#0B4F48] hover:bg-[#083D37] text-white hover:shadow-lg cursor-pointer'
                 : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60 shadow-none'
-            }`}
+              }`}
           >
             {isSubmitting ? (
               <>
@@ -218,7 +218,7 @@ const BookingSidebarCard = ({
                 <span>Processing Request...</span>
               </>
             ) : (
-              <span>{paymentType === 'token' ? 'Reserve Bed' : 'Book Room'}</span>
+              <span>{isPG && paymentType === 'token' ? 'Reserve Bed' : 'Book Room'}</span>
             )}
           </button>
 

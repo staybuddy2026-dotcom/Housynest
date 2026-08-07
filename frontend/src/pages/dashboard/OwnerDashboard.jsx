@@ -15,7 +15,7 @@ const OwnerDashboard = () => {
   const userName = user?.fullName || 'Owner';
 
   return (
-    <div className="flex flex-col max-w-350 3xl:max-w-[1600px] mx-auto w-full pb-10">
+    <div className="flex flex-col mx-auto w-full pb-10">
 
       {/* Header Area */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">

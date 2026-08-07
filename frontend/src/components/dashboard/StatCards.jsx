@@ -50,6 +50,7 @@ const StatCards = ({ data: initialData }) => {
       type: 'solid',
       opacity: 0.2
     },
+    grid: { padding: { top: 0, bottom: 0, left: 0, right: 0 } },
     yaxis: {
       min: 0,
       max: 75,
@@ -57,14 +58,21 @@ const StatCards = ({ data: initialData }) => {
       axisBorder: { show: false },
       axisTicks: { show: false }
     },
+    xaxis: {
+      labels: { show: false },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      crosshairs: { show: false },
+      tooltip: { enabled: false }
+    },
     tooltip: { enabled: false }
   };
 
   const sparklineData = [
-    { data: [45, 55, 50, 62, 54, 65, 58] },
+    { data: [47, 39, 50, 62, 54, 65, 45] },
     { data: [50, 48, 60, 52, 65, 58, 62] },
-    { data: [55, 50, 65, 58, 62, 54, 68] },
-    { data: [48, 62, 54, 65, 58, 62, 56] }
+    { data: [55, 48, 65, 58, 62, 54, 68] },
+    { data: [50, 46, 54, 65, 58, 62, 56] }
   ];
 
   const getColorHex = (colorClass) => {
@@ -133,7 +141,7 @@ const StatCards = ({ data: initialData }) => {
           };
 
           // Total Tenants
-          const activeTenantsCount = bookings.filter(b => 
+          const activeTenantsCount = bookings.filter(b =>
             ['Confirmed', 'Reserved', 'Active', 'Completed'].includes(b.status)
           ).length;
 
@@ -156,7 +164,7 @@ const StatCards = ({ data: initialData }) => {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setStats(initialData);
     } else {
-       
+
       fetchOwnerStats();
     }
 
@@ -202,7 +210,7 @@ const StatCards = ({ data: initialData }) => {
           <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-brand-teal/5 to-transparent rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
           {/* Background Sparkline Chart */}
-          <div className="absolute bottom-0 left-0 right-0 h-22.5 pointer-events-none z-0">
+          <div className="absolute -bottom-2 -left-6 -right-6 h-30 pointer-events-none z-0 opacity-80 group-hover:opacity-100 transition-opacity">
             <ReactApexChart
               options={{ ...sparklineOptions, colors: [getColorHex(stat.iconColor)] }}
               series={[sparklineData[idx % 4]]}

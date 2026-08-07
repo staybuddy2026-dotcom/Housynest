@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icon } from '@iconify/react';
 
-const TabTenants = ({ bookings, property, tenantSearchQuery, setSelectedTenant }) => {
+const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelectedTenant }) => {
   const activeBookings = bookings.filter(b => ['Active', 'Confirmed', 'Completed', 'Reserved'].includes(b.status));
 
   const tenants = activeBookings.map((b) => {
@@ -50,19 +50,13 @@ const TabTenants = ({ bookings, property, tenantSearchQuery, setSelectedTenant }
         const due = fullAmount > 0 ? fullAmount - Number(b.paymentDetails?.amount || 0) : 0;
         return { due, paid: b.paymentDetails?.amount || 0, dueType: 'Move-In Due', dueDate: new Date(b.createdAt) };
       } else if (b.status === 'Active' || b.status === 'Confirmed') {
-        const today = new Date();
-        const moveInDate = b.moveInDate ? new Date(b.moveInDate) : new Date(b.createdAt);
-        let nextDueDate = new Date(today.getFullYear(), today.getMonth(), moveInDate.getDate());
-
-        if (nextDueDate < today) {
-          nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-        }
-
-        const diffMs = nextDueDate - today;
-        const daysDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-
-        if ((daysDue <= 7 && daysDue > 0) || nextDueDate < today) {
-          return { due: pricing.rent, paid: 0, dueType: 'Rent Due', dueDate: nextDueDate };
+        const bookingInvoices = invoices.filter(i => 
+          i.bookingId === b._id || (i.bookingId && i.bookingId._id === b._id)
+        );
+        const unpaidInvoice = bookingInvoices.find(i => i.status === 'Pending' || i.status === 'Overdue');
+        
+        if (unpaidInvoice) {
+          return { due: unpaidInvoice.amount, paid: 0, dueType: unpaidInvoice.status === 'Overdue' ? 'Overdue' : 'Rent Due', dueDate: new Date(unpaidInvoice.dueDate) };
         } else {
           return { due: 0, paid: pricing.rent, dueType: 'No Dues', dueDate: null };
         }

@@ -1,181 +1,302 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Chart from 'react-apexcharts';
 import { Icon } from '@iconify/react';
+import toast from 'react-hot-toast';
 
 const OwnerReports = () => {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('12M');
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchInvoices = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/invoices/owner', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInvoices(data);
+      } else {
+        toast.error('Failed to load reports data');
+      }
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      toast.error('Error loading reports');
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1000);
+    fetchInvoices();
   };
+
+  const {
+    chartCategories,
+    collectedSeries,
+    expectedSeries,
+    totalExpected,
+    totalCollected,
+    totalPending,
+    totalOverdue,
+    lastPayment
+  } = useMemo(() => {
+    const now = new Date();
+    let startDate = new Date();
+    if (timeRange === '6M') startDate.setMonth(now.getMonth() - 5);
+    if (timeRange === '12M') startDate.setMonth(now.getMonth() - 11);
+    if (timeRange === 'YTD') startDate = new Date(now.getFullYear(), 0, 1);
+
+    startDate.setDate(1);
+    startDate.setHours(0, 0, 0, 0);
+
+    const filtered = invoices.filter(inv => new Date(inv.dueDate) >= startDate);
+
+    let totExpected = 0;
+    let totCollected = 0;
+    let totPending = 0;
+    let totOverdue = 0;
+
+    filtered.forEach(inv => {
+      totExpected += inv.amount;
+      if (inv.status === 'Paid') totCollected += inv.amount;
+      else if (inv.status === 'Overdue') totOverdue += inv.amount;
+      else totPending += inv.amount;
+    });
+
+    const months = [];
+    const collectedData = [];
+    const expectedData = [];
+
+    const numMonths = timeRange === '6M' ? 6 : timeRange === '12M' ? 12 : now.getMonth() + 1;
+    let currentMonth = new Date(startDate);
+
+    for (let i = 0; i < numMonths; i++) {
+      const monthLabel = currentMonth.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      months.push(monthLabel);
+
+      const monthInvoices = filtered.filter(inv => {
+        const d = new Date(inv.dueDate);
+        return d.getMonth() === currentMonth.getMonth() && d.getFullYear() === currentMonth.getFullYear();
+      });
+
+      const mCollected = monthInvoices.filter(i => i.status === 'Paid').reduce((sum, i) => sum + i.amount, 0);
+      const mExpected = monthInvoices.reduce((sum, i) => sum + i.amount, 0);
+
+      collectedData.push(mCollected);
+      expectedData.push(mExpected);
+
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
+    }
+
+    // Get the most recent paid invoice for the "Just Collected" bubble
+    const paidInvoices = invoices.filter(i => i.status === 'Paid').sort((a, b) => new Date(b.paidAt || b.dueDate) - new Date(a.paidAt || a.dueDate));
+    const recentPayment = paidInvoices[0] || null;
+
+    return {
+      chartCategories: months,
+      collectedSeries: collectedData,
+      expectedSeries: expectedData,
+      totalExpected: totExpected,
+      totalCollected: totCollected,
+      totalPending: totPending,
+      totalOverdue: totOverdue,
+      lastPayment: recentPayment
+    };
+
+  }, [invoices, timeRange]);
+
+  const collectionRate = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
   const chartOptions = {
-    chart: {
-      type: 'area',
-      toolbar: { show: false },
-      parentHeightOffset: 0,
-      zoom: { enabled: false },
-      dropShadow: {
-        enabled: true,
-        top: 4,
-        left: 0,
-        blur: 4,
-        color: '#0aa87d',
-        opacity: 0.15
-      }
-    },
-    colors: ['#0aa87d'],
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.4,
-        opacityTo: 0.05,
-        stops: [0, 90, 100]
-      }
-    },
+    chart: { type: 'area', toolbar: { show: false }, parentHeightOffset: 0, fontFamily: 'inherit' },
+    colors: ['#0aa87d', '#94a3b8'],
+    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.0, stops: [0, 90, 100] } },
     dataLabels: { enabled: false },
-    stroke: { curve: 'smooth', width: 3 },
-    markers: {
-      size: 0,
-      colors: ['#fff'],
-      strokeColors: '#0aa87d',
-      strokeWidth: 3,
-      hover: { size: 6, sizeOffset: 3 }
-    },
-    legend: { show: false },
+    stroke: { curve: 'smooth', width: [3, 2], dashArray: [0, 4] },
+    legend: { position: 'top', horizontalAlign: 'right', labels: { colors: '#64748b' }, markers: { radius: 12 } },
     xaxis: {
-      categories: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      categories: chartCategories,
       axisBorder: { show: false },
       axisTicks: { show: false },
-      labels: { style: { colors: '#94a3b8', fontSize: '12px', fontWeight: 500 } },
-      tooltip: { enabled: false },
-      crosshairs: {
-        show: true,
-        stroke: { color: '#cbd5e1', width: 1, dashArray: 4 }
-      }
+      labels: { style: { colors: '#94a3b8', fontSize: '11px', fontWeight: 600 } },
     },
     yaxis: {
-      show: true,
       labels: {
-        style: { colors: '#94a3b8', fontSize: '11px', fontWeight: 500 },
-        formatter: (value) => `₹${value / 1000}k`
+        style: { colors: '#94a3b8', fontSize: '11px', fontWeight: 600 },
+        formatter: (value) => `₹${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`
       }
     },
-    grid: {
-      show: true,
-      borderColor: '#f1f5f9',
-      strokeDashArray: 4,
-      xaxis: { lines: { show: false } },
-      yaxis: { lines: { show: true } },
-    },
+    grid: { borderColor: '#f1f5f9', strokeDashArray: 4, xaxis: { lines: { show: false } } },
     tooltip: {
-      enabled: true,
-      custom: function ({ series, seriesIndex, dataPointIndex, w }) {
-        const value = series[seriesIndex][dataPointIndex].toLocaleString();
-        const month = w.globals.labels[dataPointIndex];
-        return `
-          <div class="px-4 py-3 bg-white rounded-xl shadow-xl border border-slate-100 flex flex-col gap-0.5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${month} Revenue</span>
-            <span class="text-base font-bold text-[#062F26]">₹${value}</span>
-          </div>
-        `;
-      }
-    },
+      y: { formatter: (val) => `₹${val.toLocaleString('en-IN')}` }
+    }
   };
 
-  const chartSeries = [{
-    name: 'Revenue',
-    data: [12000, 14000, 13500, 16000, 18000, 17500, 20000, 21000, 19500, 24000, 25000, 28000]
-  }];
+  const chartSeries = [
+    { name: 'Collected', data: collectedSeries },
+    { name: 'Expected', data: expectedSeries }
+  ];
+
+  const formatNum = (n) => `₹${n.toLocaleString('en-IN')}`;
 
   const statsData = [
-    { id: 1, title: '87%', label: 'Avg Occupancy', change: '+4.2%', isPositive: true, icon: 'lucide:home', hoverBg: 'hover:bg-[#062F26] hover:border-[#062F26]', hoverText: 'group-hover:text-white', hoverLabel: 'group-hover:text-slate-300' },
-    { id: 2, title: '₹9.2K', label: 'Avg Rent/Bed', change: '+6.1%', isPositive: true, icon: 'lucide:indian-rupee', hoverBg: 'hover:bg-brand-teal hover:border-brand-teal', hoverText: 'group-hover:text-white', hoverLabel: 'group-hover:text-emerald-50' },
-    { id: 3, title: '8%', label: 'Churn Rate', change: '-2.1%', isPositive: false, icon: 'lucide:user-minus', hoverBg: 'hover:bg-amber-500 hover:border-amber-500', hoverText: 'group-hover:text-white', hoverLabel: 'group-hover:text-amber-100' },
-    { id: 4, title: '34%', label: 'Lead Conversion', change: '+5.3%', isPositive: true, icon: 'lucide:trending-up', hoverBg: 'hover:bg-indigo-500 hover:border-indigo-500', hoverText: 'group-hover:text-white', hoverLabel: 'group-hover:text-indigo-100' },
+    {
+      id: 1,
+      title: `${collectionRate}%`,
+      label: 'Collection Rate',
+      isPositive: collectionRate > 80,
+      icon: 'lucide:percent',
+      borderHover: 'hover:border-emerald-300',
+      iconBg: 'bg-emerald-50 text-emerald-600',
+      giantIconColor: 'text-emerald-50'
+    },
+    {
+      id: 2,
+      title: formatNum(totalCollected),
+      label: 'Total Collected',
+      isPositive: true,
+      icon: 'lucide:indian-rupee',
+      borderHover: 'hover:border-brand-teal',
+      iconBg: 'bg-brand-teal/10 text-brand-teal',
+      giantIconColor: 'text-brand-teal/5'
+    },
+    {
+      id: 3,
+      title: formatNum(totalOverdue),
+      label: 'Total Overdue',
+      isPositive: false,
+      icon: 'lucide:alert-circle',
+      borderHover: 'hover:border-rose-300',
+      iconBg: 'bg-rose-50 text-rose-500',
+      giantIconColor: 'text-rose-50'
+    },
+    {
+      id: 4,
+      title: formatNum(totalExpected),
+      label: 'Total Expected',
+      isPositive: true,
+      icon: 'lucide:trending-up',
+      borderHover: 'hover:border-indigo-300',
+      iconBg: 'bg-indigo-50 text-indigo-500',
+      giantIconColor: 'text-indigo-50'
+    },
   ];
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase();
 
-  return (
-    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-340 3xl:max-w-420 mx-auto w-full">
+  if (loading) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center pt-20">
+        <Icon icon="lucide:loader-2" className="w-8 h-8 text-brand-teal animate-spin mb-4" />
+        <p className="text-sm font-medium text-slate-500">Loading your reports...</p>
+      </div>
+    );
+  }
 
+  return (
+    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative pb-24 lg:pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#062F26] mb-1">Reports</h1>
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase">
+          <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Financial Reports</h1>
+          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-1">
             <span>{today}</span>
             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-            <span>OVERVIEW</span>
+            <span>PORTFOLIO OVERVIEW</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center gap-4">
+          <div className="flex bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
+            {['6M', '12M', 'YTD'].map(range => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${timeRange === range ? 'bg-slate-100 text-brand-teal shadow-inner' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+
           <button
             onClick={handleRefresh}
-            className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal hover:shadow-sm transition-all"
+            className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal transition-all"
           >
             <Icon icon="lucide:refresh-cw" className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-brand-teal' : ''}`} />
           </button>
         </div>
       </div>
 
-      {/* Chart Section */}
-      <div className="bg-white rounded-xl border border-slate-100 p-4 mb-4 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-bold text-slate-700">Revenue <span className="text-slate-400 font-medium">· 12 Months</span></h2>
-          <span className="text-xs font-bold text-brand-teal flex items-center gap-1">
-            <Icon icon="lucide:arrow-up" className="w-3 h-3" />
-            18% YoY
-          </span>
-        </div>
-        <div className="h-[340px] w-full mt-2">
-          <Chart options={chartOptions} series={chartSeries} type="area" height="100%" />
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {statsData.map((stat) => (
-          <div key={stat.id} className={`bg-white rounded-xl border border-slate-100 p-6 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer relative overflow-hidden group ${stat.hoverBg}`}>
-            
+          <div key={stat.id} className={`bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden group ${stat.borderHover}`}>
+
             {/* Background pattern for hover state */}
-            <Icon icon={stat.icon} className={`absolute -right-4 -bottom-4 w-32 h-32 opacity-0 group-hover:opacity-10 transition-opacity duration-500 text-white pointer-events-none`} />
+            <Icon icon={stat.icon} className={`absolute -right-4 -bottom-4 w-32 h-32 opacity-0 group-hover:opacity-100 transition-all duration-500 ${stat.giantIconColor} pointer-events-none group-hover:rotate-12 group-hover:scale-110`} />
 
             <div className="flex justify-between items-start mb-2 relative z-10">
-              <h3 className={`text-3xl font-extrabold text-[#062F26] ${stat.hoverText} transition-colors duration-300 tracking-tight`}>{stat.title}</h3>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-slate-50 text-slate-400 group-hover:bg-white/20 group-hover:text-white transition-all duration-300 group-hover:scale-110`}>
+              <h3 className={`text-2xl lg:text-3xl font-bold text-[#062F26] transition-colors duration-300 tracking-tight`}>{stat.title}</h3>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${stat.iconBg} transition-all duration-300 group-hover:scale-110 group-hover:shadow-sm`}>
                 <Icon icon={stat.icon} className="w-5 h-5" />
               </div>
             </div>
 
-            <p className={`text-xs font-bold text-slate-400 mb-4 ${stat.hoverLabel} transition-colors duration-300 relative z-10`}>{stat.label}</p>
-            
-            <span className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md font-bold transition-colors duration-300 relative z-10 ${
-              stat.isPositive ? 'bg-emerald-50 text-brand-teal group-hover:bg-white/20 group-hover:text-white' : 'bg-red-50 text-red-500 group-hover:bg-white/20 group-hover:text-white'
-            }`}>
-              <Icon icon={stat.isPositive ? 'lucide:trending-up' : 'lucide:trending-down'} className="w-3.5 h-3.5" />
-              {stat.change}
+            <p className={`text-xs font-bold text-slate-500 mb-4 transition-colors duration-300 relative z-10`}>{stat.label}</p>
+
+            <span className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md font-bold transition-colors duration-300 relative z-10 ${stat.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
+              }`}>
+              <Icon icon={stat.isPositive ? 'lucide:trending-up' : 'lucide:trending-down'} className="w-3 h-3" />
+              {timeRange}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Floating Action / Just Collected */}
-      <div className="mt-auto flex justify-end">
-        <div className="bg-[#062F26] rounded-xl p-4 pr-6 flex items-center gap-4 shadow-xl translate-y-2 hover:translate-y-0 transition-transform cursor-pointer group">
-          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 group-hover:bg-brand-teal/20 transition-colors">
-            <span className="text-lg font-bold text-white">₹</span>
-          </div>
+      {/* Chart Section */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-[9px] font-bold text-brand-teal uppercase tracking-wider mb-0.5">Just Collected</p>
-            <p className="text-white font-bold text-base">₹12,500 <span className="font-normal text-white/70">from Rohit</span></p>
+            <h2 className="text-base font-bold text-[#062F26]">Portfolio Revenue Trend</h2>
+            <p className="text-[11px] font-medium text-slate-400 mt-1">Aggregate collected vs expected revenue across all properties</p>
           </div>
+          <span className="px-3 py-1 bg-emerald-50 text-brand-teal rounded-lg text-xs font-bold flex items-center gap-1 border border-emerald-100">
+            <Icon icon="lucide:arrow-up" className="w-3 h-3" />
+            Active
+          </span>
+        </div>
+        <div className="h-[380px] w-full mt-2">
+          <Chart options={chartOptions} series={chartSeries} type="area" height="100%" />
         </div>
       </div>
 
+      {/* Floating Action / Just Collected */}
+      {lastPayment && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-8 fade-in duration-700">
+          <div className="bg-[#062F26] rounded-2xl p-4 pr-6 flex items-center gap-4 shadow-2xl hover:scale-105 transition-transform cursor-pointer group">
+            <div className="w-12 h-12 rounded-full bg-brand-teal/20 flex items-center justify-center shrink-0 group-hover:bg-brand-teal transition-colors">
+              <span className="text-xl font-black text-white">₹</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-white uppercase tracking-wider mb-0.5">Most Recent Payment</p>
+              <p className="text-white font-bold text-lg">
+                {formatNum(lastPayment.amount)}{' '}
+                <span className="font-medium text-white/70 text-sm">from {lastPayment.tenantId?.fullName || lastPayment.bookingId?.personalInfo?.firstName || 'Tenant'}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

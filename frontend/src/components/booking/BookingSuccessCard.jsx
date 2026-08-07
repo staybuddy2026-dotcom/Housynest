@@ -2,6 +2,7 @@ import React from 'react';
 import { Icon } from '@iconify/react';
 
 const BookingSuccessCard = ({
+  isPG,
   bookingRef,
   firstName,
   selectedBedName,
@@ -17,14 +18,16 @@ const BookingSuccessCard = ({
       </div>
 
       <div>
-        <span className="px-3.5 py-1 rounded-full text-xs font-extrabold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/20">
+        <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/20">
           Ref: {bookingRef}
         </span>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#062F26] mt-3">
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#062F26] mt-3">
           Booking Request Sent Successfully!
         </h2>
         <p className="text-sm text-slate-600 font-medium max-w-md mx-auto mt-2 leading-relaxed">
-          Thank you, <span className="font-bold text-[#062F26]">{firstName}</span>! Your reservation for <span className="font-bold text-[#0AA87D]">{selectedBedName || 'Bed'}</span> in <span className="font-bold text-[#062F26]">{propTitle}</span> is submitted.
+          Thank you, <span className="font-bold text-[#062F26]">{firstName}</span>! Your {isPG ? 'reservation for ' : 'booking for '}
+          {isPG && <><span className="font-bold text-[#0AA87D]">{selectedBedName || 'Bed'}</span> in </>}
+          <span className="font-bold text-[#062F26]">{propTitle}</span> is submitted.
         </p>
       </div>
 

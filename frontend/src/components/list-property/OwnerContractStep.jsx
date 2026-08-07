@@ -314,7 +314,7 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
     if (!rawText) return null;
 
     const todayDateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-    
+
     // Replace property values
     const substituted = rawText
       .replace(/\[agreement_date\]/g, todayDateStr)
@@ -336,7 +336,7 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
 
           if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) {
             return (
-              <div key={index} className="text-center font-extrabold text-sm text-[#062F26] border-b border-slate-200 pb-3 my-2 tracking-wide">
+              <div key={index} className="text-center font-bold text-sm text-[#062F26] border-b border-slate-200 pb-3 my-2 tracking-wide">
                 {trimmed.replace(/<\/?h1>/g, '')}
               </div>
             );
@@ -344,7 +344,7 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
 
           if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) {
             return (
-              <div key={index} className="font-extrabold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">
+              <div key={index} className="font-bold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">
                 {trimmed.replace(/<\/?h3>/g, '')}
               </div>
             );
@@ -362,18 +362,18 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
                   isBold = true;
                   textToRender = part.slice(3, -4);
                 }
-                
+
                 // Now parse placeholders within textToRender
                 const subParts = textToRender.split(/(\[[a-z_]+\])/g);
                 const renderedSubParts = subParts.map((subPart, j) => {
-                    if (subPart.startsWith('[') && subPart.endsWith(']')) {
-                        return (
-                          <span key={j} className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#EAF5F2] text-[#0AA87D] font-bold text-[11px] border border-[#0AA87D]/30 mx-0.5">
-                            {subPart}
-                          </span>
-                        );
-                    }
-                    return subPart;
+                  if (subPart.startsWith('[') && subPart.endsWith(']')) {
+                    return (
+                      <span key={j} className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#EAF5F2] text-[#0AA87D] font-bold text-[11px] border border-[#0AA87D]/30 mx-0.5">
+                        {subPart}
+                      </span>
+                    );
+                  }
+                  return subPart;
                 });
 
                 if (isBold) {
@@ -419,11 +419,10 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
         <button
           type="button"
           onClick={() => setContractMode('upload')}
-          className={`p-3.5 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
-            contractMode === 'upload'
+          className={`p-3.5 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer ${contractMode === 'upload'
               ? 'border-[#0AA87D] bg-[#EAF5F2] text-[#062F26] shadow-sm'
               : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:border-slate-300'
-          }`}
+            }`}
         >
           <Icon icon="lucide:file-up" className="w-4.5 h-4.5 text-[#0AA87D]" />
           <span>Upload PDF Agreement</span>
@@ -432,11 +431,10 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
         <button
           type="button"
           onClick={() => setContractMode('customize')}
-          className={`p-3.5 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
-            contractMode === 'customize'
+          className={`p-3.5 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer ${contractMode === 'customize'
               ? 'border-[#0AA87D] bg-[#EAF5F2] text-[#062F26] shadow-sm'
               : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:border-slate-300'
-          }`}
+            }`}
         >
           <Icon icon="lucide:edit-3" className="w-4.5 h-4.5 text-[#0AA87D]" />
           <span>Customize Entire Agreement</span>
@@ -527,11 +525,10 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
             {/* Drag & Drop Upload Zone */}
             {(!ownerContract || (!ownerContract.file && !ownerContract.url && !ownerContract.isCustomized)) && (
               <div
-                className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center transition-all duration-300 ${
-                  dragActive
+                className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center transition-all duration-300 ${dragActive
                     ? 'border-brand-teal bg-[#EAF5F2] scale-[1.01] shadow-lg shadow-brand-teal/10'
                     : 'border-slate-200 bg-slate-50/50 hover:border-brand-teal/50 hover:bg-slate-50'
-                }`}
+                  }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -544,9 +541,8 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
                 <div
-                  className={`w-14 h-14 rounded-2xl shadow-sm flex items-center justify-center mb-4 transition-all duration-300 ${
-                    dragActive ? 'bg-brand-teal text-white scale-110' : 'bg-white text-brand-teal border border-slate-150'
-                  }`}
+                  className={`w-14 h-14 rounded-2xl shadow-sm flex items-center justify-center mb-4 transition-all duration-300 ${dragActive ? 'bg-brand-teal text-white scale-110' : 'bg-white text-brand-teal border border-slate-150'
+                    }`}
                 >
                   <Icon icon="lucide:upload-cloud" className="w-7 h-7" strokeWidth="2" />
                 </div>
@@ -564,18 +560,17 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
         {/* TAB 2: FULLY CUSTOMIZABLE AGREEMENT TEXT EDITOR (REORGANIZED LAYOUT) */}
         {contractMode === 'customize' && (
           <div className="space-y-5">
-            
+
             {/* SUB-TABS: EDIT VS LIVE PREVIEW & TWO-WAY TRANSLATE */}
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setEditorSubTab('edit')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    editorSubTab === 'edit'
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${editorSubTab === 'edit'
                       ? 'bg-[#062F26] text-white shadow-xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
+                    }`}
                 >
                   <Icon icon="lucide:edit-3" className="w-3.5 h-3.5" />
                   Contract Editor ({contractLang.toUpperCase()})
@@ -584,11 +579,10 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
                 <button
                   type="button"
                   onClick={() => setEditorSubTab('preview')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    editorSubTab === 'preview'
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${editorSubTab === 'preview'
                       ? 'bg-[#0AA87D] text-white shadow-xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
+                    }`}
                 >
                   <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
                   Live Preview
@@ -610,10 +604,10 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
             {/* EDITOR VIEW */}
             {editorSubTab === 'edit' && (
               <div className="space-y-4">
-                
+
                 {/* QUICK VARIABLE TAG BADGES */}
                 <div>
-                  <label className="block text-xs font-extrabold text-[#062F26] mb-1.5">
+                  <label className="block text-xs font-bold text-[#062F26] mb-1.5">
                     Click to insert dynamic variable tag into {contractLang === 'gu' ? 'Gujarati' : 'English'} contract text:
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -633,7 +627,7 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
 
                 {/* TEXTAREA HEADER BAR WITH MOVED LANGUAGE SWITCHER & RESET BUTTON */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-2xs">
-                  
+
                   {/* Left: Language Selector */}
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-[#062F26] shrink-0">Agreement Language:</span>
@@ -641,22 +635,20 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
                       <button
                         type="button"
                         onClick={() => handleSelectLanguage('en')}
-                        className={`px-3 py-1 rounded-md text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
-                          contractLang === 'en'
+                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${contractLang === 'en'
                             ? 'bg-[#062F26] text-white shadow-xs'
                             : 'text-slate-600 hover:text-[#062F26]'
-                        }`}
+                          }`}
                       >
                         🌐 English
                       </button>
                       <button
                         type="button"
                         onClick={() => handleSelectLanguage('gu')}
-                        className={`px-3 py-1 rounded-md text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
-                          contractLang === 'gu'
+                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${contractLang === 'gu'
                             ? 'bg-[#0AA87D] text-white shadow-xs'
                             : 'text-slate-600 hover:text-[#062F26]'
-                        }`}
+                          }`}
                       >
                         🌐 ગુજરાતી (Gujarati)
                       </button>
@@ -708,7 +700,7 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
                 <div className="bg-[#062F26] text-white p-3.5 px-5 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Icon icon="lucide:file-check-2" className="w-4 h-4 text-[#0AA87D]" />
-                    <h4 className="text-xs font-extrabold tracking-wide uppercase">
+                    <h4 className="text-xs font-bold tracking-wide uppercase">
                       Live Rendered Agreement ({contractLang === 'gu' ? 'ગુજરાતી' : 'English'})
                     </h4>
                   </div>
@@ -735,7 +727,7 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
               <span className="text-xs font-semibold text-slate-500">
                 {isAgreementSaved ? '✓ Customized agreement is active & applied to listing' : 'Unsaved changes in contract editor'}
               </span>
-              
+
               <div className="flex items-center gap-2">
                 {isAgreementSaved && (
                   <button
@@ -751,11 +743,10 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
                 <button
                   type="button"
                   onClick={handleSaveCustomAgreement}
-                  className={`px-6 py-3 rounded-xl font-extrabold text-xs transition-all cursor-pointer shadow-md flex items-center gap-2 ${
-                    isAgreementSaved
+                  className={`px-6 py-3 rounded-xl font-bold text-xs transition-all cursor-pointer shadow-md flex items-center gap-2 ${isAgreementSaved
                       ? 'bg-emerald-600 text-white'
                       : 'bg-[#062F26] text-white hover:bg-[#08483B]'
-                  }`}
+                    }`}
                 >
                   <Icon icon={isAgreementSaved ? "lucide:check-circle-2" : "lucide:save"} className="w-4 h-4" />
                   {isAgreementSaved ? 'Agreement Saved & Applied ✓' : 'Save & Apply Agreement'}
@@ -789,9 +780,8 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
             onNext();
           }}
           disabled={isSubmitting}
-          className={`ml-auto px-8 py-3 rounded-xl bg-brand-teal text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-brand-teal/20 flex items-center justify-center gap-2 cursor-pointer ${
-            isSubmitting ? 'opacity-75 cursor-not-allowed' : 'hover:bg-[#062F26] hover:-translate-y-0.5 active:scale-95'
-          }`}
+          className={`ml-auto px-8 py-3 rounded-xl bg-brand-teal text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-brand-teal/20 flex items-center justify-center gap-2 cursor-pointer ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'hover:bg-[#062F26] hover:-translate-y-0.5 active:scale-95'
+            }`}
         >
           {isSubmitting ? (
             <>

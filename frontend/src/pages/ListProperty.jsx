@@ -284,7 +284,7 @@ const ListProperty = () => {
       // Append standard fields
       Object.keys(data).forEach(key => {
         if (key === 'photos' || key === 'verificationDocs' || key === 'ownerContract') return; // Handled separately
-        
+
         // Skip empty strings to avoid backend CastErrors for Number fields
         if (data[key] === '') return;
 
@@ -395,8 +395,8 @@ const ListProperty = () => {
     const stepToNavigate = getStepFromField(firstErrorField);
 
     if (stepToNavigate && stepToNavigate !== activeStep) {
-       setActiveStep(stepToNavigate);
-       toast.error(`Navigating to step ${stepToNavigate} to fix errors.`);
+      setActiveStep(stepToNavigate);
+      toast.error(`Navigating to step ${stepToNavigate} to fix errors.`);
     }
   };
 
@@ -405,7 +405,7 @@ const ListProperty = () => {
       <div className="w-24 h-24 rounded-full bg-[#EAF5F2] text-brand-teal flex items-center justify-center mb-6 shadow-inner">
         <Icon icon="lucide:check" width="48" strokeWidth="3" />
       </div>
-      <h2 className="text-[28px] lg:text-3xl font-extrabold text-[#062F26] mb-3">Submitted Successfully!</h2>
+      <h2 className="text-[28px] lg:text-3xl font-bold text-[#062F26] mb-3">Submitted Successfully!</h2>
       <p className="text-slate-600 font-medium mb-8">Your property is under review.</p>
 
       <div className="bg-[#FFFDF0] border border-[#FBE38E] rounded-xl p-6 text-left max-w-md w-full shadow-sm mb-8 transition-all hover:shadow-md">
@@ -492,13 +492,13 @@ const ListProperty = () => {
               You are currently listing a property. If you leave now, all your unsaved progress will be lost. Are you sure you want to navigate away?
             </p>
             <div className="flex items-center gap-3 justify-end">
-              <button 
+              <button
                 onClick={cancelNavigation}
                 className="px-4 py-2 rounded-lg text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
               >
                 Stay
               </button>
-              <button 
+              <button
                 onClick={confirmNavigation}
                 className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-[#062F26] hover:bg-brand-teal transition-colors"
               >
