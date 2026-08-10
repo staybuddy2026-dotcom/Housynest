@@ -25,7 +25,8 @@ import invoiceRoutes from './routes/invoiceRoutes.js';
 import seoRoutes from './routes/seoRoutes.js';
 import cron from 'node-cron';
 import { sendVisitReminders } from './controllers/visitController.js';
-import { generateMonthlyInvoices } from './controllers/invoiceController.js';
+import { generateMonthlyInvoices, sendAutoRentReminders } from './controllers/invoiceController.js';
+import { autoActivateBookings } from './controllers/bookingController.js';
 
 // Load env vars
 dotenv.config();
@@ -84,6 +85,18 @@ cron.schedule('0 8 * * *', () => {
 cron.schedule('0 0 * * *', () => {
   console.log('Running daily rent invoice generation...');
   generateMonthlyInvoices();
+});
+
+// Cron Job for Sending Auto Rent Reminders (5 days and 2 days before)
+cron.schedule('0 9 * * *', () => {
+  console.log('Running auto rent reminders check...');
+  sendAutoRentReminders();
+});
+
+// Cron Job for Auto-Activating Bookings on Move-In Date
+cron.schedule('0 0 * * *', () => {
+  console.log('Running daily booking auto-activation check...');
+  autoActivateBookings();
 });
 
 app.get('/', (req, res) => {

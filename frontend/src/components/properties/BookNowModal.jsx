@@ -135,7 +135,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
       if (defaultRoom) {
         setSelectedRoomId(defaultRoom.id);
         const vacantBed = defaultRoom.beds.find(b => b.status === 'Vacant');
-        setSelectedBedName(vacantBed ? vacantBed.bedName : (defaultRoom.beds[0]?.bedName || 'Bed 1'));
+        setSelectedBedName(vacantBed ? vacantBed.bedName : null);
       }
 
       try {
@@ -157,7 +157,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
     const room = allRooms.find(r => r.id === roomId);
     if (room) {
       const vacantBed = room.beds.find(b => b.status === 'Vacant');
-      setSelectedBedName(vacantBed ? vacantBed.bedName : (room.beds[0]?.bedName || 'Bed 1'));
+      setSelectedBedName(vacantBed ? vacantBed.bedName : null);
     }
   };
 

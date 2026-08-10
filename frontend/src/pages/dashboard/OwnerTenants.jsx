@@ -8,6 +8,8 @@ const OwnerTenants = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [paymentFilter, setPaymentFilter] = useState('All');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [tenants, setTenants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -168,11 +170,13 @@ const OwnerTenants = () => {
     { title: '0', subtitle: 'Upcoming Move-outs', desc: 'Next 30 Days', icon: 'lucide:calendar-clock', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
   ];
 
-  const filteredTenants = tenants.filter(t =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.room.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTenants = tenants.filter(t => {
+    const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.room.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPayment = paymentFilter === 'All' || t.payment === paymentFilter.toUpperCase();
+    return matchesSearch && matchesPayment;
+  });
 
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative pb-24 lg:pb-8">
@@ -225,13 +229,39 @@ const OwnerTenants = () => {
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:text-[#062F26] hover:border-[#062F26] transition-colors shadow-sm">
-              Sort <Icon icon="lucide:arrow-up-down" className="w-4 h-4" />
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:text-[#062F26] hover:border-[#062F26] transition-colors shadow-sm">
-              <Icon icon="lucide:filter" className="w-4 h-4" /> Filter
-            </button>
+          <div className="flex items-center gap-3 relative">
+            <div className="relative">
+              <button 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="flex items-center justify-between min-w-[170px] px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-teal focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 transition-all shadow-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-slate-400 font-medium">Payment:</span> {paymentFilter}
+                </span>
+                <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isFilterOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isFilterOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)}></div>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-3 py-2 border-b border-slate-50 mb-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Status</p>
+                    </div>
+                    {['All', 'Paid', 'Due'].map(status => (
+                      <button
+                        key={status}
+                        onClick={() => { setPaymentFilter(status); setIsFilterOpen(false); }}
+                        className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50 flex items-center justify-between ${paymentFilter === status ? 'text-[#062F26] bg-brand-teal/5' : 'text-slate-600'}`}
+                      >
+                        {status}
+                        {paymentFilter === status && <Icon icon="lucide:check" className="w-4 h-4 text-brand-teal" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -274,13 +304,9 @@ const OwnerTenants = () => {
                     <div className="text-[11px] font-medium text-slate-400 mt-1 tracking-wide">{t.deposit}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-slate-800 text-sm">{t.paidStr}</div>
-                    <div className={`text-[11px] font-bold mt-1 tracking-wide flex items-center gap-1 ${t.rentDueAmount > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                      {t.dueStr}
-                      {t.rentDueAmount > 0 && t.dueDateStr && (
-                        <span className="text-slate-400 font-medium ml-1">(Due {t.dueDateStr})</span>
-                      )}
-                    </div>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border shadow-sm ${t.payment === 'PAID' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>
+                      {t.payment}
+                    </span>
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="text-sm font-semibold text-slate-700">{t.moveIn}</div>

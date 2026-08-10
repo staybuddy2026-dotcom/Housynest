@@ -8,6 +8,10 @@ const OwnerBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [propertyFilter, setPropertyFilter] = useState('All Properties');
+  const [dateFilter, setDateFilter] = useState('');
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -40,7 +44,33 @@ const OwnerBookings = () => {
 
   const bookingData = bookings
     .filter(b => getStatusMapping(b.status) !== null)
-    .map(b => ({
+    .map(b => {
+      const sharing = b.roomDetails?.sharingType || '';
+      let baseType = 'Other';
+      if (sharing.includes('Single')) baseType = 'Single';
+      else if (sharing.includes('Double')) baseType = 'Double';
+      else if (sharing.includes('Triple')) baseType = 'Triple';
+      else if (sharing.includes('Four')) baseType = 'Four';
+      
+      const typeAC = `${baseType}_AC`;
+      const typeNonAC = `${baseType}_NonAC`;
+      
+      let rentAmt = 0;
+      
+      if (b.propertyId?.propertyType === 'PG' && b.propertyId?.pgPricing) {
+        if (b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
+          rentAmt = Number(String(b.propertyId.pgPricing[typeNonAC].rentPerBed).replace(/\D/g, ''));
+        } else if (b.propertyId.pgPricing[typeAC]?.rentPerBed) {
+          rentAmt = Number(String(b.propertyId.pgPricing[typeAC].rentPerBed).replace(/\D/g, ''));
+        }
+      } else if (b.propertyId) {
+        rentAmt = Number(String(b.propertyId.monthlyRent || '').replace(/\D/g, '') || 0);
+      }
+      
+      const tokenAmt = Math.round(rentAmt * 0.40);
+      const paidAmt = b.paymentDetails?.amount || 0;
+
+      return {
       _id: b._id,
       id: b._id.substring(b._id.length - 8).toUpperCase(),
       date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
@@ -52,65 +82,23 @@ const OwnerBookings = () => {
       bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
       moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
       movedOut: b.expectedMoveOutDate ? new Date(b.expectedMoveOutDate).toISOString().split('T')[0] : null,
-      amountPaid: b.paymentDetails?.status === 'Paid' ? `Paid: ₹${b.paymentDetails?.amount?.toLocaleString() || 0}` : `Pending: ₹${b.paymentDetails?.amount?.toLocaleString() || 0}`,
-      paymentType: (b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)') ? '(Token)' : '(Full)',
-      amountDue: (() => {
-        const isToken = b.paymentDetails?.paymentMethod === 'Token Amount' || b.paymentDetails?.paymentMethod === 'Token (40%)';
-        if (b.paymentDetails?.status === 'Paid') {
-          if (isToken) {
-            const getPricing = () => {
-              if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
-                const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
-                const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
-                let baseType = 'Single';
-                let isAC = false;
-
-                if (room) {
-                  baseType = room.sharingType || 'Single';
-                  isAC = room.isAC;
-                } else if (b.roomDetails?.sharingType) {
-                  const st = b.roomDetails.sharingType;
-                  baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
-                  isAC = st.includes('(AC)');
-                }
-
-                const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
-                const pricing = b.propertyId.pgPricing?.[typeStr];
-                if (pricing) {
-                  return {
-                    rent: Number(pricing.rentPerBed?.replace(/\D/g, '') || 0),
-                    deposit: Number(pricing.depositPerBed?.replace(/\D/g, '') || 0),
-                    maintenance: 0
-                  };
-                }
-              }
-              return {
-                rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
-                deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0),
-                maintenance: Number(b.propertyId?.maintenanceCharges?.replace(/\D/g, '') || 0)
-              };
-            };
-
-            const pricing = getPricing();
-            const stampFees = 300;
-            const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
-            const due = fullAmount > 0 ? fullAmount - Number(b.paymentDetails?.amount || 0) : 0;
-            return due > 0 ? `Move-In Due: ₹${due.toLocaleString()}` : 'Move-In Due: ₹0';
-          }
-          return 'Due: ₹0';
-        }
-        const amt = Number(b.paymentDetails?.amount || 0).toLocaleString();
-        return isToken ? `Reservation Due: ₹${amt}` : `Booking Due: ₹${amt}`;
-      })(),
+      rent: rentAmt,
+      token: tokenAmt,
+      paid: paidAmt,
+      due: Math.max(rentAmt - paidAmt, 0),
+      isTokenPaid: paidAmt > 0 && paidAmt < rentAmt,
+      isFullPaid: paidAmt > 0 && paidAmt >= rentAmt,
       status: getStatusMapping(b.status),
       source: b.propertyId?.bookingType === 'Direct Booking' ? 'DIRECT' : 'REQUEST',
       raw: b,
-    }));
+    };
+  });
 
   const stats = [
-    { title: bookingData.filter(b => b.status === 'CONFIRMED').length, subtitle: 'Total Confirmed', desc: 'Upcoming move-ins', icon: 'lucide:calendar-check', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
-    { title: bookingData.filter(b => b.status === 'ACTIVE').length, subtitle: 'Active', desc: 'Currently Staying', icon: 'lucide:home', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-    { title: bookingData.filter(b => b.status === 'MOVED OUT').length, subtitle: 'Moved Out', desc: 'Past Bookings', icon: 'lucide:log-out', color: 'text-slate-500', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
+    { title: bookingData.length, subtitle: 'Total Bookings', desc: 'All time bookings', icon: 'lucide:layers', color: 'text-brand-teal', bgColor: 'bg-brand-teal/10', borderColor: 'border-brand-teal/20', filterValue: 'ALL' },
+    { title: bookingData.filter(b => b.status === 'CONFIRMED' || b.status === 'RESERVED' || b.status === 'PENDING PAYMENT').length, subtitle: 'Upcoming', desc: 'Confirmed & Reserved', icon: 'lucide:calendar-check', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', filterValue: 'UPCOMING' },
+    { title: bookingData.filter(b => b.status === 'ACTIVE').length, subtitle: 'Active', desc: 'Currently Staying', icon: 'lucide:home', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', filterValue: 'ACTIVE' },
+    { title: bookingData.filter(b => b.status === 'MOVED OUT').length, subtitle: 'Moved Out', desc: 'Past Bookings', icon: 'lucide:log-out', color: 'text-slate-500', bgColor: 'bg-slate-100', borderColor: 'border-slate-200', filterValue: 'MOVED OUT' },
   ];
 
   const getStatusStyle = (status) => {
@@ -132,12 +120,26 @@ const OwnerBookings = () => {
     }
   };
 
-  const filteredBookings = bookingData.filter(bk =>
-    bk.tenant.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    bk.phone.includes(searchQuery) ||
-    bk.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    bk.property.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredBookings = bookingData.filter(bk => {
+    const matchesSearch = bk.tenant.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      bk.phone.includes(searchQuery) ||
+      bk.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      bk.property.toLowerCase().includes(searchQuery.toLowerCase());
+      
+    let matchesStatus = true;
+    if (statusFilter === 'UPCOMING') {
+      matchesStatus = ['CONFIRMED', 'RESERVED', 'PENDING PAYMENT'].includes(bk.status);
+    } else if (statusFilter !== 'ALL') {
+      matchesStatus = bk.status === statusFilter;
+    }
+    
+    const matchesProperty = propertyFilter === 'All Properties' || bk.property === propertyFilter;
+    const matchesDate = !dateFilter || bk.moveIn === dateFilter;
+    
+    return matchesSearch && matchesStatus && matchesProperty && matchesDate;
+  });
+
+  const uniqueProperties = ['All Properties', ...new Set(bookingData.map(b => b.property))];
 
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative pb-24 lg:pb-8">
@@ -154,9 +156,13 @@ const OwnerBookings = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
+          <div 
+            key={idx} 
+            onClick={() => setStatusFilter(stat.filterValue)}
+            className={`bg-white rounded-2xl border p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group cursor-pointer ${statusFilter === stat.filterValue ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-200'}`}
+          >
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-2xl font-bold text-[#062F26]">{stat.title}</h3>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${stat.bgColor} ${stat.borderColor} group-hover:scale-110 transition-transform duration-300`}>
@@ -172,12 +178,12 @@ const OwnerBookings = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col relative z-10">
 
         {/* Toolbar */}
-        <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/30">
+        <div className="p-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50/30 rounded-t-2xl relative z-20">
           {/* Search */}
-          <div className="relative w-full sm:w-96 group">
+          <div className="relative w-full xl:w-80 group shrink-0">
             <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
             <input
               type="text"
@@ -187,10 +193,100 @@ const OwnerBookings = () => {
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm"
             />
           </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Status Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => setActiveDropdown(activeDropdown === 'status' ? null : 'status')}
+                className="flex items-center justify-between min-w-[150px] px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-teal focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 transition-all shadow-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-slate-400 font-medium">Status:</span> 
+                  {statusFilter === 'ALL' ? 'All' : statusFilter === 'UPCOMING' ? 'Upcoming' : statusFilter}
+                </span>
+                <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${activeDropdown === 'status' ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {activeDropdown === 'status' && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-3 py-2 border-b border-slate-50 mb-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Booking Status</p>
+                    </div>
+                    {['ALL', 'ACTIVE', 'UPCOMING', 'MOVED OUT', 'PENDING PAYMENT', 'RESERVED', 'CONFIRMED'].map(status => (
+                      <button
+                        key={status}
+                        onClick={() => { setStatusFilter(status); setActiveDropdown(null); }}
+                        className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50 flex items-center justify-between ${statusFilter === status ? 'text-[#062F26] bg-brand-teal/5' : 'text-slate-600'}`}
+                      >
+                        {status === 'ALL' ? 'All' : status === 'UPCOMING' ? 'Upcoming' : status}
+                        {statusFilter === status && <Icon icon="lucide:check" className="w-4 h-4 text-brand-teal" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Property Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => setActiveDropdown(activeDropdown === 'property' ? null : 'property')}
+                className="flex items-center justify-between min-w-[200px] max-w-[240px] px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-teal focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 transition-all shadow-sm"
+              >
+                <span className="flex items-center gap-2 truncate">
+                  <span className="text-slate-400 font-medium shrink-0">Property:</span> 
+                  <span className="truncate">{propertyFilter}</span>
+                </span>
+                <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${activeDropdown === 'property' ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {activeDropdown === 'property' && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200 max-h-72 overflow-y-auto custom-scrollbar">
+                    <div className="px-3 py-2 border-b border-slate-50 mb-1 sticky top-0 bg-white z-10">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Property</p>
+                    </div>
+                    {uniqueProperties.map(prop => (
+                      <button
+                        key={prop}
+                        onClick={() => { setPropertyFilter(prop); setActiveDropdown(null); }}
+                        className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50 flex items-center justify-between ${propertyFilter === prop ? 'text-[#062F26] bg-brand-teal/5' : 'text-slate-600'}`}
+                      >
+                        <span className="truncate pr-2">{prop}</span>
+                        {propertyFilter === prop && <Icon icon="lucide:check" className="w-4 h-4 text-brand-teal shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Date Filter */}
+            <div className="relative flex items-center bg-white border border-slate-200 rounded-xl px-4 py-2.5 hover:border-brand-teal focus-within:border-brand-teal focus-within:ring-4 focus-within:ring-brand-teal/10 transition-all shadow-sm">
+              <span className="flex items-center gap-2">
+                <span className="text-slate-400 font-medium shrink-0">Move-in:</span>
+                <input 
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none w-[115px] cursor-pointer"
+                />
+              </span>
+              {dateFilter && (
+                <button onClick={() => setDateFilter('')} className="ml-2 text-slate-400 hover:text-rose-500 transition-colors">
+                  <Icon icon="lucide:x" className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-auto custom-scrollbar bg-white">
+        <div className="flex-1 overflow-auto custom-scrollbar bg-white rounded-b-2xl relative z-10">
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
               <tr>
@@ -198,7 +294,7 @@ const OwnerBookings = () => {
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Property / Bed</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move - In Date</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment Info</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
               </tr>
@@ -233,8 +329,23 @@ const OwnerBookings = () => {
                     )}
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-slate-800 text-sm">{booking.amountPaid} <span className="text-slate-500 text-xs font-normal">{booking.paymentType}</span></div>
-                    <div className="text-[11px] font-bold text-amber-500 mt-1 tracking-wide">{booking.amountDue}</div>
+                    {booking.isFullPaid ? (
+                      <>
+                        <div className="font-bold text-slate-800 text-sm">Full Paid: ₹{booking.paid.toLocaleString()}</div>
+                        <div className="text-[10px] font-bold text-emerald-600 mt-1 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-sm inline-block">Paid</div>
+                      </>
+                    ) : booking.isTokenPaid ? (
+                      <>
+                        <div className="font-bold text-slate-800 text-sm">Token Paid: ₹{booking.paid.toLocaleString()}</div>
+                        <div className="text-xs font-bold text-rose-600 mt-1 mb-1">Due: ₹{booking.due.toLocaleString()}</div>
+                        <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider bg-amber-50 px-2 py-0.5 rounded-sm inline-block">Pending Full Payment</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-bold text-slate-800 text-sm">Rent: ₹{booking.rent.toLocaleString()}</div>
+                        <div className="text-[10px] font-bold text-rose-600 mt-1 uppercase tracking-wider bg-rose-50 px-2 py-0.5 rounded-sm inline-block">Unpaid</div>
+                      </>
+                    )}
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getStatusStyle(booking.status)} shadow-sm`}>

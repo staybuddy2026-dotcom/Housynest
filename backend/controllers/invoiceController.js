@@ -9,6 +9,14 @@ import Property from '../models/Property.js';
 // @access  Private (Owner)
 export const getOwnerInvoices = async (req, res) => {
   try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Automatically update overdue invoices in the database
+    await RentInvoice.updateMany(
+      { status: 'Pending', dueDate: { $lt: today } },
+      { $set: { status: 'Overdue' } }
+    );
+
     let invoices = await RentInvoice.find({ ownerId: req.user._id })
       .populate('propertyId', 'pgName societyName propertyCategory')
       .populate('tenantId', 'fullName email phone')
@@ -62,6 +70,14 @@ export const getOwnerInvoices = async (req, res) => {
 // @access  Private (Tenant)
 export const getTenantInvoices = async (req, res) => {
   try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Automatically update overdue invoices in the database
+    await RentInvoice.updateMany(
+      { status: 'Pending', dueDate: { $lt: today } },
+      { $set: { status: 'Overdue' } }
+    );
+
     let invoices = await RentInvoice.find({ tenantId: req.user._id })
       .populate('propertyId', 'pgName societyName propertyCategory')
       .populate({
@@ -177,6 +193,15 @@ export const runCron = async (req, res) => {
 // The core logic to generate invoices
 export const generateMonthlyInvoices = async () => {
   try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Automatically update overdue invoices in the database
+    await RentInvoice.updateMany(
+      { status: 'Pending', dueDate: { $lt: today } },
+      { $set: { status: 'Overdue' } }
+    );
+
     // Find all active bookings
     const activeBookings = await Booking.find({ status: { $in: ['Active', 'Confirmed', 'Reserved', 'Completed'] } }).populate('propertyId');
     
@@ -271,5 +296,55 @@ export const generateMonthlyInvoices = async () => {
     console.log(`Cron job finished generating invoices. Processed ${activeBookings.length} active bookings.`);
   } catch (error) {
     console.error('Cron job error generating invoices:', error);
+  }
+};
+
+// @desc    Auto send rent reminders 5 days and 2 days before due date
+// @route   N/A (Cron Job)
+// @access  Internal
+export const sendAutoRentReminders = async () => {
+  try {
+    console.log('Running auto rent reminders check...');
+    
+    // Find all Pending invoices
+    const pendingInvoices = await RentInvoice.find({ status: 'Pending' })
+      .populate('tenantId', 'fullName email')
+      .populate('propertyId', 'pgName propertyCategory');
+      
+    let sentCount = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (const invoice of pendingInvoices) {
+      if (!invoice.dueDate || !invoice.tenantId || !invoice.tenantId.email) continue;
+      
+      const dueDate = new Date(invoice.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = dueDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // If due date is exactly 5 days or 2 days away
+      if (diffDays === 5 || diffDays === 2) {
+        const propertyName = invoice.propertyId?.pgName || invoice.propertyId?.propertyCategory || 'Property';
+        const subject = `Upcoming Rent Reminder - ${propertyName}`;
+        const content = `
+          Hello ${invoice.tenantId.fullName},
+          
+          This is an automated reminder that your rent of Rs. ${invoice.amount} for ${propertyName} is due in ${diffDays} days on ${dueDate.toLocaleDateString()}.
+          
+          Please ensure your payment is made on time to avoid any late fees. You can log in to your Housynest dashboard to view the invoice and complete the payment.
+          
+          Thank you for choosing Housynest!
+        `;
+        
+        await sendGenericEmail(invoice.tenantId.email, subject, content);
+        sentCount++;
+      }
+    }
+    
+    console.log(`Auto rent reminders finished. Sent ${sentCount} reminders.`);
+  } catch (error) {
+    console.error('Error in sendAutoRentReminders:', error);
   }
 };

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import CustomDropdown from '../../components/list-property/CustomDropdown';
+import { useNavigate } from 'react-router-dom';
 
 const TenantVisits = () => {
+  const navigate = useNavigate();
   const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedMessageId, setExpandedMessageId] = useState(null);
@@ -291,7 +293,10 @@ const TenantVisits = () => {
                               )}
 
                               {visit.status === 'Completed' && (
-                                <button className="px-4 py-2 bg-[#062F26] text-white rounded-xl font-bold text-xs hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1.5">
+                                <button 
+                                  onClick={() => navigate(`/properties/${visit.property?._id || visit.property}?book=true`)}
+                                  className="px-4 py-2 bg-[#062F26] text-white rounded-xl font-bold text-xs hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1.5"
+                                >
                                   Book Now
                                   <Icon icon="lucide:arrow-right" className="w-3.5 h-3.5" />
                                 </button>
@@ -419,7 +424,10 @@ const TenantVisits = () => {
                       ) : <div></div>}
 
                       {visit.status === 'Completed' && (
-                        <button className="px-3 py-1.5 bg-[#062F26] text-white rounded-lg font-bold text-[11px] hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1">
+                        <button 
+                          onClick={() => navigate(`/properties/${visit.property?._id || visit.property}?book=true`)}
+                          className="px-3 py-1.5 bg-[#062F26] text-white rounded-lg font-bold text-[11px] hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1"
+                        >
                           Book Now
                           <Icon icon="lucide:arrow-right" className="w-3 h-3" />
                         </button>

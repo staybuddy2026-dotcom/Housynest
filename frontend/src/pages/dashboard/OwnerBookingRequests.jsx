@@ -10,6 +10,9 @@ const OwnerBookingRequests = () => {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [propertyFilter, setPropertyFilter] = useState('All Properties');
+  const [dateFilter, setDateFilter] = useState('');
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -51,7 +54,7 @@ const OwnerBookingRequests = () => {
     if (dbStatus === 'Pending Request') return 'PENDING APPROVAL';
     if (dbStatus === 'Pending Payment' || dbStatus === 'Confirmed' || dbStatus === 'Reserved' || dbStatus === 'Completed') return 'APPROVED';
     if (dbStatus === 'Rejected' || dbStatus === 'Cancelled') return 'REJECTED';
-    return dbStatus;
+    return typeof dbStatus === 'string' ? dbStatus.toUpperCase() : dbStatus;
   };
 
   const handleUpdateStatus = async (bookingId, newStatus) => {
@@ -82,7 +85,37 @@ const OwnerBookingRequests = () => {
   };
 
   const requests = bookings
-    .map(b => ({
+    .map(b => {
+      const sharing = b.roomDetails?.sharingType || '';
+      let baseType = 'Other';
+      if (sharing.includes('Single')) baseType = 'Single';
+      else if (sharing.includes('Double')) baseType = 'Double';
+      else if (sharing.includes('Triple')) baseType = 'Triple';
+      else if (sharing.includes('Four')) baseType = 'Four';
+      
+      const typeAC = `${baseType}_AC`;
+      const typeNonAC = `${baseType}_NonAC`;
+      
+      let rentAmt = 0;
+      
+      if (b.propertyId?.propertyType === 'PG' && b.propertyId?.pgPricing) {
+        if (b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
+          rentAmt = Number(String(b.propertyId.pgPricing[typeNonAC].rentPerBed).replace(/\\D/g, ''));
+        } else if (b.propertyId.pgPricing[typeAC]?.rentPerBed) {
+          rentAmt = Number(String(b.propertyId.pgPricing[typeAC].rentPerBed).replace(/\\D/g, ''));
+        }
+      } else if (b.propertyId) {
+        rentAmt = Number(String(b.propertyId.monthlyRent || '').replace(/\\D/g, '') || 0);
+      }
+      
+      const tokenAmt = Math.round(rentAmt * 0.40);
+
+      const paidAmount = b.paymentDetails?.amount || 0;
+      const isTokenPaid = paidAmount > 0 && paidAmount < rentAmt;
+      const isFullPaid = paidAmount > 0 && paidAmount >= rentAmt;
+      const dueAmount = Math.max(rentAmt - paidAmount, 0);
+
+      return {
       _id: b._id,
       id: b._id.substring(b._id.length - 8).toUpperCase(),
       date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
@@ -93,15 +126,29 @@ const OwnerBookingRequests = () => {
       propertyType: b.propertyId?.propertyType || 'N/A',
       bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
       moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
-      rent: `₹ ${b.paymentDetails?.amount?.toLocaleString() || 0}`,
-      token: `₹ ${b.paymentDetails?.amount?.toLocaleString() || 0}`,
+      rent: `₹ ${rentAmt.toLocaleString()}`,
+      token: `₹ ${tokenAmt.toLocaleString()}`,
       paymentStatus: b.paymentDetails?.status || 'Pending',
+      isFullPaid,
+      isTokenPaid,
+      paid: paidAmount,
+      due: dueAmount,
+      rentRaw: rentAmt,
       status: getStatusMapping(b.status),
       originalStatus: b.status,
       raw: b
-    }));
+    };
+  });
 
   const tabs = ['All', 'Pending Approval', 'Approved', 'Rejected'];
+
+  const statsBaseRequests = requests.filter(req => {
+    const matchesSearch = req.customer.toLowerCase().includes(searchQuery.toLowerCase()) || req.phone.includes(searchQuery) || req.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesProperty = propertyFilter === 'All Properties' || req.property === propertyFilter;
+    const matchesDate = !dateFilter || req.moveIn === dateFilter;
+    
+    return matchesSearch && matchesProperty && matchesDate;
+  });
 
   const filteredRequests = requests.filter(req => {
     let matchesTabLogic = true;
@@ -110,23 +157,28 @@ const OwnerBookingRequests = () => {
     else if (activeTab === 'Rejected') matchesTabLogic = req.status === 'REJECTED';
 
     const matchesSearch = req.customer.toLowerCase().includes(searchQuery.toLowerCase()) || req.phone.includes(searchQuery) || req.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesProperty = propertyFilter === 'All Properties' || req.property === propertyFilter;
+    const matchesDate = !dateFilter || req.moveIn === dateFilter;
 
-    return matchesTabLogic && matchesSearch;
+    return matchesTabLogic && matchesSearch && matchesProperty && matchesDate;
   });
+
+  const uniqueProperties = ['All Properties', ...new Set(requests.map(r => r.property))];
   const stats = [
-    { title: requests.filter(r => r.status === 'PENDING APPROVAL').length, subtitle: 'Total Pending', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
-    { title: requests.filter(r => r.status === 'APPROVED').length, subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100' },
-    { title: requests.filter(r => r.status === 'REJECTED').length, subtitle: 'Rejected', desc: 'Not Proceeded', icon: 'lucide:x-circle', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
-    { title: requests.length > 0 ? Math.round((requests.filter(r => r.status === 'APPROVED').length / requests.length) * 100) + '%' : '0%', subtitle: 'Conversion Rate', desc: 'Requests to Bookings', icon: 'lucide:percent', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-    { title: `₹ ${requests.reduce((acc, curr) => acc + parseInt(curr.token.replace(/\D/g, '') || 0), 0).toLocaleString()}`, subtitle: 'Total Request Revenue', desc: 'From Tokens', icon: 'lucide:indian-rupee', color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
+    { title: statsBaseRequests.filter(r => r.status === 'PENDING APPROVAL').length, subtitle: 'Total Pending', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
+    { title: statsBaseRequests.filter(r => r.status === 'APPROVED').length, subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100' },
+    { title: statsBaseRequests.filter(r => r.status === 'REJECTED').length, subtitle: 'Rejected', desc: 'Not Proceeded', icon: 'lucide:x-circle', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
+    { title: statsBaseRequests.length > 0 ? Math.round((statsBaseRequests.filter(r => r.status === 'APPROVED').length / statsBaseRequests.length) * 100) + '%' : '0%', subtitle: 'Conversion Rate', desc: 'Requests to Bookings', icon: 'lucide:percent', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
+    { title: `₹ ${statsBaseRequests.reduce((acc, curr) => acc + parseInt(curr.token.replace(/\D/g, '') || 0), 0).toLocaleString()}`, subtitle: 'Total Request Revenue', desc: 'From Tokens', icon: 'lucide:indian-rupee', color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
   ];
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case 'APPROVED': return 'bg-emerald-50 text-emerald-600 border border-emerald-100';
-      case 'PENDING APPROVAL': return 'bg-amber-50 text-amber-600 border border-amber-100';
-      case 'REJECTED': return 'bg-rose-50 text-rose-600 border border-rose-100';
-      default: return 'bg-slate-50 text-slate-500 border border-slate-200';
+      case 'APPROVED': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'PENDING APPROVAL': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'REJECTED': return 'bg-rose-100 text-rose-700 border-rose-200';
+      case 'ACTIVE': return 'bg-blue-100 text-blue-700 border-blue-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
 
@@ -157,12 +209,12 @@ const OwnerBookingRequests = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden min-h-0">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col relative z-10 min-h-0">
 
         {/* Toolbar */}
-        <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/30">
+        <div className="p-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50/30 rounded-t-xl relative z-20">
           {/* Search */}
-          <div className="relative w-full sm:w-80 group">
+          <div className="relative w-full xl:w-80 group shrink-0">
             <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
             <input
               type="text"
@@ -171,6 +223,61 @@ const OwnerBookingRequests = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm"
             />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Property Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => setActiveDropdown(activeDropdown === 'property' ? null : 'property')}
+                className="flex items-center justify-between min-w-[200px] max-w-[240px] px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-teal focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 transition-all shadow-sm"
+              >
+                <span className="flex items-center gap-2 truncate">
+                  <span className="text-slate-400 font-medium shrink-0">Property:</span> 
+                  <span className="truncate">{propertyFilter}</span>
+                </span>
+                <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${activeDropdown === 'property' ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {activeDropdown === 'property' && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200 max-h-72 overflow-y-auto custom-scrollbar">
+                    <div className="px-3 py-2 border-b border-slate-50 mb-1 sticky top-0 bg-white z-10">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Property</p>
+                    </div>
+                    {uniqueProperties.map(prop => (
+                      <button
+                        key={prop}
+                        onClick={() => { setPropertyFilter(prop); setActiveDropdown(null); }}
+                        className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50 flex items-center justify-between ${propertyFilter === prop ? 'text-[#062F26] bg-brand-teal/5' : 'text-slate-600'}`}
+                      >
+                        <span className="truncate pr-2">{prop}</span>
+                        {propertyFilter === prop && <Icon icon="lucide:check" className="w-4 h-4 text-brand-teal shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Date Filter */}
+            <div className="relative flex items-center bg-white border border-slate-200 rounded-xl px-4 py-2.5 hover:border-brand-teal focus-within:border-brand-teal focus-within:ring-4 focus-within:ring-brand-teal/10 transition-all shadow-sm">
+              <span className="flex items-center gap-2">
+                <span className="text-slate-400 font-medium shrink-0">Move-in:</span>
+                <input 
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none w-[115px] cursor-pointer"
+                />
+              </span>
+              {dateFilter && (
+                <button onClick={() => setDateFilter('')} className="ml-2 text-slate-400 hover:text-rose-500 transition-colors">
+                  <Icon icon="lucide:x" className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -192,7 +299,7 @@ const OwnerBookingRequests = () => {
         </div>
 
         {/* Responsive Content Container */}
-        <div className="flex-1 overflow-y-visible md:overflow-y-auto custom-scrollbar bg-white min-h-0 relative">
+        <div className="flex-1 overflow-y-visible md:overflow-y-auto custom-scrollbar bg-white min-h-0 relative z-10 rounded-b-xl">
 
           {/* Mobile View (Cards) */}
           <div className="md:hidden flex flex-col p-4 gap-4">
@@ -207,7 +314,7 @@ const OwnerBookingRequests = () => {
                     <h3 className="font-bold text-[#062F26]">{req.customer}</h3>
                     <p className="text-xs text-slate-500 mt-0.5">{req.id} • {req.date}</p>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${getStatusStyle(req.status)}`}>
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getStatusStyle(req.status)} shadow-sm`}>
                     {req.status}
                   </span>
                 </div>
@@ -219,9 +326,24 @@ const OwnerBookingRequests = () => {
                     <p className="text-xs font-medium text-slate-500 mt-0.5 truncate">{req.bed}</p>
                   </div>
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Financials</p>
-                    <p className="text-sm font-bold text-slate-700">{req.rent}</p>
-                    <p className="text-xs font-bold text-[#25D366] mt-0.5">Token: {req.token}</p>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Payment</p>
+                    {req.isFullPaid ? (
+                      <>
+                        <p className="text-xs font-bold text-slate-700">Full Paid: ₹{req.paid.toLocaleString()}</p>
+                        <div className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-wider bg-emerald-100/50 px-1.5 py-0.5 rounded-sm inline-block">Paid</div>
+                      </>
+                    ) : req.isTokenPaid ? (
+                      <>
+                        <p className="text-xs font-bold text-slate-700">Token Paid: ₹{req.paid.toLocaleString()}</p>
+                        <p className="text-[10px] font-bold text-rose-600 mt-0.5 mb-1">Due: ₹{req.due.toLocaleString()}</p>
+                        <div className="text-[9px] font-bold text-amber-600 uppercase tracking-wider bg-amber-100/50 px-1.5 py-0.5 rounded-sm inline-block">Pending Full Payment</div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs font-bold text-slate-700">Rent: ₹{req.rentRaw.toLocaleString()}</p>
+                        <div className="text-[9px] font-bold text-rose-600 mt-1 uppercase tracking-wider bg-rose-100/50 px-1.5 py-0.5 rounded-sm inline-block">Unpaid</div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -275,7 +397,6 @@ const OwnerBookingRequests = () => {
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Customer</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Property / Bed</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move - In Date</th>
-                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent / Token</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
@@ -308,17 +429,26 @@ const OwnerBookingRequests = () => {
                       <div className="text-sm font-bold text-slate-700">{req.moveIn}</div>
                     </td>
                     <td className="py-4 px-5 align-middle">
-                      <div className="font-bold text-slate-800 text-sm">{req.rent}</div>
-                      <div className="text-[11px] font-bold text-[#25D366] mt-1 tracking-wide">Token: {req.token}</div>
+                      {req.isFullPaid ? (
+                        <>
+                          <div className="font-bold text-slate-800 text-sm">Full Paid: ₹{req.paid.toLocaleString()}</div>
+                          <div className="text-[10px] font-bold text-emerald-600 mt-1 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-sm inline-block">Paid</div>
+                        </>
+                      ) : req.isTokenPaid ? (
+                        <>
+                          <div className="font-bold text-slate-800 text-sm">Token Paid: ₹{req.paid.toLocaleString()}</div>
+                          <div className="text-xs font-bold text-rose-600 mt-1 mb-1">Due: ₹{req.due.toLocaleString()}</div>
+                          <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider bg-amber-50 px-2 py-0.5 rounded-sm inline-block">Pending Full Payment</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="font-bold text-slate-800 text-sm">Rent: ₹{req.rentRaw.toLocaleString()}</div>
+                          <div className="text-[10px] font-bold text-rose-600 mt-1 uppercase tracking-wider bg-rose-50 px-2 py-0.5 rounded-sm inline-block">Unpaid</div>
+                        </>
+                      )}
                     </td>
                     <td className="py-4 px-5 align-middle">
-                      <div className="flex items-center gap-1.5 text-amber-600 text-xs font-bold w-max">
-                        <Icon icon="lucide:clock" className="w-3.5 h-3.5" />
-                        {req.paymentStatus}
-                      </div>
-                    </td>
-                    <td className="py-4 px-5 align-middle">
-                      <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-md uppercase tracking-wider ${getStatusStyle(req.status)} shadow-sm`}>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getStatusStyle(req.status)} shadow-sm`}>
                         {req.status}
                       </span>
                     </td>

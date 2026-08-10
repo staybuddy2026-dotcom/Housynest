@@ -185,7 +185,7 @@ const PropertyListingCard = ({ property }) => {
       <div className="p-4 flex flex-col flex-1">
         <h3 className="text-slate-900 font-bold text-lg mb-0.5 line-clamp-1">{property.title}</h3>
         <p className="text-slate-500 text-xs font-medium mb-3 line-clamp-1">
-          {property.societyName ? `${property.societyName}, ` : ''}{property.location}
+          {property.location}
         </p>
 
         <div className="flex flex-wrap gap-1.5 mb-4">

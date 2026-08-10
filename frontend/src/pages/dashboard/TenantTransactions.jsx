@@ -142,7 +142,7 @@ const TenantTransactions = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#062F26] mb-1">My Transactions</h1>
+          <h1 className="text-2xl font-bold text-[#062F26] mb-1">My Transactions</h1>
           <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase flex-wrap">
             <span>{today}</span>
             <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block"></span>
@@ -168,13 +168,13 @@ const TenantTransactions = () => {
             <Icon icon={item.icon} className={`absolute -right-4 -bottom-4 w-24 h-24 sm:w-32 sm:h-32 opacity-0 group-hover:opacity-10 transition-all duration-500 pointer-events-none ${item.bgIconColor} transform group-hover:-rotate-12`} />
 
             <div className="flex justify-between items-start mb-2 relative z-10">
-              <h2 className={`text-2xl sm:text-3xl font-bold ${item.text} ${item.hoverText} transition-colors duration-400 tracking-tight`}>{item.title}</h2>
+              <h2 className={`text-2xl sm:text-[28px] font-bold ${item.text} ${item.hoverText} transition-colors duration-400 tracking-tight`}>{item.title}</h2>
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 text-slate-500 ${item.iconColorHover} transition-all duration-400 group-hover:scale-110 group-hover:shadow-lg`}>
                 <Icon icon={item.icon} className="w-5 h-5" />
               </div>
             </div>
 
-            <p className={`text-xs sm:text-sm font-bold text-slate-500 mb-5 sm:mb-6 ${item.hoverSubtitle} transition-colors duration-400 relative z-10`}>{item.subtitle}</p>
+            <p className={`text-xs sm:text-sm font-semibold text-slate-500 mb-5 ${item.hoverSubtitle} transition-colors duration-400 relative z-10`}>{item.subtitle}</p>
 
             {/* Progress bar */}
             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden relative z-10">
@@ -198,7 +198,7 @@ const TenantTransactions = () => {
           </div>
         ) : (
           transactions.filter(tx => tx.status === 'Paid').map((tx) => (
-            <div key={tx._id} className="relative overflow-hidden bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 hover:shadow-[0_8px_30px_rgba(10,168,125,0.12)] hover:border-brand-teal/40 hover:-translate-y-1 hover:bg-gradient-to-r hover:from-brand-teal/[0.03] hover:to-transparent transition-all duration-500 cursor-pointer group">
+            <div key={tx._id} className="relative overflow-hidden bg-white rounded-xl border border-slate-200 p-4 hover:shadow-[0_8px_30px_rgba(10,168,125,0.12)] hover:border-brand-teal/40 hover:-translate-y-1 hover:bg-gradient-to-r hover:from-brand-teal/[0.03] hover:to-transparent transition-all duration-500 cursor-pointer group">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-teal opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-l-2xl"></div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 relative z-10">
 
@@ -208,7 +208,7 @@ const TenantTransactions = () => {
                     <Icon icon="lucide:arrow-up-right" className="w-5 h-5" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-[#062F26] mb-0.5 group-hover:text-brand-teal transition-colors">
+                    <span className="text-base font-bold text-[#062F26] mb-0.5 group-hover:text-brand-teal transition-colors">
                       {tx.propertyId ? tx.propertyId.societyName || tx.propertyId.pgName || tx.propertyId.propertyCategory : 'Property'}
                     </span>
                     <span className="text-[11px] font-medium text-slate-500 mb-1">

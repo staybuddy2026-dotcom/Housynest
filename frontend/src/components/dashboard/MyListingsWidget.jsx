@@ -23,7 +23,7 @@ const MyListingsWidget = () => {
           // Map data to match the widget structure and limit to 4
           const mappedListings = data.slice(0, 4).map(p => {
             const title = p.pgName || p.societyName || p.propertyCategory || 'Property';
-            const location = `${p.locality || ''}, ${p.city || ''}`.replace(/^, | , $/g, '');
+            const location = [p.address, p.locality, p.city].filter(Boolean).join(', ');
             let pgPrices = [];
             if (p.propertyType === 'PG' && p.pgPricing) {
               const pricingMap = {};

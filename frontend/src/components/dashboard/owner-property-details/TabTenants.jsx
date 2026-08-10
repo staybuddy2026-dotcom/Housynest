@@ -133,6 +133,7 @@ const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelect
   const getPaymentStyle = (status) => {
     if (status === 'PAID') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
     if (status === 'DUE') return 'bg-amber-100 text-amber-700 border-amber-200';
+    if (status === 'OVERDUE') return 'bg-rose-100 text-rose-700 border-rose-200';
     return 'bg-slate-100 text-slate-500 border-slate-200';
   };
 
@@ -153,8 +154,8 @@ const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelect
               <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
               <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Room / Bed</th>
               <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent</th>
-              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
               <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move-in</th>
+              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
               <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
             </tr>
           </thead>
@@ -182,16 +183,17 @@ const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelect
                   <div className="text-[11px] font-medium text-slate-400 mt-1 tracking-wide">{t.deposit}</div>
                 </td>
                 <td className="py-4 px-5 align-middle">
-                  <div className="font-bold text-slate-800 text-sm">{t.paidStr}</div>
-                  <div className={`text-[11px] font-bold mt-1 tracking-wide flex items-center gap-1 ${t.rentDueAmount > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                    {t.dueStr}
-                    {t.rentDueAmount > 0 && t.dueDateStr && (
-                       <span className="text-slate-400 font-medium ml-1">(Due {t.dueDateStr})</span>
-                    )}
-                  </div>
+                  <div className="text-sm font-semibold text-slate-700">{t.moveIn}</div>
                 </td>
                 <td className="py-4 px-5 align-middle">
-                  <div className="text-sm font-semibold text-slate-700">{t.moveIn}</div>
+                  <div className="flex flex-col items-start gap-1">
+                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getPaymentStyle(t.payment)}`}>
+                      {t.payment}
+                    </span>
+                    {t.paidStr.startsWith('Token') && (
+                      <div className="text-[11px] font-bold text-brand-teal mt-0.5">{t.paidStr}</div>
+                    )}
+                  </div>
                 </td>
                 <td className="py-4 px-5 align-middle text-right">
                   <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>

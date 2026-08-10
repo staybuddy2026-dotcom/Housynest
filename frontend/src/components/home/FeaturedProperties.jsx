@@ -22,11 +22,11 @@ const FeaturedProperties = () => {
           const data = await res.json();
           const mappedProperties = data.slice(0, 8).map(p => ({
             id: p._id,
-            title: p.pgName || (p.bhkType ? `${p.bhkType} ${p.propertyCategory}` : p.propertyCategory) || 'Property',
+            title: p.pgName || p.societyName || (p.bhkType ? `${p.bhkType} ${p.propertyCategory}` : p.propertyCategory) || 'Property',
             type: p.propertyType,
             bhkType: p.bhkType,
             societyName: p.societyName,
-            location: `${p.locality || ''}, ${p.city || ''}`.replace(/^, | , $/g, ''),
+            location: [p.address, p.locality, p.city].filter(Boolean).join(', '),
             price: (p.monthlyRent || '0').toString(),
             gender: p.preferredGender || 'Anyone',
             roomType: p.rooms && p.rooms.length > 0 ? p.rooms[0].sharingType : '',

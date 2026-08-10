@@ -10,7 +10,11 @@ import { sendGenericEmail } from '../utils/emailService.js';
 // @access  Private (Tenant/User)
 export const createLead = async (req, res) => {
   try {
-    const { propertyId, ownerId, message, moveInDate, occupants, gender, contactMethod, subject, agreedToShareDetails, floorName, roomName, bedName } = req.body;
+    const { propertyId, ownerId, message, occupants, gender, contactMethod, subject, agreedToShareDetails, floorName, roomName, bedName } = req.body;
+    let moveInDate = req.body.moveInDate;
+    if (!moveInDate) {
+      moveInDate = undefined;
+    }
 
     if (!propertyId || !ownerId || !message || agreedToShareDetails === undefined) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -54,14 +58,20 @@ export const createLead = async (req, res) => {
     }
 
     // Socket.io integration
-    const io = getIo();
-    io.to(`user_${ownerId}`).emit('newLead', lead);
-    io.to(`user_${req.user._id}`).emit('leadSent', lead);
+    try {
+      const io = getIo();
+      io.to(`user_${ownerId}`).emit('newLead', lead);
+      io.to(`user_${req.user._id}`).emit('leadSent', lead);
+    } catch (socketErr) {
+      console.error('Socket error on createLead:', socketErr);
+    }
 
     res.status(201).json(lead);
   } catch (error) {
+    const fs = await import('fs');
+    fs.appendFileSync('lead_error.log', JSON.stringify({ error: error.message, stack: error.stack }) + '\n');
     console.error('Error in createLead:', error);
-    res.status(500).json({ message: 'Server error while creating lead' });
+    res.status(500).json({ message: error.message || 'Server error while creating lead' });
   }
 };
 

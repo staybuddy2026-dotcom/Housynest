@@ -74,6 +74,28 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ message: 'Property not found' });
     }
 
+    // Check for double bookings
+    if (property.propertyType === 'PG' && roomDetails?.roomName && roomDetails?.bedName) {
+      const activeBookings = await Booking.find({
+        propertyId,
+        'roomDetails.roomName': roomDetails.roomName,
+        'roomDetails.bedName': roomDetails.bedName,
+        status: { $in: ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active'] }
+      });
+    
+      if (activeBookings.length > 0) {
+        return res.status(400).json({ message: 'This bed is already booked or reserved.' });
+      }
+    } else if (property.propertyType === 'Tenant') {
+      const activeBookings = await Booking.find({
+        propertyId,
+        status: { $in: ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active'] }
+      });
+      if (activeBookings.length > 0) {
+        return res.status(400).json({ message: 'This property is already booked or reserved.' });
+      }
+    }
+
     // Determine status based on bookingType
     // If property.bookingType is 'Direct Booking', booking is Confirmed automatically
     // Otherwise, it requires owner approval (Pending Request)
@@ -130,7 +152,7 @@ export const createBooking = async (req, res) => {
 export const getOwnerBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ ownerId: req.user._id })
-      .populate('propertyId', 'pgName societyName propertyCategory propertyType images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
+      .populate('propertyId', 'pgName societyName propertyCategory propertyType address images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
       .populate('tenantId', 'fullName email phone profilePic')
       .sort('-createdAt');
     res.json(bookings);
@@ -146,7 +168,7 @@ export const getOwnerBookings = async (req, res) => {
 export const getTenantBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ tenantId: req.user._id })
-      .populate('propertyId', 'pgName societyName propertyCategory propertyType images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
+      .populate('propertyId', 'pgName societyName propertyCategory propertyType address images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
       .populate('ownerId', 'fullName email phone profilePic')
       .sort('-createdAt');
     res.json(bookings);
@@ -460,5 +482,37 @@ export const getOwnerRentCollection = async (req, res) => {
   } catch (error) {
     console.error('Error fetching rent collection:', error);
     res.status(500).json({ message: 'Server error fetching rent collection' });
+  }
+};
+
+// @desc    Auto-activate bookings whose move-in date has arrived
+// @route   N/A (Cron Job)
+// @access  Internal
+export const autoActivateBookings = async () => {
+  try {
+    const today = new Date();
+    // Reset time to start of day for comparison
+    today.setHours(0, 0, 0, 0);
+
+    const bookings = await Booking.find({
+      status: { $in: ['Confirmed', 'Reserved'] },
+      moveInDate: { $lte: today }
+    });
+
+    for (const booking of bookings) {
+      booking.status = 'Active';
+      const updatedBooking = await booking.save();
+      
+      // Update bed status when booking status changes via auto-activation
+      if (updatedBooking.roomDetails?.roomName && updatedBooking.roomDetails?.bedName) {
+        await updateBedStatus(updatedBooking.propertyId, updatedBooking.roomDetails.roomName, updatedBooking.roomDetails.bedName);
+      }
+    }
+    
+    if (bookings.length > 0) {
+      console.log(`[Cron] Auto-activated ${bookings.length} bookings successfully.`);
+    }
+  } catch (error) {
+    console.error('[Cron] Error auto-activating bookings:', error);
   }
 };

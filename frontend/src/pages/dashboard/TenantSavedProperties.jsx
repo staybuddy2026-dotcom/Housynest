@@ -42,11 +42,11 @@ const TenantSavedProperties = () => {
           const mappedProperties = data.map(property => ({
             ...property,
             id: property._id,
-            title: property.pgName || (property.bhkType ? `${property.bhkType} ${property.propertyCategory}` : property.propertyCategory) || 'Property',
+            title: property.pgName || property.societyName || (property.bhkType ? `${property.bhkType} ${property.propertyCategory}` : property.propertyCategory) || 'Property',
             type: property.propertyType,
             category: property.propertyCategory,
             societyName: property.societyName,
-            location: `${property.locality || ''}, ${property.city || ''}`.replace(/^, | , $/g, ''),
+            location: [property.address, property.locality, property.city].filter(Boolean).join(', '),
             price: (property.monthlyRent || '0').toString(),
             image: property.images && property.images.length > 0 ? property.images[0].url : null,
             images: property.images && property.images.length > 0 ? property.images.map(img => img.url) : [],
@@ -103,7 +103,7 @@ const TenantSavedProperties = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-100 pb-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 shadow-sm">
+          <div className="w-12 h-12 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 shadow-sm">
             <Icon icon="lucide:heart" className="w-5 h-5 text-rose-500 fill-rose-500/20" />
           </div>
           <div>
@@ -117,7 +117,7 @@ const TenantSavedProperties = () => {
           <div className="relative sort-dropdown">
             <button
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-bold transition-all shadow-sm ${isSortDropdownOpen ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
+              className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-bold transition-all shadow-sm ${isSortDropdownOpen ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                 }`}
             >
               <Icon icon="lucide:arrow-down-up" className="w-3.5 h-3.5 text-slate-400" />
@@ -126,7 +126,7 @@ const TenantSavedProperties = () => {
             </button>
 
             {isSortDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-100 rounded-md shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 {['Recently Saved', 'Price: Low to High', 'Price: High to Low'].map(opt => (
                   <button
                     key={opt}
@@ -159,7 +159,7 @@ const TenantSavedProperties = () => {
           <button
             key={filter.name}
             onClick={() => setActiveFilter(filter.name)}
-            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all border ${activeFilter === filter.name
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-md text-sm font-bold whitespace-nowrap transition-all border ${activeFilter === filter.name
               ? 'bg-[#062F26] border-[#062F26] text-white shadow-md'
               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
               }`}

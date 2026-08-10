@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useLenis } from 'lenis/react';
 import { toast } from 'react-hot-toast';
 import { Icon } from '@iconify/react';
@@ -26,6 +26,7 @@ import PropertyReviews from '../components/property-details/PropertyReviews';
 const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const lenis = useLenis();
   const [property, setProperty] = useState(null);
   const [similarProperties, setSimilarProperties] = useState([]);
@@ -66,11 +67,11 @@ const PropertyDetails = () => {
             const mappedProperty = {
               ...data,
               id: data._id,
-              title: data.pgName || (data.bhkType ? `${data.bhkType} ${data.propertyCategory}` : data.propertyCategory) || 'Property',
+              title: data.pgName || data.societyName || (data.bhkType ? `${data.bhkType} ${data.propertyCategory}` : data.propertyCategory) || 'Property',
               type: data.propertyType,
               category: data.propertyCategory,
               societyName: data.societyName,
-              location: `${data.locality || ''}, ${data.city || ''}`.replace(/^, | , $/g, ''),
+              location: [data.address, data.locality, data.city].filter(Boolean).join(', '),
               price: (data.monthlyRent || '0').toString(),
               gender: data.preferredGender || 'Anyone',
               roomType: data.rooms && data.rooms.length > 0 ? data.rooms[0].sharingType : '',
@@ -157,12 +158,12 @@ const PropertyDetails = () => {
             const mappedSimilar = data.map(p => ({
               ...p,
               id: p._id,
-              title: p.pgName || (p.bhkType ? `${p.bhkType} ${p.propertyCategory}` : p.propertyCategory) || 'Property',
+              title: p.pgName || p.societyName || (p.bhkType ? `${p.bhkType} ${p.propertyCategory}` : p.propertyCategory) || 'Property',
               type: p.propertyType,
               category: p.propertyCategory,
               bhkType: p.bhkType,
               societyName: p.societyName,
-              location: `${p.locality || ''}, ${p.city || ''}`.replace(/^, | , $/g, ''),
+              location: [p.address, p.locality, p.city].filter(Boolean).join(', '),
               price: (p.monthlyRent || '0').toString(),
               rating: p.rating || '4.5',
               reviews: p.views || 0,
@@ -231,6 +232,13 @@ const PropertyDetails = () => {
     window.addEventListener('user-updated', handleUserUpdate);
     return () => window.removeEventListener('user-updated', handleUserUpdate);
   }, [id]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('book') === 'true') {
+      setIsBookNowModalOpen(true);
+    }
+  }, [location.search]);
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0]">

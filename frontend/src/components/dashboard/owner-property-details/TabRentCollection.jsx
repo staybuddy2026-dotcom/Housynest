@@ -1,7 +1,76 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ReactLenis } from 'lenis/react';
 import { Icon } from '@iconify/react';
 
+const CustomDropdown = ({ icon, value, options, onChange, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative min-w-[140px] flex-1 sm:flex-none" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between pl-10 pr-4 py-2 bg-white border ${isOpen ? 'border-brand-teal ring-4 ring-brand-teal/10' : 'border-slate-200'} rounded-xl text-sm font-semibold text-slate-700 focus:outline-none transition-all shadow-sm h-[42px]`}
+      >
+        <Icon icon={icon} className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <span className="truncate mr-2">{value === 'All' ? placeholder : value}</span>
+        <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 left-0 mt-2 min-w-full min-w-[180px] bg-white border border-slate-200 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 origin-top">
+          <ReactLenis options={{ duration: 1.2, smoothWheel: true }} className="max-h-[240px] overflow-y-auto custom-scrollbar flex flex-col py-1.5">
+            <button
+              onClick={() => { onChange('All'); setIsOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${value === 'All' ? 'bg-brand-teal/5 text-brand-teal font-bold' : 'text-slate-600 font-medium hover:bg-slate-50'}`}
+            >
+              <span className="truncate">{placeholder}</span>
+              {value === 'All' && <Icon icon="lucide:check" className="w-4 h-4 shrink-0 ml-3" />}
+            </button>
+            {options.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => { onChange(opt); setIsOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${value === opt ? 'bg-brand-teal/5 text-brand-teal font-bold' : 'text-slate-600 font-medium hover:bg-slate-50'}`}
+              >
+                <span className="truncate">{opt}</span>
+                {value === opt && <Icon icon="lucide:check" className="w-4 h-4 shrink-0 ml-3" />}
+              </button>
+            ))}
+          </ReactLenis>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) => {
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [selectedTenantHistory, setSelectedTenantHistory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterMonth, setFilterMonth] = useState('All');
+  const [filterStatus, setFilterStatus] = useState('All');
+
+  const handleViewHistory = (bookingId, tenantData) => {
+    const tenantInvoices = (invoices || []).filter(inv => inv.bookingId === bookingId || (inv.bookingId && inv.bookingId._id === bookingId));
+    tenantInvoices.sort((a, b) => new Date(b.billingPeriodStart) - new Date(a.billingPeriodStart));
+
+    setSelectedTenantHistory({
+      tenant: tenantData,
+      invoices: tenantInvoices
+    });
+    setHistoryModalOpen(true);
+  };
   const rentItems = [];
   const today = new Date();
 
@@ -26,30 +95,33 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
       rentAmount = Number(property.monthlyRent.replace(/\D/g, ''));
     }
 
-    const bookingInvoices = (invoices || []).filter(i => 
+    const bookingInvoices = (invoices || []).filter(i =>
       i.bookingId === booking._id || (i.bookingId && i.bookingId._id === booking._id)
     );
     const unpaidInvoice = bookingInvoices.find(i => i.status === 'Pending' || i.status === 'Overdue');
-    const latestPaid = bookingInvoices.filter(i => i.status === 'Paid').sort((a,b) => new Date(b.dueDate) - new Date(a.dueDate))[0];
-    
+    const latestPaid = bookingInvoices.filter(i => i.status === 'Paid').sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate))[0];
+
     let status = 'Paid';
     let nextDueDate = null;
     let daysDue = 0;
-    
+
     if (unpaidInvoice) {
-        status = unpaidInvoice.status === 'Overdue' ? 'Overdue' : 'Due';
-        rentAmount = unpaidInvoice.amount;
-        nextDueDate = new Date(unpaidInvoice.dueDate);
-        const diffMs = nextDueDate - new Date();
-        daysDue = Math.abs(Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+      status = unpaidInvoice.status === 'Overdue' ? 'Overdue' : 'Due';
+      rentAmount = unpaidInvoice.amount;
+      nextDueDate = new Date(unpaidInvoice.dueDate);
+      const diffMs = nextDueDate - new Date();
+      daysDue = Math.abs(Math.floor(diffMs / (1000 * 60 * 60 * 24)));
     } else if (latestPaid) {
-        status = 'Paid';
-        nextDueDate = new Date(latestPaid.paidAt || latestPaid.dueDate);
+      status = 'Paid';
+      nextDueDate = new Date(latestPaid.paidAt || latestPaid.dueDate);
     } else {
-        const moveInDate = booking.moveInDate ? new Date(booking.moveInDate) : new Date(booking.createdAt);
-        nextDueDate = new Date(new Date().getFullYear(), new Date().getMonth(), moveInDate.getDate());
-        if (nextDueDate < new Date()) nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+      const moveInDate = booking.moveInDate ? new Date(booking.moveInDate) : new Date(booking.createdAt);
+      nextDueDate = new Date(new Date().getFullYear(), new Date().getMonth(), moveInDate.getDate());
+      if (nextDueDate < new Date()) nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
+
+    let cycleStart = unpaidInvoice ? unpaidInvoice.billingPeriodStart : (latestPaid ? latestPaid.billingPeriodStart : booking.moveInDate);
+    let cycleEnd = unpaidInvoice ? unpaidInvoice.billingPeriodEnd : (latestPaid ? latestPaid.billingPeriodEnd : new Date(new Date(booking.moveInDate).setMonth(new Date(booking.moveInDate).getMonth() + 1)));
 
     totalExpected += rentAmount;
     if (status === 'Paid') totalCollected += rentAmount;
@@ -74,11 +146,36 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
       room: booking.roomDetails?.roomName ? `${booking.roomDetails.roomName} | ${booking.roomDetails.bedName}` : 'Full Property',
       phone,
       whatsapp,
-      email
+      email,
+      cycleStart,
+      cycleEnd
     });
   });
 
   rentItems.sort((a, b) => a.rawDate - b.rawDate);
+
+  const filteredItems = rentItems.filter(item => {
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = item.name?.toLowerCase().includes(searchLower) ||
+      item.phone?.toLowerCase().includes(searchLower) ||
+      item.email?.toLowerCase().includes(searchLower);
+
+    const matchesStatus = filterStatus === 'All' || item.status === filterStatus;
+
+    let matchesMonth = true;
+    if (filterMonth !== 'All') {
+      const cycleStartString = item.cycleStart ? new Date(item.cycleStart).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : '';
+      const cycleEndString = item.cycleEnd ? new Date(item.cycleEnd).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : '';
+      matchesMonth = (cycleStartString === filterMonth) || (cycleEndString === filterMonth);
+    }
+
+    return matchesSearch && matchesStatus && matchesMonth;
+  });
+
+  const uniqueMonths = Array.from(new Set([
+    ...rentItems.map(i => i.cycleStart ? new Date(i.cycleStart).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : ''),
+    ...rentItems.map(i => i.cycleEnd ? new Date(i.cycleEnd).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : '')
+  ])).filter(x => x).sort((a, b) => new Date(b) - new Date(a));
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -124,35 +221,50 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
-        <div className="relative flex-1 w-full max-w-md">
-          <Icon icon="lucide:search" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input type="text" placeholder="Search tenants by name or phone number..." className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors" />
+        <div className="relative flex-1 w-full max-w-md group">
+          <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
+          <input
+            type="text"
+            placeholder="Search by name, phone number, or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm h-[42px]"
+          />
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
-            Sort <Icon icon="lucide:chevron-down" className="w-4 h-4" />
-          </button>
-          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
-            <Icon icon="lucide:filter" className="w-4 h-4" /> Filter
-          </button>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {/* Month Filter */}
+          <CustomDropdown
+            icon="lucide:calendar"
+            value={filterMonth}
+            options={uniqueMonths}
+            onChange={setFilterMonth}
+            placeholder="All Months"
+          />
+
+          {/* Status Filter */}
+          <CustomDropdown
+            icon="lucide:activity"
+            value={filterStatus}
+            options={['Paid', 'Due', 'Overdue']}
+            onChange={setFilterStatus}
+            placeholder="All Statuses"
+          />
         </div>
       </div>
 
       {/* Table */}
-      {rentItems.length === 0 ? (
-        <div className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center animate-fadeIn">
-          <Icon icon="lucide:construction" className="w-12 h-12 text-slate-300 mb-4" />
-          <h3 className="text-lg font-bold text-[#062F26] mb-2">Rent Collection Data Not Found</h3>
-          <p className="text-sm font-medium text-slate-500 max-w-sm">
-            The rent collection information for this property is not available or is currently under development.
-          </p>
+      {filteredItems.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-xl border border-slate-100">
+          <Icon icon="lucide:search" className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-slate-800">No tenants found</h3>
+          <p className="text-sm text-slate-500 mt-1">Try adjusting your search query.</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl md:border border-slate-100 md:shadow-sm overflow-hidden relative">
 
           {/* Mobile View (Cards) */}
           <div className="md:hidden flex flex-col p-4 gap-4 bg-slate-50/50">
-            {rentItems.map(item => (
+            {filteredItems.map(item => (
               <div key={item.id} className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm" onClick={() => setSelectedTenant({ ...item, name: item.name })}>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex gap-3 items-center">
@@ -173,6 +285,13 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                     <p className="text-sm font-bold text-slate-700">₹{item.rentAmount.toLocaleString('en-IN')}</p>
                   </div>
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Rent Cycle</p>
+                    <p className="text-sm font-bold text-slate-700">{item.cycleStart ? new Date(item.cycleStart).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'} - {item.cycleEnd ? new Date(item.cycleEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 w-full">
                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">{item.status === 'Paid' ? 'Paid On' : 'Due Date'}</p>
                     <p className="text-sm font-bold text-slate-700">{item.dueDate}</p>
                     {item.daysDue > 0 && <p className={`text-[10px] font-bold mt-0.5 ${item.status === 'Overdue' ? 'text-rose-500' : 'text-amber-500'}`}>{item.daysDue} days {item.status === 'Overdue' ? 'late' : 'left'}</p>}
@@ -191,7 +310,7 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                         Mark Paid
                       </button>
                     )}
-                    <button className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors border border-slate-100 shadow-sm"><Icon icon="lucide:history" className="w-4 h-4" /></button>
+                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(item.id, item); }} className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors border border-slate-100 shadow-sm"><Icon icon="lucide:history" className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -205,6 +324,7 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                 <tr>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Contact</th>
+                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent Cycle</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Rent</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Due / Paid On</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
@@ -213,7 +333,7 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rentItems.map(item => (
+                {filteredItems.map(item => (
                   <tr key={item.id} className="hover:bg-[#F8F9FA] transition-colors group cursor-pointer" onClick={() => setSelectedTenant({ ...item, name: item.name })}>
                     <td className="py-4 px-5 align-middle">
                       <div className="flex items-center gap-3">
@@ -222,7 +342,8 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                         </div>
                         <div>
                           <p className="font-bold text-[#062F26] text-sm group-hover:text-brand-teal transition-colors">{item.name}</p>
-                          <p className="text-[11px] font-medium text-slate-400 mt-0.5">{item.room}</p>
+                          <p className="text-[11px] font-bold text-slate-400 mt-0.5 tracking-wide">{item.phone}</p>
+                          <p className="text-[10px] font-medium text-slate-400 mt-0.5">{item.room}</p>
                         </div>
                       </div>
                     </td>
@@ -234,9 +355,16 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                         <a href={`https://wa.me/${item.whatsapp}`} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="WhatsApp">
                           <Icon icon="lucide:message-circle" className="w-3.5 h-3.5" />
                         </a>
-                        <a href={`mailto:${item.email}`} className="w-7 h-7 rounded-full bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="Email">
+                        <a href={`mailto:${item.email}`} className="w-7 h-7 rounded-full bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title={item.email || 'Email'}>
                           <Icon icon="lucide:mail" className="w-3.5 h-3.5" />
                         </a>
+                      </div>
+                    </td>
+                    <td className="py-4 px-5 align-middle">
+                      <div className="text-[12px] font-semibold text-slate-600 flex items-center whitespace-nowrap">
+                        <span className="truncate">{item.cycleStart ? new Date(item.cycleStart).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'}</span>
+                        <span className="mx-1 text-slate-400 shrink-0">-</span>
+                        <span className="truncate">{item.cycleEnd ? new Date(item.cycleEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'}</span>
                       </div>
                     </td>
                     <td className="py-4 px-5 align-middle">
@@ -252,7 +380,7 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                       </span>
                     </td>
                     <td className="py-4 px-5 align-middle text-center">
-                      <button onClick={(e) => e.stopPropagation()} className="w-7 h-7 mx-auto rounded text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-colors"><Icon icon="lucide:history" className="w-4 h-4" /></button>
+                      <button onClick={(e) => { e.stopPropagation(); handleViewHistory(item.id, item); }} className="w-7 h-7 mx-auto rounded text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 flex items-center justify-center transition-colors"><Icon icon="lucide:history" className="w-4 h-4" /></button>
                     </td>
                     <td className="py-4 px-5 align-middle text-right">
                       <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
@@ -268,6 +396,73 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {historyModalOpen && selectedTenantHistory && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={(e) => { e.stopPropagation(); }}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 relative">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center font-bold text-sm">
+                  {selectedTenantHistory.tenant?.initials || 'U'}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800 tracking-tight">Payment History</h3>
+                  <p className="text-xs font-medium text-slate-500">
+                    {selectedTenantHistory.tenant?.name} • {selectedTenantHistory.tenant?.room}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setHistoryModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 transition-colors"
+              >
+                <Icon icon="lucide:x" className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/20">
+              {selectedTenantHistory.invoices.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedTenantHistory.invoices.map((inv, idx) => (
+                    <div key={inv._id || idx} className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-sm font-bold text-slate-800">
+                            {inv.billingPeriodStart ? new Date(inv.billingPeriodStart).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'} - {inv.billingPeriodEnd ? new Date(inv.billingPeriodEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border ${getStatusStyle(inv.status)}`}>
+                            {inv.status}
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-500">
+                          Due: {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
+                          {inv.paidAt && ` • Paid: ${new Date(inv.paidAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-bold text-slate-800">
+                          ₹ {inv.amount?.toLocaleString('en-IN')}
+                        </div>
+                        <div className="text-[10px] font-semibold text-slate-400 mt-0.5">
+                          {inv.paymentMethod || (inv.status === 'Paid' ? 'Online' : 'Not paid')}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Icon icon="lucide:receipt" className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 font-medium">No payment history found for this tenant.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

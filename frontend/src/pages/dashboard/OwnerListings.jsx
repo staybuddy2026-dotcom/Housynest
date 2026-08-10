@@ -211,7 +211,7 @@ const OwnerListings = () => {
           {filteredListings.map((rawListing) => {
             const title = rawListing.pgName || rawListing.societyName || rawListing.propertyCategory || 'Property';
             const type = rawListing.propertyType === 'PG' ? 'PG / Co-living' : 'Flat / Apartment';
-            const location = rawListing.locality ? `${rawListing.locality}, ${rawListing.city || ''}` : (rawListing.address || 'Unknown Location');
+            const location = rawListing.locality ? `${rawListing.locality}${rawListing.city ? `, ${rawListing.city}` : ''}` : '';
             let pgPrices = [];
             if (rawListing.propertyType === 'PG' && rawListing.pgPricing) {
               const pricingMap = {};
@@ -272,9 +272,25 @@ const OwnerListings = () => {
                     <h3 className="text-[15px] font-bold text-[#062F26] mb-1 line-clamp-1 group-hover:text-brand-teal transition-colors">
                       {title}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-slate-500 mb-2.5">
-                      <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0" />
-                      <p className="text-xs font-medium truncate">{location}</p>
+                    <div className="flex flex-col gap-1.5 text-slate-500 mb-2.5">
+                      {rawListing.address && (
+                        <div className="flex items-start gap-1.5">
+                          <Icon icon="lucide:map" className="w-3.5 h-3.5 shrink-0 mt-0.5 text-brand-teal/70" />
+                          <p className="text-xs font-medium line-clamp-1" title={rawListing.address}>{rawListing.address}</p>
+                        </div>
+                      )}
+                      {location && (
+                        <div className="flex items-start gap-1.5">
+                          <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <p className="text-xs font-medium line-clamp-1" title={location}>{location}</p>
+                        </div>
+                      )}
+                      {!rawListing.address && !location && (
+                        <div className="flex items-start gap-1.5">
+                          <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <p className="text-xs font-medium truncate">Unknown Location</p>
+                        </div>
+                      )}
                     </div>
 
                     <div className="w-full h-px bg-slate-100 mb-2.5" />
@@ -373,9 +389,25 @@ const OwnerListings = () => {
                     <h3 className="text-[15px] font-bold text-[#062F26] mb-1 truncate group-hover:text-brand-teal transition-colors">
                       {title}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-slate-500">
-                      <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0" />
-                      <p className="text-xs font-medium truncate">{location}</p>
+                    <div className="flex flex-col gap-1.5 text-slate-500 mt-1.5">
+                      {rawListing.address && (
+                        <div className="flex items-start gap-1.5">
+                          <Icon icon="lucide:map" className="w-3.5 h-3.5 shrink-0 mt-0.5 text-brand-teal/70" />
+                          <p className="text-xs font-medium line-clamp-1" title={rawListing.address}>{rawListing.address}</p>
+                        </div>
+                      )}
+                      {location && (
+                        <div className="flex items-start gap-1.5">
+                          <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <p className="text-xs font-medium line-clamp-1" title={location}>{location}</p>
+                        </div>
+                      )}
+                      {!rawListing.address && !location && (
+                        <div className="flex items-start gap-1.5">
+                          <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <p className="text-xs font-medium truncate">Unknown Location</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

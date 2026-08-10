@@ -162,8 +162,8 @@ const TenantBookings = () => {
                           className="w-12 h-12 rounded-md object-cover border border-slate-200 shrink-0"
                         />
                         <div>
-                          <p className="font-bold text-[#062F26] text-sm line-clamp-1">{booking.propertyId?.pgName || 'Property'}</p>
-                          <p className="text-xs text-slate-500 line-clamp-1 font-medium mt-0.5">{booking.propertyId?.locality}, {booking.propertyId?.city}</p>
+                          <p className="font-bold text-[#062F26] text-sm line-clamp-1">{booking.propertyId?.societyName || booking.propertyId?.pgName || booking.propertyId?.propertyCategory || 'Property'}</p>
+                          <p className="text-xs text-slate-500 line-clamp-1 font-medium mt-0.5">{booking.propertyId?.address ? `${booking.propertyId.address}, ` : ''}{booking.propertyId?.locality}, {booking.propertyId?.city}</p>
                         </div>
                       </div>
                     </td>
@@ -328,10 +328,10 @@ const TenantBookings = () => {
                       <div className="flex-1 flex flex-col justify-between py-1">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h2 className="text-xl font-bold text-[#062F26]">{booking.propertyId?.pgName || 'Property'}</h2>
+                            <h2 className="text-xl font-bold text-[#062F26]">{booking.propertyId?.societyName || booking.propertyId?.pgName || booking.propertyId?.propertyCategory || 'Property'}</h2>
                             <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5 font-medium">
                               <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-slate-400" />
-                              {booking.propertyId?.locality}, {booking.propertyId?.city}
+                              {booking.propertyId?.address ? `${booking.propertyId.address}, ` : ''}{booking.propertyId?.locality}, {booking.propertyId?.city}
                             </p>
                           </div>
                           <span className={`px-3 py-1 font-bold text-xs rounded-lg border ${booking.status === 'Confirmed' || booking.status === 'Active' || booking.status === 'Reserved'

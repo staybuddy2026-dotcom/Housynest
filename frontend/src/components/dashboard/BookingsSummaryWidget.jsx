@@ -26,8 +26,8 @@ const BookingsSummaryWidget = () => {
     fetchBookings();
   }, []);
 
-  const completed = bookings.filter(b => b.status === 'Completed').length;
-  const upcoming = bookings.filter(b => ['Confirmed', 'Reserved'].includes(b.status)).length;
+  const completed = bookings.filter(b => ['Completed', 'Confirmed', 'Active'].includes(b.status)).length;
+  const upcoming = bookings.filter(b => ['Reserved', 'Pending Payment', 'Pending Request'].includes(b.status)).length;
   const cancelled = bookings.filter(b => b.status === 'Cancelled' || b.status === 'Rejected').length;
 
   const { tomorrowDue, totalRent } = (() => {

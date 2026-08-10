@@ -99,7 +99,7 @@ const LeadModal = ({ isOpen, onClose, property }) => {
         body: JSON.stringify({
           propertyId: property._id || property.id,
           ownerId: property.owner._id || property.owner.id || property.owner,
-          ...formData
+          ...Object.fromEntries(Object.entries(formData).filter(([_, v]) => v !== ''))
         })
       });
 
