@@ -136,7 +136,7 @@ const OwnerMessages = () => {
               initials: senderName.charAt(0).toUpperCase(),
               profilePic: inq.senderId?.profilePic,
               avatarColor: 'bg-teal-100 text-teal-700',
-              property: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
+              property: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || inq.propertyId.societyName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
               propertyContext: `Subject: ${inq.subject}`,
               lastMessage: inq.message,
               time: new Date(inq.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

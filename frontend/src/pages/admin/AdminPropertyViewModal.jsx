@@ -1,307 +1,744 @@
+import { useState } from 'react';
 import { Icon } from '@iconify/react';
 
+const formatCurrency = (amount) => {
+  if (!amount && amount !== 0) return 'N/A';
+  const num = Number(String(amount).replace(/\D/g, ''));
+  if (isNaN(num) || num === 0) return '₹0';
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(num);
+};
+
 const AdminPropertyViewModal = ({ property, onClose }) => {
+  const [activeTab, setActiveTab] = useState('overview');
+
   if (!property) return null;
 
+  const isPg = property.propertyType === 'PG';
+
+  // Extract active PG Pricing options
+  const activePgPricing = isPg && property.pgPricing
+    ? Object.entries(property.pgPricing).filter(([_, val]) => val && val.rentPerBed && Number(String(val.rentPerBed).replace(/\D/g, '')) > 0)
+    : [];
+
+  // Filter valid nearby places
+  const validNearbyPlaces = property.nearbyPlaces
+    ? property.nearbyPlaces.filter(p => p && (p.place || p.name || typeof p === 'string'))
+    : [];
+
+  // Combine services and amenities
+  const allServices = [...(property.services || []), ...(property.extraServices || [])];
+  const allCommonAmenities = [...(property.commonAmenities || []), ...(property.extraCommonAmenities || [])];
+  const allRules = [...(property.pgRules || []), ...(property.extraRules || [])];
+
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-hidden flex flex-col border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+        
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <div>
-            <h2 className="text-xl font-bold text-[#062F26]">Property Details</h2>
-            <p className="text-sm text-slate-500 font-medium">{property.pgName || property.propertyCategory || 'Property Listing'}</p>
+        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+              isPg ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+            }`}>
+              {property.propertyType}
+            </span>
+            <div>
+              <h2 className="text-xl font-extrabold text-[#062F26] leading-tight">
+                {property.pgName || property.societyName || property.propertyCategory || 'Property Details'}
+              </h2>
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mt-0.5 flex-wrap">
+                <span>ID: {property._id}</span>
+                <span>•</span>
+                <span>Posted by {property.postingAs || 'Owner'}</span>
+                <span>•</span>
+                <span>{new Date(property.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              </div>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-          >
-            <Icon icon="lucide:x" className="w-5 h-5" />
-          </button>
+
+          <div className="flex items-center gap-3 self-end sm:self-center">
+            {property.isVerified ? (
+              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold inline-flex items-center gap-1.5">
+                <Icon icon="lucide:shield-check" className="w-4 h-4 text-emerald-600" />
+                Verified Listing
+              </span>
+            ) : (
+              <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold inline-flex items-center gap-1.5">
+                <Icon icon="lucide:clock" className="w-4 h-4 text-amber-500" />
+                Unverified
+              </span>
+            )}
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 transition-colors cursor-pointer"
+            >
+              <Icon icon="lucide:x" className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Tab Navigation */}
+        <div className="px-6 border-b border-slate-100 bg-white flex items-center gap-2 overflow-x-auto custom-scrollbar">
+          {[
+            { id: 'overview', label: 'Overview & Location', icon: 'lucide:map-pin' },
+            { id: 'details', label: isPg ? 'PG Pricing & Rooms' : 'Property Specs & Rent', icon: isPg ? 'lucide:bed' : 'lucide:building' },
+            { id: 'amenities', label: 'Food, Amenities & Rules', icon: 'lucide:sparkles' },
+            { id: 'media', label: `Media & Docs (${(property.images?.length || 0) + (property.verificationDocs?.length || 0)})`, icon: 'lucide:image' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === tab.id
+                  ? 'border-[#062F26] text-[#062F26]'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200'
+              }`}
+            >
+              <Icon icon={tab.icon} className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-            {/* Left Column: Basic Info & Owner */}
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50/30">
+
+          {/* TAB 1: OVERVIEW & LOCATION */}
+          {activeTab === 'overview' && (
             <div className="space-y-6">
-
-              {/* Owner Info */}
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                  <Icon icon="lucide:user" className="w-4 h-4 text-blue-500" />
-                  Owner Information
+              {/* Landlord Profile */}
+              <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <Icon icon="lucide:user-check" className="w-4 h-4 text-brand-teal" />
+                  Landlord / Owner Profile
                 </h3>
-                <div className="grid grid-cols-2 gap-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                   <div>
-                    <span className="text-xs font-bold text-slate-400 block uppercase">Name</span>
-                    <span className="text-sm font-semibold text-slate-700">{property.owner?.fullName || 'N/A'}</span>
+                    <span className="text-slate-400 font-medium block text-[11px]">Full Name</span>
+                    <span className="font-bold text-slate-800 text-sm">{property.owner?.fullName || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-400 block uppercase">Phone</span>
-                    <span className="text-sm font-semibold text-slate-700">{property.owner?.phone || 'N/A'}</span>
+                    <span className="text-slate-400 font-medium block text-[11px]">Phone Number</span>
+                    <a href={`tel:${property.owner?.phone}`} className="font-bold text-brand-teal text-sm hover:underline flex items-center gap-1">
+                      <Icon icon="lucide:phone" className="w-3.5 h-3.5" />
+                      {property.owner?.phone || 'N/A'}
+                    </a>
                   </div>
-                  <div className="col-span-2">
-                    <span className="text-xs font-bold text-slate-400 block uppercase">Email</span>
-                    <span className="text-sm font-semibold text-slate-700">{property.owner?.email || 'N/A'}</span>
+                  <div>
+                    <span className="text-slate-400 font-medium block text-[11px]">Email Address</span>
+                    <a href={`mailto:${property.owner?.email}`} className="font-semibold text-slate-700 text-xs hover:underline flex items-center gap-1">
+                      <Icon icon="lucide:mail" className="w-3.5 h-3.5 text-slate-400" />
+                      {property.owner?.email || 'N/A'}
+                    </a>
                   </div>
                 </div>
               </div>
 
-              {/* Basic Listing Information */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2">Listing Information</h3>
-                <div className="grid grid-cols-2 gap-4">
+              {/* General Info */}
+              <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <Icon icon="lucide:home" className="w-4 h-4 text-brand-teal" />
+                  General Listing Info
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <span className="text-xs font-bold text-slate-400 block uppercase">Type</span>
-                    <span className="text-sm font-semibold text-slate-700">{property.propertyType}</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Property Type</span>
+                    <span className="font-bold text-slate-800 text-sm">{property.propertyType}</span>
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-400 block uppercase">Category</span>
-                    <span className="text-sm font-semibold text-slate-700">{property.propertyCategory || '-'}</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
+                    <span className="font-bold text-slate-800 text-sm">{property.propertyCategory || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-400 block uppercase">City</span>
-                    <span className="text-sm font-semibold text-slate-700">{property.city || '-'}</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Posting As</span>
+                    <span className="font-bold text-slate-800 text-sm">{property.postingAs || 'Owner'}</span>
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-400 block uppercase">Locality</span>
-                    <span className="text-sm font-semibold text-slate-700">{property.locality || '-'}</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Current Status</span>
+                    <span className="font-bold text-brand-teal text-sm">{property.status}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Views</span>
+                    <span className="font-bold text-slate-800">{property.views || 0} views</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Leads</span>
+                    <span className="font-bold text-slate-800">{property.leads || 0} leads</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location & Nearby Places */}
+              <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <Icon icon="lucide:map-pin" className="w-4 h-4 text-brand-teal" />
+                  Address & Nearby Places
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">City</span>
+                    <span className="font-bold text-slate-800">{property.city || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Locality</span>
+                    <span className="font-bold text-slate-800">{property.locality || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">State & Pincode</span>
+                    <span className="font-bold text-slate-800">{property.state || ''} {property.pincode ? `(${property.pincode})` : ''}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-xs font-bold text-slate-400 block uppercase">Address</span>
-                    <span className="text-sm font-semibold text-slate-700">{property.address || '-'}</span>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Full Address</span>
+                    <span className="font-bold text-slate-800">{property.address || 'N/A'}</span>
                   </div>
-                  {property.description && (
-                    <div className="col-span-2">
-                      <span className="text-xs font-bold text-slate-400 block uppercase">Description</span>
-                      <span className="text-sm font-semibold text-slate-700">{property.description}</span>
+                  {property.landmark && (
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Landmark</span>
+                      <span className="font-semibold text-slate-700">{property.landmark}</span>
                     </div>
                   )}
                 </div>
+
+                {/* NEARBY PLACES SECTION */}
+                {validNearbyPlaces.length > 0 && (
+                  <div className="pt-3 border-t border-slate-100 space-y-2">
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold flex items-center gap-1.5">
+                      <Icon icon="lucide:navigation" className="w-3.5 h-3.5 text-blue-500" />
+                      Nearby Landmarks & Transit
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                      {validNearbyPlaces.map((np, idx) => {
+                        const placeName = typeof np === 'string' ? np : (np.place || np.name || 'Nearby Place');
+                        const distance = typeof np === 'object' && np.distance ? np.distance : '';
+                        return (
+                          <div key={idx} className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
+                            <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+                            <span className="font-bold text-slate-700 truncate">{placeName}</span>
+                            {distance && <span className="text-[10px] font-semibold text-slate-400 ml-auto whitespace-nowrap">{distance}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {property.mapLink && (
+                  <div className="pt-2">
+                    <a
+                      href={property.mapLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors shadow-xs"
+                    >
+                      <Icon icon="lucide:map" className="w-4 h-4" />
+                      Open Google Maps Location
+                    </a>
+                  </div>
+                )}
               </div>
 
-              {/* PG SPECIFIC DETAILS */}
-              {property.propertyType === 'PG' && (
-                <>
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2">PG Details</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">PG Present In</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.pgPresentIn || '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Operational Since</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.operationalSince || '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Preferred Gender</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.preferredGender || '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Tenant Preference</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.tenantPreference || '-'}</span>
-                      </div>
+              {/* Description */}
+              {property.description && (
+                <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-2">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Property Description</h3>
+                  <p className="text-xs font-medium text-slate-700 leading-relaxed whitespace-pre-line">{property.description}</p>
+                </div>
+              )}
+            </div>
+          )}
 
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Notice Period</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.noticePeriod || '-'}</span>
-                      </div>
+          {/* TAB 2: PG PRICING & ROOMS / TENANT DETAILS */}
+          {activeTab === 'details' && (
+            <div className="space-y-6">
+              {isPg ? (
+                <>
+                  {/* PG Basic Info */}
+                  <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">PG Name</span>
+                      <span className="font-bold text-[#062F26] text-sm">{property.pgName || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">PG Present In</span>
+                      <span className="font-bold text-slate-800">{property.pgPresentIn || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Operational Since</span>
+                      <span className="font-bold text-slate-800">{property.operationalSince || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Floors</span>
+                      <span className="font-bold text-slate-800">{property.totalFloorsCount || property.floors?.length || 'N/A'}</span>
                     </div>
                   </div>
 
-                  {property.rooms && property.rooms.length > 0 && (
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2">Rooms</h3>
-                      <div className="space-y-3">
-                        {property.rooms.map((room, idx) => (
-                          <div key={idx} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                            <div className="font-bold text-sm text-slate-800 mb-2">{room.sharingType} Sharing</div>
-                            <div className="grid grid-cols-2 gap-y-2 text-xs">
-                              <div><span className="text-slate-500">Rent:</span> ₹{room.rentPerBed}</div>
-                              <div><span className="text-slate-500">Deposit:</span> ₹{room.depositPerBed}</div>
-                              <div><span className="text-slate-500">Total Beds:</span> {room.totalBeds}</div>
-                              <div><span className="text-slate-500">Available:</span> {room.availableBeds}</div>
+                  {/* Booking Configuration */}
+                  {(property.paymentModel || property.rentalPeriod || property.bookingType) && (
+                    <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-3">
+                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                        <Icon icon="lucide:calendar-check" className="w-4 h-4 text-brand-teal" />
+                        Booking & Rental Terms
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                        {property.paymentModel && (
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Payment Model</span>
+                            <span className="font-bold text-slate-800">{property.paymentModel}</span>
+                          </div>
+                        )}
+                        {property.rentalPeriod && (
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Rental Period</span>
+                            <span className="font-bold text-slate-800">{property.rentalPeriod}</span>
+                          </div>
+                        )}
+                        {property.bookingType && (
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Booking Type</span>
+                            <span className="font-bold text-slate-800">{property.bookingType}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PG Pricing Grid */}
+                  <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                    <h3 className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
+                      <Icon icon="lucide:indian-rupee" className="w-4 h-4 text-purple-600" />
+                      PG Sharing & Pricing Rates (per Bed)
+                    </h3>
+
+                    {activePgPricing.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {activePgPricing.map(([type, pricing]) => {
+                          const label = type.replace('_AC', ' (AC)').replace('_NonAC', ' (Non-AC)').replace('_', ' ');
+                          return (
+                            <div key={type} className="bg-purple-50/40 p-4 rounded-xl border border-purple-100 flex flex-col justify-between">
+                              <span className="text-xs font-bold text-purple-900">{label}</span>
+                              <div className="mt-2 space-y-1">
+                                <div className="flex items-baseline justify-between">
+                                  <span className="text-xs text-slate-500 font-medium">Rent:</span>
+                                  <span className="text-base font-extrabold text-brand-teal">{formatCurrency(pricing.rentPerBed)}<span className="text-[10px] text-slate-400">/mo</span></span>
+                                </div>
+                                {pricing.depositPerBed && (
+                                  <div className="flex items-baseline justify-between text-xs">
+                                    <span className="text-slate-500 font-medium">Deposit:</span>
+                                    <span className="font-bold text-slate-700">{formatCurrency(pricing.depositPerBed)}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">No specific PG pricing rates added in pgPricing.</p>
+                    )}
+                  </div>
+
+                  {/* Floors & Rooms Hierarchy */}
+                  {property.floors && property.floors.length > 0 && (
+                    <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                        <Icon icon="lucide:layers" className="w-4 h-4 text-brand-teal" />
+                        Floors & Rooms Hierarchy ({property.floors.length} Floors)
+                      </h3>
+
+                      <div className="space-y-4">
+                        {property.floors.map((floor, fIdx) => (
+                          <div key={fIdx} className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+                            <h4 className="text-xs font-bold text-[#062F26] uppercase tracking-wide flex items-center gap-2">
+                              <Icon icon="lucide:building" className="w-3.5 h-3.5 text-slate-500" />
+                              {floor.floorName || `Floor ${fIdx + 1}`}
+                            </h4>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {floor.rooms?.map((room, rIdx) => (
+                                <div key={rIdx} className="bg-white p-3 rounded-lg border border-slate-200 text-xs space-y-2">
+                                  <div className="flex items-center justify-between font-bold text-slate-800">
+                                    <span>{room.roomName || `Room ${rIdx + 1}`} ({room.sharingType})</span>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] ${room.isAC ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                                      {room.isAC ? 'AC' : 'Non-AC'}
+                                    </span>
+                                  </div>
+
+                                  {room.beds && room.beds.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                      {room.beds.map((bed, bIdx) => (
+                                        <span
+                                          key={bIdx}
+                                          className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                            bed.status === 'Occupied'
+                                              ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                              : bed.status === 'Reserved'
+                                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                          }`}
+                                        >
+                                          {bed.bedName}: {bed.status}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2">Amenities & Services</h3>
-                    <div className="text-xs text-slate-700 space-y-2">
-                      {property.services && property.services.length > 0 && (
-                        <div><strong className="text-slate-500 block uppercase text-xs mb-1">Services:</strong> {property.services.join(', ')}</div>
-                      )}
-                      {property.commonAmenities && property.commonAmenities.length > 0 && (
-                        <div><strong className="text-slate-500 block uppercase text-xs mb-1">Common Amenities:</strong> {property.commonAmenities.join(', ')}</div>
-                      )}
-                      {property.foodProvided && (
-                        <div>
-                          <strong className="text-slate-500 block uppercase text-xs mb-1">Food:</strong>
-                          Provided ({property.vegNonVeg || 'N/A'}) - Meals: {property.meals?.join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </>
-              )}
+              ) : (
+                /* TENANT PROPERTY DETAILS */
+                <div className="space-y-6">
+                  {/* Property Specifications */}
+                  <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                      <Icon icon="lucide:building-2" className="w-4 h-4 text-brand-teal" />
+                      Flat & House Specifications
+                    </h3>
 
-              {/* TENANT SPECIFIC DETAILS */}
-              {property.propertyType === 'Tenant' && (
-                <>
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2">Property Details</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">BHK Type</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.bhkType || '-'}</span>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">BHK Type</span>
+                        <span className="font-extrabold text-[#062F26] text-sm">{property.bhkType || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Furnishing</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.furnishingStatus || '-'}</span>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Furnishing Status</span>
+                        <span className="font-bold text-slate-800 text-sm">{property.furnishingStatus || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Bathrooms</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.bathrooms || '-'}</span>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Bathrooms</span>
+                        <span className="font-bold text-slate-800">{property.bathrooms || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Balconies</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.balconies || '-'}</span>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Balconies</span>
+                        <span className="font-bold text-slate-800">{property.balconies || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Built-up Area</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.builtUpArea ? `${property.builtUpArea} sq.ft` : '-'}</span>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Built-up Area</span>
+                        <span className="font-bold text-slate-800">{property.builtUpArea ? `${property.builtUpArea} sq.ft` : 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Carpet Area</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.carpetArea ? `${property.carpetArea} sq.ft` : '-'}</span>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Carpet Area</span>
+                        <span className="font-bold text-slate-800">{property.carpetArea ? `${property.carpetArea} sq.ft` : 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Floor</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.propertyOnFloor} of {property.totalFloors}</span>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Floor Position</span>
+                        <span className="font-bold text-slate-800">{property.propertyOnFloor ? `Floor ${property.propertyOnFloor} of ${property.totalFloors || 'N/A'}` : 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Age of Property</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.ageOfProperty || '-'}</span>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Age of Property</span>
+                        <span className="font-bold text-slate-800">{property.ageOfProperty || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Facing Direction</span>
+                        <span className="font-bold text-slate-800">{property.facing || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    {/* Additional Rooms & Overlooking */}
+                    {(property.additionalRooms?.length > 0 || property.overlooking?.length > 0) && (
+                      <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        {property.additionalRooms?.length > 0 && (
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Additional Rooms</span>
+                            <div className="flex flex-wrap gap-1">
+                              {property.additionalRooms.map((room, idx) => (
+                                <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold rounded">
+                                  {room}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {property.overlooking?.length > 0 && (
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Overlooking View</span>
+                            <div className="flex flex-wrap gap-1">
+                              {property.overlooking.map((view, idx) => (
+                                <span key={idx} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold rounded">
+                                  {view}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Financial & Lease Details */}
+                  <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                      <Icon icon="lucide:indian-rupee" className="w-4 h-4 text-brand-teal" />
+                      Rent & Financial Details
+                    </h3>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Monthly Rent</span>
+                        <span className="font-extrabold text-brand-teal text-base">{formatCurrency(property.monthlyRent)}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Security Deposit</span>
+                        <span className="font-bold text-slate-800 text-sm">{formatCurrency(property.securityAmount)}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Maintenance</span>
+                        <span className="font-bold text-slate-800">{property.maintenanceCharges ? `${formatCurrency(property.maintenanceCharges)} / ${property.maintenancePeriod || 'mo'}` : 'Included'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Available From</span>
+                        <span className="font-bold text-slate-800">{property.availableFromType === 'Immediate' ? 'Immediate' : (property.availableDate || 'N/A')}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Max Occupants</span>
+                        <span className="font-bold text-slate-800">{property.maxPeople ? `${property.maxPeople} Persons` : 'N/A'}</span>
                       </div>
                     </div>
                   </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2">Pricing & Preferences</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Monthly Rent</span>
-                        <span className="text-sm font-bold text-blue-700">₹{property.monthlyRent || '0'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Security Deposit</span>
-                        <span className="text-sm font-semibold text-slate-700">₹{property.securityAmount || '0'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Maintenance</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.maintenanceCharges ? `₹${property.maintenanceCharges} / ${property.maintenancePeriod}` : 'None'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Preferred Tenants</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.preferredTenants?.join(', ') || '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Max People</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.maxPeople || '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase">Available From</span>
-                        <span className="text-sm font-semibold text-slate-700">{property.availableFromType === 'Immediate' ? 'Immediate' : (property.availableDate || '-')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
-
-
             </div>
+          )}
 
-            {/* Right Column: Verification Docs */}
+          {/* TAB 3: FOOD, AMENITIES & RULES */}
+          {activeTab === 'amenities' && (
             <div className="space-y-6">
 
-              <div className="bg-emerald-50/50 rounded-xl p-5 border border-emerald-100">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                    <Icon icon="lucide:shield-check" className="w-4 h-4" />
+              {/* FOOD & DINING SECTION (Especially for PG) */}
+              {(isPg || property.foodProvided) && (
+                <div className="bg-amber-50/50 rounded-xl p-5 border border-amber-200/60 shadow-xs space-y-3">
+                  <h3 className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2 border-b border-amber-200/60 pb-2">
+                    <Icon icon="lucide:utensils" className="w-4 h-4 text-amber-600" />
+                    Food & Meal Offerings
+                  </h3>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Food Provided</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.foodProvided ? 'Yes' : 'No'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.vegNonVeg || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Food Charges</span>
+                      <span className="font-bold text-slate-800">{property.foodCharges || 'Included in Rent'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Meals Served</span>
+                      <span className="font-bold text-slate-800">{property.meals?.length > 0 ? property.meals.join(', ') : 'N/A'}</span>
+                    </div>
                   </div>
-                  <h3 className="text-[15px] font-bold text-[#062F26]">Verification Documents</h3>
                 </div>
+              )}
 
-                {property.verificationDocs && property.verificationDocs.length > 0 ? (
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-slate-600 mb-2">Review these documents carefully before verifying the property.</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      {property.verificationDocs.map((doc, idx) => {
-                        const isPdf = doc.url.toLowerCase().includes('.pdf');
-                        return (
-                          <a
-                            key={idx}
-                            href={doc.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex flex-col items-center justify-center gap-2 p-4 bg-white rounded-lg border border-emerald-100 hover:border-emerald-300 hover:shadow-sm transition-all group"
-                          >
-                            <Icon
-                              icon={isPdf ? "lucide:file-text" : "lucide:image"}
-                              className="w-8 h-8 text-emerald-400 group-hover:text-emerald-500 transition-colors"
-                            />
-                            <span className="text-xs font-bold text-slate-600 truncate w-full text-center">Document {idx + 1}</span>
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-                    <Icon icon="lucide:file-x-2" className="w-10 h-10 mb-2 opacity-50" />
-                    <p className="text-sm font-medium text-center max-w-50">No verification documents were uploaded by the owner.</p>
-                  </div>
-                )}
-              </div>
+              {/* SERVICES OFFERED */}
+              {allServices.length > 0 && (
+                <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-3">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <Icon icon="lucide:concierge-bell" className="w-4 h-4 text-brand-teal" />
+                    Services Offered
+                  </h3>
 
-              {/* Property Images (Moved to Right Column) */}
-              {property.images && property.images.length > 0 && (
-                <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 space-y-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                      <Icon icon="lucide:image" className="w-4 h-4" />
-                    </div>
-                    <h3 className="text-[15px] font-bold text-[#062F26]">Property Images ({property.images.length})</h3>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    {property.images.map((img, idx) => (
-                      <a key={idx} href={img.url} target="_blank" rel="noreferrer" className="block aspect-square rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity shadow-sm group relative">
-                        <img src={img.url} alt="Property" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Icon icon="lucide:external-link" className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md" />
-                        </div>
-                      </a>
+                  <div className="flex flex-wrap gap-2">
+                    {allServices.map((svc, idx) => (
+                      <span key={idx} className="px-3 py-1.5 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-lg border border-emerald-200 inline-flex items-center gap-1.5">
+                        <Icon icon="lucide:check" className="w-3.5 h-3.5 text-emerald-600" />
+                        {svc}
+                      </span>
                     ))}
                   </div>
                 </div>
               )}
 
+              {/* AMENITIES & FACILITIES */}
+              <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <Icon icon="lucide:sparkles" className="w-4 h-4 text-brand-teal" />
+                  Amenities & Facilities
+                </h3>
+
+                <div className="space-y-4 text-xs">
+                  {allCommonAmenities.length > 0 && (
+                    <div>
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase mb-2">Common / Room Amenities</span>
+                      <div className="flex flex-wrap gap-2">
+                        {allCommonAmenities.map((am, idx) => (
+                          <span key={idx} className="px-3 py-1.5 bg-slate-100 text-slate-700 font-semibold rounded-lg border border-slate-200">
+                            {am}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {property.societyAmenities && property.societyAmenities.length > 0 && (
+                    <div>
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase mb-2">Society Amenities</span>
+                      <div className="flex flex-wrap gap-2">
+                        {property.societyAmenities.map((am, idx) => (
+                          <span key={idx} className="px-3 py-1.5 bg-blue-50 text-blue-700 font-semibold rounded-lg border border-blue-100">
+                            {am}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {property.parking && property.parking.length > 0 && (
+                    <div>
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase mb-2">Parking Facilities</span>
+                      <div className="flex flex-wrap gap-2">
+                        {property.parking.map((p, idx) => (
+                          <span key={idx} className="px-3 py-1.5 bg-purple-50 text-purple-700 font-semibold rounded-lg border border-purple-100">
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* HOUSE RULES & POLICIES */}
+              <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <Icon icon="lucide:clipboard-check" className="w-4 h-4 text-brand-teal" />
+                  House Rules & Tenant Preferences
+                </h3>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs mb-3">
+                  {property.preferredGender && (
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Preferred Gender</span>
+                      <span className="font-bold text-slate-800">{property.preferredGender}</span>
+                    </div>
+                  )}
+                  {property.tenantPreference && (
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Tenant Preference</span>
+                      <span className="font-bold text-slate-800">{property.tenantPreference}</span>
+                    </div>
+                  )}
+                  {property.noticePeriod && (
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Notice Period</span>
+                      <span className="font-bold text-slate-800">{property.noticePeriod}</span>
+                    </div>
+                  )}
+                  {property.preferredTenants && property.preferredTenants.length > 0 && (
+                    <div className="col-span-2">
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Preferred Tenants</span>
+                      <span className="font-bold text-slate-800">{property.preferredTenants.join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+
+                {allRules.length > 0 && (
+                  <div>
+                    <span className="text-slate-400 font-bold block text-[10px] uppercase mb-2">Rules & Policies</span>
+                    <div className="flex flex-wrap gap-2">
+                      {allRules.map((rule, idx) => (
+                        <span key={idx} className="px-3 py-1.5 bg-rose-50 text-rose-800 font-semibold rounded-lg border border-rose-200 inline-flex items-center gap-1.5">
+                          <Icon icon="lucide:alert-circle" className="w-3.5 h-3.5 text-rose-500" />
+                          {rule}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
-          </div>
+          )}
+
+          {/* TAB 4: MEDIA & VERIFICATION */}
+          {activeTab === 'media' && (
+            <div className="space-y-6">
+              {/* Verification Docs */}
+              <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <Icon icon="lucide:shield-check" className="w-4 h-4 text-emerald-600" />
+                  Verification Documents ({property.verificationDocs?.length || 0})
+                </h3>
+
+                {property.verificationDocs && property.verificationDocs.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {property.verificationDocs.map((doc, idx) => {
+                      const isPdf = doc.url?.toLowerCase().includes('.pdf');
+                      return (
+                        <a
+                          key={idx}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/30 transition-all group cursor-pointer"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <Icon icon={isPdf ? "lucide:file-text" : "lucide:image"} className="w-5 h-5" />
+                          </div>
+                          <div className="truncate">
+                            <span className="text-xs font-bold text-slate-800 block truncate">Document {idx + 1}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Click to open</span>
+                          </div>
+                          <Icon icon="lucide:external-link" className="w-4 h-4 text-slate-400 ml-auto group-hover:text-emerald-600" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">No verification documents uploaded.</p>
+                )}
+              </div>
+
+              {/* Property Photos */}
+              <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <Icon icon="lucide:image" className="w-4 h-4 text-brand-teal" />
+                  Uploaded Photos ({property.images?.length || 0})
+                </h3>
+
+                {property.images && property.images.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {property.images.map((img, idx) => (
+                      <a
+                        key={idx}
+                        href={img.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block aspect-square rounded-xl overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity shadow-xs group relative"
+                      >
+                        <img src={img.url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <Icon icon="lucide:external-link" className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">No photos uploaded.</p>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors"
+            className="px-6 py-2 bg-[#062F26] text-white text-xs font-bold rounded-lg hover:bg-[#062F26]/90 transition-colors cursor-pointer shadow-xs"
           >
             Close
           </button>

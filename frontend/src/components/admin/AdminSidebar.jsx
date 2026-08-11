@@ -65,6 +65,7 @@ const AdminSidebar = ({ isMobile }) => {
     { name: 'Analytics', path: '/admin/dashboard', icon: 'lucide:bar-chart-2' },
     { name: 'Listings Management', path: '/admin/listings', icon: 'lucide:home' },
     { name: 'User Management', path: '/admin/users', icon: 'lucide:users' },
+    { name: 'Bookings & Payments', path: '/admin/transactions', icon: 'lucide:receipt' },
     { name: 'Property Requests', path: '/admin/property-requests', icon: 'lucide:clipboard-list', badge: pendingPropertyCount > 0 ? pendingPropertyCount : null },
     // { name: 'Lawyer Requests', path: '/admin/lawyer-requests', icon: 'lucide:scale' },
     { name: 'WA Outreach', path: '/admin/wa-outreach', icon: 'lucide:message-square' },

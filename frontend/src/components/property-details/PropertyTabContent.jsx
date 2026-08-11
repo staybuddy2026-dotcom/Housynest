@@ -1,5 +1,6 @@
 import { Icon } from '@iconify/react';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 const PropertyTabContent = ({
   activeTab,
@@ -15,6 +16,40 @@ const PropertyTabContent = ({
   const [selectedRoomModal, setSelectedRoomModal] = useState(null);
   const [viewMode, setViewMode] = useState('list');
   const [isFloorDropdownOpen, setIsFloorDropdownOpen] = useState(false);
+  const [waitlistAlerts, setWaitlistAlerts] = useState({});
+
+  const handleSubscribeWaitlist = async (roomId, sharingType, bedKey) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please log in to receive availability email alerts.');
+        return;
+      }
+      const res = await fetch('http://localhost:5000/api/waitlist/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          propertyId: property?._id,
+          roomId: roomId || null,
+          sharingType: sharingType || null
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || 'Subscribed for instant availability alert!');
+        if (bedKey) {
+          setWaitlistAlerts(prev => ({ ...prev, [bedKey]: true }));
+        }
+      } else {
+        toast.error(data.message || 'Failed to subscribe');
+      }
+    } catch {
+      toast.error('Error connecting to server');
+    }
+  };
 
   return (
     <div className="flex-1 bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-4 sm:p-6 lg:p-8 min-h-100">
@@ -579,12 +614,28 @@ const PropertyTabContent = ({
                 <h3 className="text-xl font-bold text-[#062F26]">{selectedRoomModal.room.roomName || 'Room'}</h3>
                 <p className="text-sm font-medium text-slate-500">{selectedRoomModal.floorName} • {selectedRoomModal.sharingTypeDisplay} {selectedRoomModal.isSingle ? 'Room' : 'Sharing'}</p>
               </div>
-              <button
-                onClick={() => setSelectedRoomModal(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors"
-              >
-                <Icon icon="lucide:x" className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-3">
+                {selectedRoomModal.room.beds && selectedRoomModal.room.beds.length > 0 && !selectedRoomModal.room.beds.some(b => b.status === 'Vacant') && (
+                  <button
+                    type="button"
+                    onClick={() => handleSubscribeWaitlist(selectedRoomModal.room.roomName, selectedRoomModal.sharingTypeDisplay, 'room_' + selectedRoomModal.room.roomName)}
+                    className={`text-xs font-bold px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs ${waitlistAlerts['room_' + selectedRoomModal.room.roomName]
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-amber-50 text-amber-800 hover:bg-amber-600 hover:text-white border border-amber-200/80'
+                      }`}
+                    title="Receive instant email when this room opens up"
+                  >
+                    <Icon icon={waitlistAlerts['room_' + selectedRoomModal.room.roomName] ? "lucide:check-circle-2" : "lucide:bell-ring"} className="w-4 h-4" />
+                    {waitlistAlerts['room_' + selectedRoomModal.room.roomName] ? 'Alert Active' : 'Notify Me'}
+                  </button>
+                )}
+                <button
+                  onClick={() => setSelectedRoomModal(null)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors cursor-pointer"
+                >
+                  <Icon icon="lucide:x" className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
               {/* Info row */}
@@ -623,11 +674,14 @@ const PropertyTabContent = ({
                     statusDot = 'bg-orange-500';
                   }
 
+                  const isOccupied = bed.status === 'Occupied' || bed.status === 'Reserved' || bed.status === 'Notice';
+                  const bedKey = `${selectedRoomModal.room.roomName || 'room'}_bed_${bIdx}`;
+
                   return (
-                    <div key={bIdx} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white shadow-sm hover:border-slate-200 transition-colors">
+                    <div key={bIdx} className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-100 bg-white shadow-xs hover:border-slate-200 transition-colors">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-sm font-bold text-[#062F26]">Bed {bIdx + 1}</span>
-                        <span className="text-xs font-bold text-slate-500">₹{Number(selectedRoomModal.rent).toLocaleString('en-IN')}</span>
+                        <span className="text-xs font-bold text-slate-500">₹{Number(selectedRoomModal.rent).toLocaleString('en-IN')}<span className="text-[10px] font-normal text-slate-400"> /bed</span></span>
                       </div>
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${statusBg}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`}></span>
@@ -660,10 +714,19 @@ const PropertyTabContent = ({
                 </div>
               )}
             </div>
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <div className="p-4 border-t border-slate-100 bg-slate-50/90 flex flex-col sm:flex-row items-center justify-between gap-3">
+              {selectedRoomModal.room.beds && selectedRoomModal.room.beds.length > 0 && !selectedRoomModal.room.beds.some(b => b.status === 'Vacant') ? (
+                <div className="flex items-center gap-2 text-xs text-amber-800 font-semibold bg-amber-50 border border-amber-200/80 px-3.5 py-2 rounded-xl w-full sm:w-auto">
+                  <Icon icon="lucide:bell-ring" className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>This room is currently full. Click <strong>Notify Me</strong> to get instant email alerts when available.</span>
+                </div>
+              ) : (
+                <div></div>
+              )}
+
               <button
                 onClick={() => setSelectedRoomModal(null)}
-                className="px-5 py-2.5 bg-[#062F26] hover:bg-[#05261e] text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all"
+                className="px-5 py-2.5 bg-[#062F26] hover:bg-[#05261e] text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer shrink-0 ml-auto"
               >
                 Close
               </button>

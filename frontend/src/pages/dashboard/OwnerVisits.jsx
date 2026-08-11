@@ -168,9 +168,16 @@ const VisitTableRow = ({ visit, onUpdateStatus }) => {
       {/* Property & Message */}
       <td className="px-6 py-4 align-middle">
         <div className="flex flex-col gap-1.5 max-w-[280px]">
-          <span className="text-sm font-bold text-[#062F26] leading-tight group-hover:text-brand-teal transition-colors">
-            {!visit.property ? 'Deleted Property' : (visit.property.pgName || (visit.property.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property.propertyCategory) || 'Unknown Property')}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-[#062F26] leading-tight group-hover:text-brand-teal transition-colors">
+              {!visit.property ? 'Deleted Property' : (visit.property.pgName || (visit.property.bhkType ? `${visit.property.bhkType} ${visit.property.propertyCategory}` : visit.property.propertyCategory) || 'Unknown Property')}
+            </span>
+            {visit.property?.propertyType && (
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${visit.property.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : visit.property.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                {visit.property.propertyType}
+              </span>
+            )}
+          </div>
           {visit.message && (
             <div className="text-xs text-slate-600 font-medium italic border-l-2 border-brand-teal/30 pl-2.5 leading-relaxed bg-brand-teal/[0.03] p-1.5 rounded-r">
               "{visit.message}"

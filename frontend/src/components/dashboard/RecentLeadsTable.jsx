@@ -9,13 +9,45 @@ const avatarColors = [
   'bg-orange-100 text-orange-700'
 ];
 
-const getStatusColor = (status) => {
+const getStatusBadge = (status) => {
   switch (status) {
-    case 'New': return 'text-brand-teal bg-[#EAF5F2]';
-    case 'In Discussion': return 'text-orange-500 bg-orange-50';
-    case 'Contacted': return 'text-blue-500 bg-blue-50';
-    case 'Closed': return 'text-slate-500 bg-slate-100';
-    default: return 'text-slate-500 bg-slate-100';
+    case 'New':
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    case 'In Discussion':
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full shadow-sm hover:bg-amber-100 transition-colors">
+          <Icon icon="lucide:message-circle" className="w-3 h-3 text-amber-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    case 'Contacted':
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full shadow-sm hover:bg-blue-100 transition-colors">
+          <Icon icon="lucide:phone-call" className="w-3 h-3 text-blue-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    case 'Closed':
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-full shadow-sm hover:bg-slate-100 transition-colors">
+          <Icon icon="lucide:check-circle-2" className="w-3 h-3 text-slate-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    default:
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-full shadow-sm hover:bg-slate-100 transition-colors">
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status || 'NEW'}</span>
+        </div>
+      );
   }
 };
 
@@ -43,12 +75,13 @@ const RecentLeadsTable = () => {
             return {
               id: inq._id,
               name,
-              property: inq.propertyId?.pgName || inq.propertyId?.propertyCategory || 'Property',
+              property: inq.propertyId?.societyName || inq.propertyId?.pgName || inq.propertyId?.propertyCategory || 'Property',
+              propertyType: inq.propertyId?.propertyType,
               date: date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
               status: inq.status || 'New',
               initials,
-              color: avatarColors[idx % avatarColors.length],
-              statusColor: getStatusColor(inq.status || 'New')
+              initials,
+              color: avatarColors[idx % avatarColors.length]
             };
           });
           setLeads(recent);
@@ -108,15 +141,20 @@ const RecentLeadsTable = () => {
                     </div>
                   </td>
                   <td className="py-3 px-5 text-sm text-slate-600 font-medium">
-                    {inq.property}
+                    <div className="flex items-center gap-2">
+                      <span className="truncate max-w-[150px]">{inq.property}</span>
+                      {inq.propertyType && (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 ${inq.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : inq.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                          {inq.propertyType}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-5 text-sm text-slate-600 font-medium">
                     {inq.date}
                   </td>
                   <td className="py-3 px-5">
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${inq.statusColor}`}>
-                      {inq.status}
-                    </span>
+                    {getStatusBadge(inq.status)}
                   </td>
                   <td className="py-3 px-5">
                     <button

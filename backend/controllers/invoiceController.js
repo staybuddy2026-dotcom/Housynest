@@ -158,7 +158,7 @@ export const remindInvoice = async (req, res) => {
     }
 
     if (invoice.tenantId && invoice.tenantId.email) {
-      const subject = `Rent Reminder - ${invoice.propertyId.pgName || invoice.propertyId.propertyCategory}`;
+      const subject = `Rent Reminder - ${invoice.propertyId.pgName || invoice.propertyId.societyName || 'Property'}`;
       const content = `
         Hello ${invoice.tenantId.fullName},
         
@@ -326,7 +326,7 @@ export const sendAutoRentReminders = async () => {
       
       // If due date is exactly 5 days or 2 days away
       if (diffDays === 5 || diffDays === 2) {
-        const propertyName = invoice.propertyId?.pgName || invoice.propertyId?.propertyCategory || 'Property';
+        const propertyName = invoice.propertyId?.pgName || invoice.propertyId?.societyName || 'Property';
         const subject = `Upcoming Rent Reminder - ${propertyName}`;
         const content = `
           Hello ${invoice.tenantId.fullName},
@@ -346,5 +346,43 @@ export const sendAutoRentReminders = async () => {
     console.log(`Auto rent reminders finished. Sent ${sentCount} reminders.`);
   } catch (error) {
     console.error('Error in sendAutoRentReminders:', error);
+  }
+};
+
+export const getAdminInvoiceStats = async (req, res) => {
+  try {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // 1. Get rent invoices paid this month
+    const rentInvoices = await RentInvoice.find({
+      status: 'Paid',
+    });
+    
+    let totalRentCollected = 0;
+    rentInvoices.forEach(inv => {
+      // Check if paidAt or dueDate is this month (using dueDate for simplicity if paidAt is missing)
+      const d = new Date(inv.dueDate);
+      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+        totalRentCollected += inv.amount;
+      }
+    });
+
+    // 2. Get initial booking payments this month
+    const bookings = await Booking.find({
+      'paymentDetails.status': 'Paid'
+    });
+    
+    bookings.forEach(b => {
+      const d = new Date(b.createdAt);
+      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+        totalRentCollected += b.paymentDetails.amount;
+      }
+    });
+
+    res.status(200).json({ totalRentCollected });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching admin invoice stats', error: error.message });
   }
 };

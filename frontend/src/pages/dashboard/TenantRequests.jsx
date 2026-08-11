@@ -3,6 +3,15 @@ import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import socket from '../../lib/socket';
 
+const tableHeaders = [
+  { label: 'Property Details', align: 'left' },
+  { label: 'Unit Details', align: 'left' },
+  { label: 'Date Sent', align: 'left' },
+  { label: 'Message Overview', align: 'left' },
+  { label: 'Status', align: 'center' },
+  { label: 'Actions', align: 'right' }
+];
+
 const TenantRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +31,7 @@ const TenantRequests = () => {
           const data = await res.json();
           const mappedRequests = data.map(inq => ({
             id: inq._id,
-            title: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
+            title: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || inq.propertyId.societyName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
             status: inq.status,
             date: new Date(inq.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
             time: new Date(inq.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
@@ -69,13 +78,36 @@ const TenantRequests = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'New':
-        return <span className="bg-emerald-500/90 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-emerald-400 backdrop-blur-md shadow-sm">New</span>;
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">New</span>
+          </div>
+        );
       case 'Contacted':
-        return <span className="bg-blue-500/90 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-blue-400 backdrop-blur-md shadow-sm">Contacted</span>;
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full shadow-sm hover:bg-blue-100 transition-colors">
+            <Icon icon="lucide:phone-outgoing" className="w-3 h-3 text-blue-500" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Contacted</span>
+          </div>
+        );
       case 'In Discussion':
-        return <span className="bg-amber-500/90 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-amber-400 backdrop-blur-md shadow-sm">In Discussion</span>;
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full shadow-sm hover:bg-amber-100 transition-colors">
+            <Icon icon="lucide:messages-square" className="w-3 h-3 text-amber-500" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">In Discussion</span>
+          </div>
+        );
       case 'Closed':
-        return <span className="bg-slate-700/90 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-600 backdrop-blur-md shadow-sm">Closed</span>;
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-full shadow-sm hover:bg-slate-100 transition-colors">
+            <Icon icon="lucide:check-circle-2" className="w-3 h-3 text-slate-500" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Closed</span>
+          </div>
+        );
       default:
         return null;
     }
@@ -101,12 +133,11 @@ const TenantRequests = () => {
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200">
-                <th className="px-8 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Property Details</th>
-                <th className="px-8 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Unit Details</th>
-                <th className="px-8 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Date Sent</th>
-                <th className="px-8 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Message Overview</th>
-                <th className="px-8 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center">Status</th>
-                <th className="px-8 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                {tableHeaders.map((header, idx) => (
+                  <th key={idx} className={`px-6 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest ${header.align === 'center' ? 'text-center' : header.align === 'right' ? 'text-right' : ''}`}>
+                    {header.label}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -126,14 +157,19 @@ const TenantRequests = () => {
                         onClick={() => setExpandedId(isExpanded ? null : request.id)}
                         className={`transition-colors duration-300 cursor-pointer group ${isExpanded ? 'bg-brand-teal/5' : 'bg-white hover:bg-slate-50/80'}`}
                       >
-                        <td className="px-8 py-4 align-middle">
+                        <td className="px-6 py-3 align-middle">
                           <div className="flex items-center gap-5">
                             <div className="relative w-16 h-16 rounded-md overflow-hidden shadow-sm shrink-0">
                               <img src={request.propertyImage} alt={request.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                               <div className="absolute inset-0 border border-black/5 rounded-2xl"></div>
                             </div>
                             <div>
-                              <p className="font-bold text-[#062F26] text-base group-hover:text-brand-teal transition-colors mb-1">{request.title}</p>
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-bold text-[#062F26] text-base group-hover:text-brand-teal transition-colors">{request.title}</p>
+                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${request.roomType === 'PG' ? 'bg-purple-100 text-purple-700' : request.roomType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                                  {request.roomType}
+                                </span>
+                              </div>
                               <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
                                 <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-brand-teal/70" />
                                 {request.location}
@@ -141,8 +177,10 @@ const TenantRequests = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-8 py-6 align-middle">
-                          {(request.floorName || request.roomName || request.bedName) ? (
+                        <td className="px-6 py-4 align-middle">
+                          {request.roomType === 'Tenant' ? (
+                            <span className="text-xs font-bold text-slate-700">Entire Property</span>
+                          ) : (request.floorName || request.roomName || request.bedName) ? (
                             <div className="flex flex-col gap-1.5 items-start">
                               {request.floorName && <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-600 rounded-md text-[9px] font-bold uppercase tracking-wider">{request.floorName}</span>}
                               {(request.roomName || request.bedName) && (
@@ -156,25 +194,25 @@ const TenantRequests = () => {
                             <span className="text-xs text-slate-400 font-medium italic">Not specified</span>
                           )}
                         </td>
-                        <td className="px-8 py-6 align-middle">
+                        <td className="px-6 py-4 align-middle">
                           <div className="flex flex-col">
                             <p className="text-sm font-bold text-slate-800">{request.date}</p>
                             <p className="text-xs font-semibold text-slate-500 mt-1">{request.time}</p>
                           </div>
                         </td>
-                        <td className="px-8 py-6 align-middle max-w-[320px]">
+                        <td className="px-6 py-4 align-middle max-w-[320px]">
                           <div className="flex flex-col">
                             <p className="text-[13px] font-bold text-brand-teal line-clamp-1 mb-1.5">Re: {request.subject}</p>
                             <p className="text-[13px] font-medium text-slate-600 line-clamp-1 group-hover:text-slate-800 transition-colors leading-relaxed">{request.message}</p>
                           </div>
                         </td>
-                        <td className="px-8 py-6 align-middle text-center">
+                        <td className="px-6 py-4 align-middle text-center">
                           <div className="inline-block scale-95 origin-center">
                             {getStatusBadge(request.status)}
                           </div>
                         </td>
-                        <td className="px-8 py-6 align-middle text-right">
-                          <button className={`px-6 py-2.5 text-[11px] uppercase tracking-wider font-bold rounded-full transition-all duration-500 inline-flex items-center justify-center gap-2 ${isExpanded ? 'bg-brand-teal text-white shadow-[0_4px_20px_rgba(10,168,125,0.3)] hover:bg-[#062F26] hover:-translate-y-0.5' : 'bg-slate-100 text-slate-600 hover:bg-brand-teal hover:text-white shadow-sm hover:shadow-[0_4px_15px_rgba(10,168,125,0.2)] hover:-translate-y-0.5'}`}>
+                        <td className="px-6 py-4 align-middle text-right">
+                          <button className={`px-4 py-2 text-[11px] uppercase tracking-wider font-bold rounded-md transition-all duration-500 inline-flex items-center justify-center gap-2 ${isExpanded ? 'bg-brand-teal text-white shadow-[0_4px_20px_rgba(10,168,125,0.3)] hover:bg-[#062F26] hover:-translate-y-0.5' : 'bg-slate-100 text-slate-600 hover:bg-brand-teal hover:text-white shadow-sm hover:shadow-[0_4px_15px_rgba(10,168,125,0.2)] hover:-translate-y-0.5'}`}>
                             {isExpanded ? 'Close Details' : 'View Details'}
                             <Icon icon={isExpanded ? "lucide:chevron-up" : "lucide:chevron-down"} className="w-4 h-4" />
                           </button>
@@ -296,12 +334,21 @@ const TenantRequests = () => {
                   </div>
 
                   <div className="absolute bottom-4 left-5 right-5 z-10">
-                    <h3 className="text-lg font-bold text-white line-clamp-1 shadow-sm mb-1">{request.title}</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-lg font-bold text-white line-clamp-1 shadow-sm">{request.title}</h3>
+                      <span className={`px-2 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider border ${request.roomType === 'PG' ? 'bg-purple-500/80 text-white border-purple-400/50' : request.roomType === 'Tenant' ? 'bg-indigo-500/80 text-white border-indigo-400/50' : 'bg-slate-500/80 text-white border-slate-400/50'} backdrop-blur-sm`}>
+                        {request.roomType}
+                      </span>
+                    </div>
                     <p className="text-xs font-medium text-emerald-100 flex items-center gap-1.5 drop-shadow-sm mb-2">
                       <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span className="line-clamp-1">{request.location}</span>
                     </p>
-                    {(request.floorName || request.roomName || request.bedName) && (
+                    {request.roomType === 'Tenant' ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="px-2 py-0.5 bg-black/40 backdrop-blur-sm text-white rounded-md text-[9px] font-bold uppercase tracking-wider border border-white/10">Entire Property</span>
+                      </div>
+                    ) : (request.floorName || request.roomName || request.bedName) && (
                       <div className="flex flex-wrap gap-1.5">
                         {request.floorName && <span className="px-2 py-0.5 bg-black/40 backdrop-blur-sm text-white rounded-md text-[9px] font-bold uppercase tracking-wider border border-white/10">{request.floorName}</span>}
                         {request.roomName && <span className="px-2 py-0.5 bg-brand-teal/80 backdrop-blur-sm text-white rounded-md text-[9px] font-bold uppercase tracking-wider border border-white/20">{request.roomName}</span>}

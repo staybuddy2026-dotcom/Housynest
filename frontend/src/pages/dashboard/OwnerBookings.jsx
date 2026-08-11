@@ -70,6 +70,18 @@ const OwnerBookings = () => {
       const tokenAmt = Math.round(rentAmt * 0.40);
       const paidAmt = b.paymentDetails?.amount || 0;
 
+      const rawStatus = getStatusMapping(b.status);
+      const moveInDateObj = new Date(b.moveInDate);
+      moveInDateObj.setHours(0,0,0,0);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const isPastMoveIn = moveInDateObj <= today;
+      
+      let filterStatus = rawStatus;
+      if (['CONFIRMED', 'RESERVED', 'PENDING PAYMENT'].includes(rawStatus) && isPastMoveIn) {
+        filterStatus = 'ACTIVE';
+      }
+
       return {
       _id: b._id,
       id: b._id.substring(b._id.length - 8).toUpperCase(),
@@ -79,7 +91,7 @@ const OwnerBookings = () => {
       email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
       property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
       propertyType: b.propertyId?.propertyType || 'N/A',
-      bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
+      bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
       moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
       movedOut: b.expectedMoveOutDate ? new Date(b.expectedMoveOutDate).toISOString().split('T')[0] : null,
       rent: rentAmt,
@@ -88,7 +100,8 @@ const OwnerBookings = () => {
       due: Math.max(rentAmt - paidAmt, 0),
       isTokenPaid: paidAmt > 0 && paidAmt < rentAmt,
       isFullPaid: paidAmt > 0 && paidAmt >= rentAmt,
-      status: getStatusMapping(b.status),
+      status: rawStatus,
+      filterStatus: filterStatus,
       source: b.propertyId?.bookingType === 'Direct Booking' ? 'DIRECT' : 'REQUEST',
       raw: b,
     };
@@ -96,27 +109,43 @@ const OwnerBookings = () => {
 
   const stats = [
     { title: bookingData.length, subtitle: 'Total Bookings', desc: 'All time bookings', icon: 'lucide:layers', color: 'text-brand-teal', bgColor: 'bg-brand-teal/10', borderColor: 'border-brand-teal/20', filterValue: 'ALL' },
-    { title: bookingData.filter(b => b.status === 'CONFIRMED' || b.status === 'RESERVED' || b.status === 'PENDING PAYMENT').length, subtitle: 'Upcoming', desc: 'Confirmed & Reserved', icon: 'lucide:calendar-check', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', filterValue: 'UPCOMING' },
-    { title: bookingData.filter(b => b.status === 'ACTIVE').length, subtitle: 'Active', desc: 'Currently Staying', icon: 'lucide:home', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', filterValue: 'ACTIVE' },
-    { title: bookingData.filter(b => b.status === 'MOVED OUT').length, subtitle: 'Moved Out', desc: 'Past Bookings', icon: 'lucide:log-out', color: 'text-slate-500', bgColor: 'bg-slate-100', borderColor: 'border-slate-200', filterValue: 'MOVED OUT' },
+    { title: bookingData.filter(b => ['CONFIRMED', 'RESERVED', 'PENDING PAYMENT'].includes(b.filterStatus)).length, subtitle: 'Upcoming', desc: 'Confirmed & Reserved', icon: 'lucide:calendar-check', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', filterValue: 'UPCOMING' },
+    { title: bookingData.filter(b => b.filterStatus === 'ACTIVE').length, subtitle: 'Active', desc: 'Currently Staying', icon: 'lucide:home', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', filterValue: 'ACTIVE' },
+    { title: bookingData.filter(b => b.filterStatus === 'MOVED OUT').length, subtitle: 'Moved Out', desc: 'Past Bookings', icon: 'lucide:log-out', color: 'text-slate-500', bgColor: 'bg-slate-100', borderColor: 'border-slate-200', filterValue: 'MOVED OUT' },
   ];
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'PENDING PAYMENT':
-        return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'RESERVED':
-        return 'bg-teal-100 text-teal-700 border-teal-200';
-      case 'CONFIRMED':
-        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'ACTIVE':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'COMPLETED':
-        return 'bg-slate-100 text-slate-700 border-slate-200';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-700 border-red-200';
-      default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+  const getBookingStatusBadge = (status) => {
+    if (['CONFIRMED', 'RESERVED', 'ACTIVE'].includes(status)) {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors">
+          <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    } else if (['PENDING PAYMENT'].includes(status)) {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full shadow-sm hover:bg-amber-100 transition-colors">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    } else if (['CANCELLED'].includes(status)) {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full shadow-sm hover:bg-rose-100 transition-colors">
+          <Icon icon="lucide:x-circle" className="w-3.5 h-3.5 text-rose-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    } else {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-full shadow-sm hover:bg-slate-100 transition-colors">
+          <Icon icon="lucide:info" className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
     }
   };
 
@@ -128,9 +157,13 @@ const OwnerBookings = () => {
       
     let matchesStatus = true;
     if (statusFilter === 'UPCOMING') {
-      matchesStatus = ['CONFIRMED', 'RESERVED', 'PENDING PAYMENT'].includes(bk.status);
+      matchesStatus = ['CONFIRMED', 'RESERVED', 'PENDING PAYMENT'].includes(bk.filterStatus);
     } else if (statusFilter !== 'ALL') {
-      matchesStatus = bk.status === statusFilter;
+      if (['PENDING PAYMENT', 'RESERVED', 'CONFIRMED', 'CANCELLED'].includes(statusFilter)) {
+        matchesStatus = bk.status === statusFilter;
+      } else {
+        matchesStatus = bk.filterStatus === statusFilter;
+      }
     }
     
     const matchesProperty = propertyFilter === 'All Properties' || bk.property === propertyFilter;
@@ -307,8 +340,8 @@ const OwnerBookings = () => {
                   onClick={() => setSelectedBooking(booking)}
                 >
                   <td className="py-4 px-5 align-middle">
-                    <div className="font-bold text-slate-800 text-sm group-hover:text-brand-teal transition-colors">{booking.id}</div>
-                    <div className="text-[11px] font-medium text-slate-400 mt-1">{booking.date}</div>
+                    <div className="inline-block px-2.5 py-1 bg-brand-teal/10 text-brand-teal rounded-lg font-bold text-[13px] uppercase tracking-wide group-hover:bg-brand-teal group-hover:text-white transition-colors">{booking.id}</div>
+                    <div className="text-[11px] font-medium text-slate-400 mt-1.5">{booking.date}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <p className="text-sm font-bold text-[#062F26] mb-1">{booking.tenant}</p>
@@ -319,7 +352,11 @@ const OwnerBookings = () => {
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{booking.property}</div>
-                    <div className="text-[11px] font-medium text-slate-500 mt-0.5">{booking.propertyType}</div>
+                    <div className="mt-1.5">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${booking.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : booking.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                        {booking.propertyType}
+                      </span>
+                    </div>
                     <div className="text-[11px] font-medium text-slate-400 mt-1">{booking.bed}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
@@ -348,9 +385,7 @@ const OwnerBookings = () => {
                     )}
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getStatusStyle(booking.status)} shadow-sm`}>
-                      {booking.status}
-                    </span>
+                    {getBookingStatusBadge(booking.status)}
                   </td>
                   <td className="py-4 px-5 align-middle text-right">
                     <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>

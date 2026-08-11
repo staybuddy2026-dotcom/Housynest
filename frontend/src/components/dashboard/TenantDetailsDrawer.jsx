@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon } from '@iconify/react';
 import { ReactLenis } from 'lenis/react';
 
-const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentStyle }) => {
+const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
   if (!selectedTenant) return null;
 
   return (
@@ -156,9 +156,11 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentStyle }) => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-slate-500">Payment Status</span>
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getPaymentStyle ? getPaymentStyle(selectedTenant.payment) : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                    {selectedTenant.payment}
-                  </span>
+                  {getPaymentBadge ? getPaymentBadge(selectedTenant.payment) : (
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border bg-slate-100 text-slate-500 border-slate-200">
+                      {selectedTenant.payment}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

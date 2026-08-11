@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middlewares/authMiddleware.js';
+import { protect, admin } from '../middlewares/authMiddleware.js';
 import {
   createBooking,
   getOwnerBookings,
@@ -7,7 +7,8 @@ import {
   updateBookingStatus,
   processPayment,
   payBalance,
-  getOwnerRentCollection
+  getOwnerRentCollection,
+  getAdminBookings
 } from '../controllers/bookingController.js';
 
 const router = express.Router();
@@ -17,6 +18,9 @@ router.route('/')
 
 router.route('/owner')
   .get(protect, getOwnerBookings);
+
+router.route('/admin/all')
+  .get(protect, admin, getAdminBookings);
 
 router.route('/owner/rent-collection')
   .get(protect, getOwnerRentCollection);

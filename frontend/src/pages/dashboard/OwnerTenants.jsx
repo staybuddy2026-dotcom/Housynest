@@ -11,6 +11,27 @@ const OwnerTenants = () => {
   const [paymentFilter, setPaymentFilter] = useState('All');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  const getPaymentBadge = (status) => {
+    if (status === 'PAID') {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors">
+          <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">PAID</span>
+        </div>
+      );
+    } else {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full shadow-sm hover:bg-amber-100 transition-colors">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    }
+  };
+
   const [tenants, setTenants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -296,7 +317,11 @@ const OwnerTenants = () => {
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{t.property}</div>
-                    <div className="text-[11px] font-medium text-slate-500 mt-0.5">{t.propertyType}</div>
+                    <div className="mt-1.5">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${t.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : t.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                        {t.propertyType}
+                      </span>
+                    </div>
                     {t.propertyType === 'PG' && <div className="text-[11px] font-medium text-slate-400 mt-1">{t.room} • {t.bed}</div>}
                   </td>
                   <td className="py-4 px-5 align-middle">
@@ -304,9 +329,7 @@ const OwnerTenants = () => {
                     <div className="text-[11px] font-medium text-slate-400 mt-1 tracking-wide">{t.deposit}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border shadow-sm ${t.payment === 'PAID' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>
-                      {t.payment}
-                    </span>
+                    {getPaymentBadge(t.payment)}
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="text-sm font-semibold text-slate-700">{t.moveIn}</div>
@@ -348,11 +371,7 @@ const OwnerTenants = () => {
       <TenantDetailsDrawer
         selectedTenant={selectedTenant}
         onClose={() => setSelectedTenant(null)}
-        getPaymentStyle={(status) => {
-          if (status === 'PAID') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-          if (status === 'DUE') return 'bg-amber-100 text-amber-700 border-amber-200';
-          return 'bg-slate-100 text-slate-500 border-slate-200';
-        }}
+        getPaymentBadge={getPaymentBadge}
       />
 
       <AddTenantModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />

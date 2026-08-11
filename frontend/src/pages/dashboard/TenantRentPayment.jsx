@@ -209,14 +209,24 @@ const TenantRentPayment = () => {
   let daysDue = 0;
   let hoursDue = 0;
   let minsDue = 0;
+  let isOverdue = false;
 
   if (pendingInvoice) {
     const nextDueDate = new Date(pendingInvoice.dueDate);
     const today = new Date();
     diffMs = nextDueDate - today;
-    daysDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-    hoursDue = Math.max(0, Math.floor((diffMs / (1000 * 60 * 60)) % 24));
-    minsDue = Math.max(0, Math.floor((diffMs / (1000 * 60)) % 60));
+    
+    if (diffMs < 0) {
+      isOverdue = true;
+      const overDueMs = Math.abs(diffMs);
+      daysDue = Math.floor(overDueMs / (1000 * 60 * 60 * 24));
+      hoursDue = Math.floor((overDueMs / (1000 * 60 * 60)) % 24);
+      minsDue = Math.floor((overDueMs / (1000 * 60)) % 60);
+    } else {
+      daysDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+      hoursDue = Math.max(0, Math.floor((diffMs / (1000 * 60 * 60)) % 24));
+      minsDue = Math.max(0, Math.floor((diffMs / (1000 * 60)) % 60));
+    }
   }
 
   // Get paid invoices for history
@@ -281,7 +291,8 @@ const TenantRentPayment = () => {
 
           {/* Pay Rent Details Card */}
           {pendingInvoice ? (
-            <div className="bg-[#FAFAF9] rounded-2xl p-4 sm:p-5 border border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="space-y-4">
+              <div className="bg-[#FAFAF9] rounded-2xl p-4 sm:p-5 border border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
               <div className="flex items-center justify-between w-full lg:w-auto border-b border-slate-200 pb-4 lg:border-0 lg:pb-0">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
@@ -307,24 +318,39 @@ const TenantRentPayment = () => {
 
                 <div className="flex items-center gap-2">
                   <div className="text-right sm:text-center">
-                    <p className="text-[10px] text-slate-500 font-medium mb-1 text-center">Due In</p>
+                    <p className={`text-[10px] ${isOverdue ? 'text-rose-600' : 'text-slate-500'} font-bold uppercase tracking-wider mb-1.5 text-center`}>
+                      {isOverdue ? 'Overdue By' : 'Due In'}
+                    </p>
                     <div className="flex gap-1 sm:gap-1.5 text-center">
-                      <div className="bg-white px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border border-slate-200 shadow-sm min-w-[32px] sm:min-w-[36px]">
-                        <span className="block text-xs sm:text-sm font-bold text-[#062F26]">{daysDue}</span>
-                        <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Days</span>
+                      <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
+                        <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{daysDue}</span>
+                        <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Days</span>
                       </div>
-                      <div className="bg-white px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border border-slate-200 shadow-sm min-w-[32px] sm:min-w-[36px]">
-                        <span className="block text-xs sm:text-sm font-bold text-[#062F26]">{hoursDue}</span>
-                        <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Hours</span>
+                      <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
+                        <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{hoursDue}</span>
+                        <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Hours</span>
                       </div>
-                      <div className="bg-white px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border border-slate-200 shadow-sm min-w-[32px] sm:min-w-[36px]">
-                        <span className="block text-xs sm:text-sm font-bold text-[#062F26]">{minsDue}</span>
-                        <span className="block text-[8px] text-slate-400 font-medium uppercase mt-0.5">Mins</span>
+                      <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
+                        <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{minsDue}</span>
+                        <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Mins</span>
                       </div>
                     </div>
                   </div>
                 </div>
+                </div>
               </div>
+              
+              {isOverdue && (
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3 shadow-sm animate-fadeIn">
+                  <Icon icon="lucide:alert-circle" className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-rose-800">Payment Overdue</h4>
+                    <p className="text-xs text-rose-600 mt-1 font-medium leading-relaxed">
+                      Your rent payment is past the due date. Please clear your dues immediately to avoid late fees or disruption of services.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100 flex flex-col items-center justify-center text-center">

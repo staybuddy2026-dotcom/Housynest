@@ -47,7 +47,7 @@ export const scheduleVisit = async (req, res) => {
 export const getOwnerVisits = async (req, res) => {
   try {
     const visits = await Visit.find({ owner: req.user._id })
-      .populate('property', 'pgName propertyCategory bhkType city locality images')
+      .populate('property', 'pgName propertyCategory bhkType propertyType city locality images')
       .populate('tenant', 'fullName email phone profilePic')
       .sort({ createdAt: -1 });
 
@@ -60,7 +60,7 @@ export const getOwnerVisits = async (req, res) => {
 export const getTenantVisits = async (req, res) => {
   try {
     const visits = await Visit.find({ tenant: req.user._id })
-      .populate('property', 'pgName propertyCategory bhkType city locality images')
+      .populate('property', 'pgName propertyCategory bhkType propertyType city locality images')
       .populate('owner', 'fullName email phone')
       .sort({ createdAt: -1 });
 

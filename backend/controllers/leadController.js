@@ -46,7 +46,7 @@ export const createLead = async (req, res) => {
       const property = await Property.findById(propertyId);
       if (owner && owner.email) {
         const tenantName = req.user.fullName || 'A user';
-        const propertyName = property ? (property.pgName || property.propertyCategory) : 'your property';
+        const propertyName = property ? (property.pgName || property.societyName || 'your property') : 'your property';
         const subject = `New Lead for ${propertyName}`;
         const text = `Hello ${owner.fullName},\n\nYou have received a new lead from ${tenantName} for ${propertyName}.\n\nMessage: ${message}\n\nPlease log in to your dashboard to view the details and reply.\n\nThank you!`;
         
@@ -81,7 +81,7 @@ export const createLead = async (req, res) => {
 export const getOwnerLeads = async (req, res) => {
   try {
     const leads = await Lead.find({ ownerId: req.user._id })
-      .populate('propertyId', 'pgName bhkType propertyCategory city locality images propertyType monthlyRent rooms')
+      .populate('propertyId', 'pgName societyName bhkType propertyCategory city locality images propertyType monthlyRent rooms')
       .populate('senderId', 'fullName email phone profilePic')
       .sort({ createdAt: -1 })
       .lean();
@@ -108,7 +108,7 @@ export const getOwnerLeads = async (req, res) => {
 export const getTenantLeads = async (req, res) => {
   try {
     const leads = await Lead.find({ senderId: req.user._id })
-      .populate('propertyId', 'pgName bhkType propertyCategory city locality images propertyType monthlyRent rooms')
+      .populate('propertyId', 'pgName societyName bhkType propertyCategory city locality images propertyType monthlyRent rooms')
       .populate('ownerId', 'fullName email phone profilePic')
       .sort({ createdAt: -1 })
       .lean();

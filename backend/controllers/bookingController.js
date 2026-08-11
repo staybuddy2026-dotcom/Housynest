@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import mongoose from 'mongoose';
 import { sendGenericEmail } from '../utils/emailService.js';
 import { getIo } from '../socket.js';
+import { triggerRoomAvailabilityAlerts } from './waitlistController.js';
 
 const updateBedStatus = async (propertyId, roomName, bedName) => {
   if (!roomName || !bedName) return;
@@ -45,6 +46,9 @@ const updateBedStatus = async (propertyId, roomName, bedName) => {
 
   if (bedFound) {
     await property.save();
+    if (bedStatus === 'Vacant') {
+      triggerRoomAvailabilityAlerts(propertyId, roomName);
+    }
   }
 };
 
@@ -227,12 +231,12 @@ export const updateBookingStatus = async (req, res) => {
         const content = `
           Hello ${tenant.fullName},
 
-          Great news! Your request for ${property.pgName || property.propertyCategory} has been approved by the owner.
+          Great news! Your request for ${property.pgName || property.societyName || 'Property'} has been approved by the owner.
           
           To secure this, please log in to your Housynest dashboard and ${actionText}
           
           Booking Details:
-          - Property: ${property.pgName || property.propertyCategory}
+          - Property: ${property.pgName || property.societyName || 'Property'}
           - Room: ${booking.roomDetails?.roomName || 'N/A'}
           - Bed: ${booking.roomDetails?.bedName || 'N/A'}
           - Move In Date: ${new Date(booking.moveInDate).toDateString()}
@@ -292,7 +296,7 @@ export const processPayment = async (req, res) => {
         ${isToken ? 'Your bed is now successfully reserved.' : 'Your room is now successfully booked.'}
         
         Booking Details:
-        - Property: ${property.pgName || property.propertyCategory}
+        - Property: ${property.pgName || property.societyName || 'Property'}
         - Room: ${booking.roomDetails?.roomName || 'N/A'}
         - Bed: ${booking.roomDetails?.bedName || 'N/A'}
         - Move In Date: ${new Date(booking.moveInDate).toDateString()}
@@ -357,7 +361,7 @@ export const payBalance = async (req, res) => {
         Your room is now fully booked and confirmed.
         
         Booking Details:
-        - Property: ${property.pgName || property.propertyCategory}
+        - Property: ${property.pgName || property.societyName || 'Property'}
         - Room: ${booking.roomDetails?.roomName || 'N/A'}
         - Bed: ${booking.roomDetails?.bedName || 'N/A'}
         - Move In Date: ${new Date(booking.moveInDate).toDateString()}
@@ -514,5 +518,22 @@ export const autoActivateBookings = async () => {
     }
   } catch (error) {
     console.error('[Cron] Error auto-activating bookings:', error);
+  }
+};
+
+// @desc    Get all bookings for admin
+// @route   GET /api/bookings/admin/all
+// @access  Private (Admin)
+export const getAdminBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate('propertyId', 'pgName societyName propertyCategory propertyType city locality address images price rent')
+      .populate('tenantId', 'fullName email phone profilePic')
+      .populate('ownerId', 'fullName email phone')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch admin bookings', error: error.message });
   }
 };

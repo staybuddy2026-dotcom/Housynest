@@ -123,12 +123,45 @@ const TenantTransactions = () => {
     },
   ];
 
-  const getStatusColor = (status) => {
+  const getStatusBadge = (status) => {
     switch (status) {
-      case 'Paid': return 'bg-emerald-50 text-brand-teal border-emerald-100';
-      case 'Pending': return 'bg-amber-50 text-amber-600 border-amber-100';
-      case 'Overdue': return 'bg-rose-50 text-rose-600 border-rose-100';
-      default: return 'bg-slate-50 text-slate-600 border-slate-100';
+      case 'Paid':
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+          </div>
+        );
+      case 'Pending':
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl shadow-sm">
+            <Icon icon="lucide:clock" className="w-3.5 h-3.5 text-amber-500" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+          </div>
+        );
+      case 'Overdue':
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl shadow-sm">
+            <Icon icon="lucide:alert-circle" className="w-3.5 h-3.5 text-rose-500" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+          </div>
+        );
+      case 'Failed':
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-xl shadow-sm">
+            <Icon icon="lucide:x-circle" className="w-3.5 h-3.5 text-red-500" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+          </div>
+        );
+      default:
+        return (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider">{status || 'UNKNOWN'}</span>
+          </div>
+        );
     }
   };
 
@@ -152,7 +185,7 @@ const TenantTransactions = () => {
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={handleRefresh}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal hover:shadow-sm transition-all"
+            className="w-9 h-9 sm:w-10 sm:h-10 cursor-pointer rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal hover:shadow-sm transition-all"
           >
             <Icon icon="lucide:refresh-cw" className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-brand-teal' : ''}`} />
           </button>
@@ -233,11 +266,9 @@ const TenantTransactions = () => {
 
                 {/* Right Side: Status & Actions */}
                 <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto border-t sm:border-0 border-slate-100 pt-3 sm:pt-0 mt-2 sm:mt-0">
-                  <span className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border tracking-wider uppercase ${getStatusColor(tx.status)}`}>
-                    {tx.status}
-                  </span>
+                  {getStatusBadge(tx.status)}
                   <div className="flex items-center gap-2 ml-4">
-                    <button className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 group-hover:bg-brand-teal group-hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-brand-teal/20" title="Download Receipt">
+                    <button className="w-9 h-9 cursor-pointer rounded-lg bg-slate-100 text-slate-500 group-hover:bg-brand-teal group-hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-brand-teal/20" title="Download Receipt">
                       <Icon icon="lucide:download" className="w-4.5 h-4.5" />
                     </button>
                   </div>

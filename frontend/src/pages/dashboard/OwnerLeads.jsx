@@ -41,7 +41,7 @@ const OwnerLeads = () => {
               color: 'bg-teal-100 text-teal-700'
             },
             property: {
-              title: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
+              title: !inq.propertyId ? 'Deleted Property' : (inq.propertyId.pgName || inq.propertyId.societyName || (inq.propertyId.bhkType ? `${inq.propertyId.bhkType} ${inq.propertyId.propertyCategory}` : inq.propertyId.propertyCategory) || 'Unknown Property'),
               location: `${inq.propertyId?.locality || ''}, ${inq.propertyId?.city || ''}`.replace(/^, | , $/g, ''),
               rent: inq.propertyId?.monthlyRent ? `₹${inq.propertyId.monthlyRent}` : inq.propertyId?.rooms?.[0]?.rentPerBed ? `₹${inq.propertyId.rooms[0].rentPerBed}` : 'N/A',
               image: inq.propertyId?.images?.[0]?.url || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=100&auto=format&fit=crop&q=60'

@@ -15,6 +15,38 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingId, setBookingId] = useState('');
+  const [subscribedBeds, setSubscribedBeds] = useState({});
+
+  const handleSubscribeWaitlist = async (bedName, roomId, sharingType) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please log in to receive availability email alerts.');
+        return;
+      }
+      const res = await fetch('http://localhost:5000/api/waitlist/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          propertyId: property._id,
+          roomId: roomId || selectedRoomId || null,
+          sharingType: sharingType || null
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || 'Subscribed for instant availability alert!');
+        setSubscribedBeds(prev => ({ ...prev, [bedName]: true }));
+      } else {
+        toast.error(data.message || 'Failed to subscribe to alert');
+      }
+    } catch {
+      toast.error('Failed to subscribe for room alert');
+    }
+  };
 
   const isPG = property?.type === 'PG' || property?.propertyType === 'PG';
 
@@ -282,14 +314,30 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
             {/* STEP 2: SELECT AVAILABLE BED (Spacious Professional 3-column Grid) */}
             {isPG && currentRoom && (
               <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <label className="text-xs font-bold text-[#062F26] uppercase tracking-wider flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-brand-teal text-white flex items-center justify-center text-[10px] font-bold shadow-xs">2</span>
-                    Select Available Bed in {currentRoom.roomName} ({currentRoom.sharingType})
+                    Select Bed in {currentRoom.roomName} ({currentRoom.sharingType})
                   </label>
-                  <span className="text-xs font-bold text-brand-teal bg-brand-teal/10 border border-brand-teal/20 px-3 py-1 rounded-lg">
-                    ₹{currentRoom.rent.toLocaleString('en-IN')}<span className="text-[10px] font-semibold text-slate-500">/mo</span>
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {currentRoom.beds && currentRoom.beds.length > 0 && !currentRoom.beds.some(b => b.status === 'Vacant') && (
+                      <button
+                        type="button"
+                        onClick={() => handleSubscribeWaitlist(currentRoom.roomName, currentRoom.roomName, currentRoom.sharingType)}
+                        className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${subscribedBeds[currentRoom.roomName]
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-amber-50 text-amber-800 hover:bg-amber-600 hover:text-white border border-amber-200'
+                          }`}
+                        title="Receive instant email when a room bed opens up"
+                      >
+                        <Icon icon={subscribedBeds[currentRoom.roomName] ? "lucide:check-circle-2" : "lucide:bell-ring"} width="12" />
+                        {subscribedBeds[currentRoom.roomName] ? 'Alert Active' : 'Notify Me'}
+                      </button>
+                    )}
+                    <span className="text-xs font-bold text-brand-teal bg-brand-teal/10 border border-brand-teal/20 px-2.5 py-1 rounded-lg">
+                      ₹{currentRoom.rent.toLocaleString('en-IN')}<span className="text-[10px] font-semibold text-slate-500">/mo</span>
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -309,8 +357,8 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                           }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isBedSelected ? 'bg-brand-teal text-white shadow-md' : isVacant ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-200 text-slate-400'}`}>
-                            <Icon icon="lucide:bed" width="20" />
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${isBedSelected ? 'bg-brand-teal text-white shadow-md' : isVacant ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-200 text-slate-400'}`}>
+                            <Icon icon="lucide:bed" width="18" />
                           </div>
                           <div>
                             <p className="text-xs font-bold text-[#062F26]">{bed.bedName}</p>
@@ -320,7 +368,6 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                           </div>
                         </div>
 
-                        {/* Select Badge */}
                         {isVacant ? (
                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isBedSelected ? 'border-brand-teal bg-brand-teal text-white' : 'border-slate-300'}`}>
                             {isBedSelected && <Icon icon="lucide:check" width="12" strokeWidth="3" />}

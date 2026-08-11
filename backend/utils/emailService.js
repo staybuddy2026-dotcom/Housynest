@@ -103,3 +103,28 @@ export const sendGenericEmail = async (to, subject, text, html, attachments = []
     console.error("Error sending email", error);
   }
 };
+
+export const sendRoomAvailabilityEmail = async (toEmail, tenantName, propertyName, sharingType, propertyId) => {
+  const subject = `🎉 Good News! A room in ${propertyName} is now available!`;
+  const appUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const propertyUrl = `${appUrl}/property/${propertyId}`;
+
+  const html = `
+    <div style="font-size: 15px; color: #334155; line-height: 1.6;">
+      <p style="font-size: 16px; font-weight: bold; color: #062F26;">Hello ${tenantName || 'Tenant'},</p>
+      <p>Great news! A room you were waiting for at <strong style="color: #062F26;">${propertyName}</strong> ${sharingType ? `(${sharingType})` : ''} has just opened up and is now available for booking!</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center;">
+        <h3 style="color: #166534; margin: 0 0 8px 0; font-size: 18px;">Bed / Room Now Available</h3>
+        <p style="color: #15803d; margin: 0 0 16px 0; font-size: 14px;">Book now before someone else reserves it!</p>
+        <a href="${propertyUrl}" style="display: inline-block; background-color: #062F26; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 14px;">
+          View Property & Book Now
+        </a>
+      </div>
+
+      <p style="font-size: 13px; color: #64748b;">You received this email because you set a room availability alert on Housynest.</p>
+    </div>
+  `;
+
+  await sendGenericEmail(toEmail, subject, `A room in ${propertyName} is now available! Book now: ${propertyUrl}`, html);
+};

@@ -9,6 +9,64 @@ import {
   getSortedRowModel,
   flexRender,
 } from '@tanstack/react-table';
+
+const formatPropertyPrice = (p) => {
+  if (p.monthlyRent && Number(p.monthlyRent) > 0) {
+    return `₹${Number(p.monthlyRent).toLocaleString('en-IN')}`;
+  }
+
+  const validPrices = [];
+  
+  if (p.pgPricing) {
+    Object.entries(p.pgPricing).forEach(([type, obj]) => {
+      if (obj && obj.rentPerBed) {
+        const num = Number(String(obj.rentPerBed).replace(/\D/g, ''));
+        if (num > 0) {
+          validPrices.push(num);
+        }
+      }
+    });
+  }
+
+  if (validPrices.length === 0 && p.floors && Array.isArray(p.floors)) {
+    p.floors.forEach(f => {
+      if (f.rooms && Array.isArray(f.rooms)) {
+        f.rooms.forEach(r => {
+          if (r.rentPerBed) {
+            const num = Number(String(r.rentPerBed).replace(/\D/g, ''));
+            if (num > 0) {
+              validPrices.push(num);
+            }
+          }
+        });
+      }
+    });
+  }
+
+  if (validPrices.length === 0 && p.rooms && Array.isArray(p.rooms)) {
+    p.rooms.forEach(r => {
+      if (r.rentPerBed) {
+        const num = Number(String(r.rentPerBed).replace(/\D/g, ''));
+        if (num > 0) {
+          validPrices.push(num);
+        }
+      }
+    });
+  }
+
+  if (validPrices.length > 0) {
+    const minRent = Math.min(...validPrices);
+    const maxRent = Math.max(...validPrices);
+
+    if (minRent === maxRent) {
+      return `₹${minRent.toLocaleString('en-IN')}`;
+    } else {
+      return `₹${minRent.toLocaleString('en-IN')} - ₹${maxRent.toLocaleString('en-IN')}`;
+    }
+  }
+
+  return '₹0';
+};
 import AdminPropertyViewModal from './AdminPropertyViewModal';
 
 const AdminListings = () => {
@@ -124,25 +182,37 @@ const AdminListings = () => {
     {
       accessorKey: 'location',
       header: 'Location',
-      cell: info => (
-        <div className="flex items-start gap-1.5 text-xs font-medium text-slate-600">
-          <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 mt-0.5 text-slate-400 shrink-0" />
-          <span className="leading-tight">{info.getValue()}</span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex flex-col max-w-[220px] sm:max-w-[280px]">
+            {item.address && (
+              <span className="text-xs font-bold text-slate-800 leading-tight truncate" title={item.address}>
+                {item.address}
+              </span>
+            )}
+            <div className="flex items-center gap-1 text-xs text-slate-500 font-medium mt-0.5" title={item.localityCity}>
+              <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="truncate">{item.localityCity}</span>
+            </div>
+          </div>
+        );
+      },
+      filterFn: (row, columnId, filterValue) => {
+        const val = filterValue.toLowerCase();
+        const addr = (row.original.address || '').toLowerCase();
+        const loc = (row.original.localityCity || '').toLowerCase();
+        return addr.includes(val) || loc.includes(val);
+      }
     },
     {
       accessorKey: 'owner',
       header: 'Owner',
-      cell: ({ row }) => {
-        const names = row.original.owner.split(' ');
-        return (
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-slate-800">{names[0] || 'Unknown'}</span>
-            <span className="text-sm font-bold text-slate-800">{names[1] || ''}</span>
-          </div>
-        );
-      }
+      cell: ({ row }) => (
+        <span className="text-sm font-bold text-slate-800 whitespace-nowrap">
+          {row.original.owner || 'Unknown'}
+        </span>
+      )
     },
     {
       accessorKey: 'contact',
@@ -260,12 +330,14 @@ const AdminListings = () => {
           id: index + 1,
           propertyImage: p.images && p.images.length > 0 ? p.images[0].url : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=150&h=150',
           type: p.propertyType === 'PG' ? 'PG' : 'Tenant',
-          propertyName: p.pgName || p.propertyCategory || 'Property',
-          location: p.locality ? `${p.locality}, ${p.city || ''}` : (p.address || 'Unknown'),
+          propertyName: p.pgName || p.societyName || p.propertyCategory || 'Property',
+          address: p.address || '',
+          localityCity: [p.locality, p.city].filter(Boolean).join(', ') || 'Unknown Location',
+          location: [p.address, p.locality, p.city].filter(Boolean).join(', ') || 'Unknown',
           owner: p.owner?.fullName || 'Unknown',
           email: p.owner?.email || 'N/A',
           phone: p.owner?.phone || 'N/A',
-          price: p.monthlyRent ? `₹${p.monthlyRent}` : (p.rooms && p.rooms.length > 0 ? `₹${p.rooms[0].rentPerBed}` : '₹0'),
+          price: formatPropertyPrice(p),
           dateAdded: new Date(p.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
           status: p.status,
           isVerified: p.isVerified || false
@@ -387,9 +459,9 @@ const AdminListings = () => {
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col w-full overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col w-full overflow-hidden">
         <div className="w-full overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse table-auto min-w-225">
+          <table className="w-full text-left border-collapse table-auto min-w-[1000px]">
             <thead className="bg-slate-50/80 border-b border-slate-100">
               {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>

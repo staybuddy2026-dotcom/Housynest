@@ -19,6 +19,39 @@ const TenantBookings = () => {
   const [processingPaymentId, setProcessingPaymentId] = useState(null);
   const [showAgreementModal, setShowAgreementModal] = useState(null);
 
+  const getBookingStatusBadge = (status, size = 'sm') => {
+    const isSmall = size === 'sm';
+    const textClass = isSmall ? 'text-[10px]' : 'text-xs';
+    const pyClass = isSmall ? 'py-1' : 'py-1.5';
+    const pxClass = isSmall ? 'px-2.5' : 'px-3';
+
+    if (['Confirmed', 'Active', 'Reserved'].includes(status)) {
+      return (
+        <div className={`inline-flex items-center gap-1.5 ${pxClass} ${pyClass} bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors`}>
+          <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-emerald-500" />
+          <span className={`${textClass} font-bold uppercase tracking-wider`}>{status}</span>
+        </div>
+      );
+    } else if (['Pending Request', 'Pending Payment'].includes(status)) {
+      return (
+        <div className={`inline-flex items-center gap-1.5 ${pxClass} ${pyClass} bg-amber-50 text-amber-700 border border-amber-200 rounded-full shadow-sm hover:bg-amber-100 transition-colors`}>
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+          </span>
+          <span className={`${textClass} font-bold uppercase tracking-wider`}>{status}</span>
+        </div>
+      );
+    } else {
+      return (
+        <div className={`inline-flex items-center gap-1.5 ${pxClass} ${pyClass} bg-red-50 text-red-700 border border-red-200 rounded-full shadow-sm hover:bg-red-100 transition-colors`}>
+          <Icon icon="lucide:x-circle" className="w-3.5 h-3.5 text-red-500" />
+          <span className={`${textClass} font-bold uppercase tracking-wider`}>{status}</span>
+        </div>
+      );
+    }
+  };
+
   const fetchBookings = async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -163,18 +196,24 @@ const TenantBookings = () => {
                         />
                         <div>
                           <p className="font-bold text-[#062F26] text-sm line-clamp-1">{booking.propertyId?.societyName || booking.propertyId?.pgName || booking.propertyId?.propertyCategory || 'Property'}</p>
+                          <div className="mt-1.5 mb-0.5">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${booking.propertyId?.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : booking.propertyId?.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                              {booking.propertyId?.propertyType || 'N/A'}
+                            </span>
+                          </div>
                           <p className="text-xs text-slate-500 line-clamp-1 font-medium mt-0.5">{booking.propertyId?.address ? `${booking.propertyId.address}, ` : ''}{booking.propertyId?.locality}, {booking.propertyId?.city}</p>
                         </div>
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+                      <div className="inline-block px-2.5 py-1 bg-brand-teal/10 text-brand-teal rounded-lg font-bold text-[13px] uppercase tracking-wide group-hover:bg-brand-teal group-hover:text-white transition-colors">
                         {booking._id.substring(booking._id.length - 8).toUpperCase()}
-                      </span>
+                      </div>
                     </td>
                     <td className="p-4">
-                      <p className="text-sm font-bold text-slate-700">{booking.roomDetails?.roomName || 'N/A'}</p>
-                      <p className="text-xs text-slate-500 font-medium">{booking.roomDetails?.bedName || 'N/A'}</p>
+                      <p className="text-sm font-bold text-slate-700">
+                        {booking.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (booking.roomDetails?.roomName || 'N/A')}
+                      </p>
                     </td>
                     <td className="p-4">
                       <p className="text-sm font-semibold text-slate-700">
@@ -182,14 +221,7 @@ const TenantBookings = () => {
                       </p>
                     </td>
                     <td className="p-4">
-                      <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border ${booking.status === 'Confirmed' || booking.status === 'Active' || booking.status === 'Reserved'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                        : (booking.status === 'Pending Request' || booking.status === 'Pending Payment')
-                          ? 'bg-amber-50 text-amber-700 border-amber-100'
-                          : 'bg-red-50 text-red-700 border-red-100'
-                        }`}>
-                        {booking.status}
-                      </span>
+                      {getBookingStatusBadge(booking.status, 'sm')}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
@@ -334,14 +366,7 @@ const TenantBookings = () => {
                               {booking.propertyId?.address ? `${booking.propertyId.address}, ` : ''}{booking.propertyId?.locality}, {booking.propertyId?.city}
                             </p>
                           </div>
-                          <span className={`px-3 py-1 font-bold text-xs rounded-lg border ${booking.status === 'Confirmed' || booking.status === 'Active' || booking.status === 'Reserved'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                            : (booking.status === 'Pending Request' || booking.status === 'Pending Payment')
-                              ? 'bg-amber-50 text-amber-700 border-amber-100'
-                              : 'bg-red-50 text-red-700 border-red-100'
-                            }`}>
-                            {booking.status}
-                          </span>
+                            {getBookingStatusBadge(booking.status, 'md')}
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">

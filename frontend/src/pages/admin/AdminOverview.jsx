@@ -81,14 +81,16 @@ const AdminOverview = () => {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const [propRes, userRes] = await Promise.all([
+      const [propRes, userRes, statsRes] = await Promise.all([
         fetch('/api/properties/admin/all', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/users/admin/all', { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch('/api/users/admin/all', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/invoices/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       if (propRes.ok && userRes.ok) {
         const properties = await propRes.json();
         const users = await userRes.json();
+        const invoiceStats = statsRes.ok ? await statsRes.json() : { totalRentCollected: 0 };
 
         // Compute Stats
         const verifiedProps = properties.filter(p => p.isVerified).length;
@@ -100,7 +102,7 @@ const AdminOverview = () => {
           { title: 'Total Property Listed', value: properties.length.toString(), subtitle: `${verifiedProps} verified properties`, icon: 'lucide:home', color: 'bg-emerald-50', iconColor: 'text-emerald-600' },
           { title: 'Total Users', value: users.length.toString(), subtitle: `${landlords} Landlords • ${renters} Renters`, icon: 'lucide:users', color: 'bg-blue-50', iconColor: 'text-blue-600' },
           { title: 'Pending Reports', value: '0', subtitle: 'No action required', icon: 'lucide:clipboard-list', color: 'bg-amber-50', iconColor: 'text-amber-500' },
-          // { title: 'Active Lawyers', value: lawyers.toString(), subtitle: 'Fully approved', icon: 'lucide:shield-check', color: 'bg-emerald-50', iconColor: 'text-emerald-600' }
+          { title: 'Rent Collected', value: `₹${invoiceStats.totalRentCollected.toLocaleString()}`, subtitle: 'This month', icon: 'lucide:indian-rupee', color: 'bg-purple-50', iconColor: 'text-purple-600' }
         ]);
 
         setAllProperties(properties);

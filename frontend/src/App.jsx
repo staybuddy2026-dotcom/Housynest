@@ -58,6 +58,7 @@ import AdminWhatsAppOutreach from './pages/admin/AdminWhatsAppOutreach';
 import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminLogin from './pages/admin/AdminLogin';
+import AdminBookings from './pages/admin/AdminBookings';
 import NotFound from './pages/NotFound';
 import { Toaster, toast } from 'react-hot-toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -296,6 +297,7 @@ const router = createBrowserRouter(
             <Route path="dashboard" element={<AdminOverview />} />
             <Route path="listings" element={<AdminListings />} />
             <Route path="users" element={<AdminUsers />} />
+            <Route path="transactions" element={<AdminBookings />} />
             <Route path="property-requests" element={<AdminPropertyRequests />} />
             <Route path="lawyer-requests" element={<AdminLawyerRequests />} />
             <Route path="wa-outreach" element={<AdminWhatsAppOutreach />} />

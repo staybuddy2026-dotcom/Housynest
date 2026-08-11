@@ -124,7 +124,7 @@ const OwnerBookingRequests = () => {
       email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
       property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
       propertyType: b.propertyId?.propertyType || 'N/A',
-      bed: b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A',
+      bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
       moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
       rent: `₹ ${rentAmt.toLocaleString()}`,
       token: `₹ ${tokenAmt.toLocaleString()}`,
@@ -172,13 +172,38 @@ const OwnerBookingRequests = () => {
     { title: `₹ ${statsBaseRequests.reduce((acc, curr) => acc + parseInt(curr.token.replace(/\D/g, '') || 0), 0).toLocaleString()}`, subtitle: 'Total Request Revenue', desc: 'From Tokens', icon: 'lucide:indian-rupee', color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
   ];
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'APPROVED': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'PENDING APPROVAL': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'REJECTED': return 'bg-rose-100 text-rose-700 border-rose-200';
-      case 'ACTIVE': return 'bg-blue-100 text-blue-700 border-blue-200';
-      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+  const getStatusBadge = (status) => {
+    if (['APPROVED', 'ACTIVE'].includes(status)) {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors">
+          <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    } else if (['PENDING APPROVAL'].includes(status)) {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full shadow-sm hover:bg-amber-100 transition-colors">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    } else if (['REJECTED'].includes(status)) {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full shadow-sm hover:bg-rose-100 transition-colors">
+          <Icon icon="lucide:x-circle" className="w-3.5 h-3.5 text-rose-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    } else {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-full shadow-sm hover:bg-slate-100 transition-colors">
+          <Icon icon="lucide:info" className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
     }
   };
 
@@ -314,9 +339,7 @@ const OwnerBookingRequests = () => {
                     <h3 className="font-bold text-[#062F26]">{req.customer}</h3>
                     <p className="text-xs text-slate-500 mt-0.5">{req.id} • {req.date}</p>
                   </div>
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getStatusStyle(req.status)} shadow-sm`}>
-                    {req.status}
-                  </span>
+                  {getStatusBadge(req.status)}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-4">
@@ -410,8 +433,8 @@ const OwnerBookingRequests = () => {
                     onClick={() => setSelectedRequest(req)}
                   >
                     <td className="py-4 px-5 align-middle">
-                      <div className="font-bold text-slate-800 text-sm group-hover:text-brand-teal transition-colors">{req.id}</div>
-                      <div className="text-[11px] font-medium text-slate-400 mt-1">{req.date}</div>
+                      <div className="inline-block px-2.5 py-1 bg-brand-teal/10 text-brand-teal rounded-lg font-bold text-[13px] uppercase tracking-wide group-hover:bg-brand-teal group-hover:text-white transition-colors">{req.id}</div>
+                      <div className="text-[11px] font-medium text-slate-400 mt-1.5">{req.date}</div>
                     </td>
                     <td className="py-4 px-5 align-middle">
                       <p className="text-sm font-bold text-[#062F26] mb-1">{req.customer}</p>
@@ -422,7 +445,11 @@ const OwnerBookingRequests = () => {
                     </td>
                     <td className="py-4 px-5 align-middle">
                       <div className="font-bold text-slate-800 text-sm">{req.property}</div>
-                      <div className="text-[11px] font-medium text-slate-500 mt-0.5">{req.propertyType}</div>
+                      <div className="mt-1.5">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${req.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : req.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                          {req.propertyType}
+                        </span>
+                      </div>
                       <div className="text-[11px] font-medium text-slate-400 mt-1">{req.bed}</div>
                     </td>
                     <td className="py-4 px-5 align-middle">
@@ -448,9 +475,7 @@ const OwnerBookingRequests = () => {
                       )}
                     </td>
                     <td className="py-4 px-5 align-middle">
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${getStatusStyle(req.status)} shadow-sm`}>
-                        {req.status}
-                      </span>
+                      {getStatusBadge(req.status)}
                     </td>
                     <td className="py-4 px-5 align-middle text-right">
                       <div className="flex items-center justify-end gap-2">

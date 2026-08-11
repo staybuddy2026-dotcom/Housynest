@@ -6,6 +6,7 @@ import Booking from '../models/Booking.js';
 import { getIo } from '../socket.js';
 import { sendPropertyDeletionEmail } from './authController.js';
 import { sendGenericEmail } from '../utils/emailService.js';
+import { triggerRoomAvailabilityAlerts } from './waitlistController.js';
 
 // @desc    Create a new property
 // @route   POST /api/properties
@@ -246,6 +247,9 @@ export const updateProperty = async (req, res) => {
       { $set: propertyData },
       { new: true, runValidators: true }
     );
+
+    // Trigger availability alerts for waitlisted tenants
+    triggerRoomAvailabilityAlerts(propertyId);
 
     res.json(updatedProperty);
   } catch (error) {
