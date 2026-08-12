@@ -8,7 +8,12 @@ import {
   processPayment,
   payBalance,
   getOwnerRentCollection,
-  getAdminBookings
+  getAdminBookings,
+  confirmMoveIn,
+  requestMoveOut,
+  rejectMoveOut,
+  processCheckout,
+  emailAgreement
 } from '../controllers/bookingController.js';
 
 const router = express.Router();
@@ -36,5 +41,20 @@ router.route('/:id/pay')
 
 router.route('/:id/pay-balance')
   .put(protect, payBalance);
+
+router.route('/:id/confirm-move-in')
+  .put(protect, confirmMoveIn);
+
+router.route('/:id/request-move-out')
+  .post(protect, requestMoveOut);
+
+router.route('/:id/reject-move-out')
+  .post(protect, rejectMoveOut);
+
+router.route('/:id/process-checkout')
+  .post(protect, processCheckout);
+
+router.route('/:id/email-agreement')
+  .post(protect, emailAgreement);
 
 export default router;

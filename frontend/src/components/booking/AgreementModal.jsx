@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import html2pdf from 'html2pdf.js';
 import { DEFAULT_CONTRACT_TEXT } from './BookingStepPayment';
 import { translateWithGoogleFreeApi } from '../../lib/translate';
 
@@ -20,19 +21,16 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleDownloadPDF = () => {
-    const printWindow = window.open('', '_blank');
-    const content = document.getElementById('agreement-content')?.innerHTML;
-    
-    if (!content) {
-      toast.error('Could not generate PDF');
-      return;
-    }
+  const [isEmailing, setIsEmailing] = useState(false);
 
-    printWindow.document.write(`
+  const getFullHtmlForPDF = () => {
+    const content = document.getElementById('agreement-content')?.innerHTML;
+    if (!content) return null;
+
+    return `
       <html>
         <head>
-          <title>Rental Agreement - ${booking?.propertyId?.pgName || 'Housynest'}</title>
+          <title>Rental Agreement - ${booking?.propertyId?.pgName || booking?.propertyId?.societyName || 'Housynest'}</title>
           <style>
             body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; font-size: 14px; }
             h1 { text-align: center; color: #062F26; font-size: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }
@@ -40,10 +38,6 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
             p { font-size: 13px; margin-bottom: 12px; text-align: justify; }
             strong { font-weight: bold; color: #0f172a; }
             .header-info { text-align: right; font-size: 12px; color: #64748b; margin-bottom: 30px; }
-            @media print {
-              body { padding: 0; }
-              @page { margin: 20mm; }
-            }
           </style>
         </head>
         <body>
@@ -51,19 +45,71 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
             Generated on: ${new Date().toLocaleDateString('en-GB')}<br/>
             Ref: ${booking?._id ? booking._id.substring(booking._id.length - 8).toUpperCase() : 'HN-REF'}
           </div>
-          ${content.replace(/class="[^"]*"/g, '') /* Strip tailwind classes for print */}
+          ${content.replace(/class="[^"]*"/g, '')}
         </body>
       </html>
-    `);
+    `;
+  };
+
+  const handleDownloadPDF = () => {
+    const htmlString = getFullHtmlForPDF();
+    if (!htmlString) {
+      toast.error('Could not generate PDF');
+      return;
+    }
     
-    printWindow.document.close();
-    printWindow.focus();
+    // Create a temporary element to hold the HTML
+    const element = document.createElement('div');
+    element.innerHTML = htmlString;
     
-    // Slight delay to ensure content is fully loaded before printing
-    setTimeout(() => {
-      printWindow.print();
-      // Optional: printWindow.close(); // Some browsers require it to stay open for the print dialog
-    }, 500);
+    const opt = {
+      margin:       10,
+      filename:     `Agreement_${booking?._id ? booking._id.substring(booking._id.length - 8).toUpperCase() : 'Draft'}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    toast.loading('Generating PDF...', { id: 'pdf-toast' });
+    html2pdf().from(element).set(opt).save().then(() => {
+      toast.success('PDF downloaded!', { id: 'pdf-toast' });
+    }).catch((err) => {
+      console.error(err);
+      toast.error('Failed to generate PDF', { id: 'pdf-toast' });
+    });
+  };
+
+  const handleEmailPDF = async () => {
+    const htmlString = getFullHtmlForPDF();
+    if (!htmlString) {
+      toast.error('Could not generate PDF content');
+      return;
+    }
+
+    setIsEmailing(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${booking._id}/email-agreement`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ htmlContent: htmlString })
+      });
+
+      if (res.ok) {
+        toast.success('Agreement PDF emailed successfully!');
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.message || 'Failed to email agreement');
+      }
+    } catch (error) {
+      console.error('Error emailing agreement:', error);
+      toast.error('An error occurred while sending the email');
+    } finally {
+      setIsEmailing(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -399,6 +445,10 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
             <>
               <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors cursor-pointer">
                 Close
+              </button>
+              <button onClick={handleEmailPDF} disabled={isEmailing} className="px-6 py-2.5 rounded-xl font-bold text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-sm transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50">
+                {isEmailing ? <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" /> : <Icon icon="lucide:mail" className="w-4 h-4" />} 
+                {isEmailing ? 'Sending...' : 'Email PDF'}
               </button>
               <button onClick={handleDownloadPDF} className="px-8 py-2.5 rounded-xl font-bold text-sm bg-[#062F26] hover:bg-[#08483B] text-white shadow-md transition-all cursor-pointer flex items-center gap-2">
                 <Icon icon="lucide:download" className="w-4 h-4" /> Download PDF

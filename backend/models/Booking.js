@@ -79,6 +79,29 @@ const bookingSchema = new mongoose.Schema({
     transactionId: String,
     paymentMethod: String,
     paidAt: Date
+  },
+
+  // Move-in & Escrow Payout
+  tenantConfirmedMoveIn: {
+    type: Boolean,
+    default: false
+  },
+  moveInConfirmedAt: Date,
+  payoutStatus: {
+    type: String,
+    enum: ['Pending', 'Processing', 'Paid'],
+    default: 'Pending'
+  },
+
+  // Move-out / Checkout tracking
+  moveOutRequest: {
+    isRequested: { type: Boolean, default: false },
+    requestedAt: Date,
+    intendedMoveOutDate: Date,
+    status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Completed'], default: 'Pending' },
+    rejectionReason: String,
+    deductions: { type: Number, default: 0 },
+    reason: String
   }
 }, { timestamps: true });
 

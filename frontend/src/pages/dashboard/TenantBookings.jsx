@@ -18,6 +18,11 @@ const TenantBookings = () => {
   const [loading, setLoading] = useState(true);
   const [processingPaymentId, setProcessingPaymentId] = useState(null);
   const [showAgreementModal, setShowAgreementModal] = useState(null);
+  const [confirmingMoveInId, setConfirmingMoveInId] = useState(null);
+
+  const [requestingMoveOutId, setRequestingMoveOutId] = useState(null);
+  const [moveOutDateInput, setMoveOutDateInput] = useState('');
+  const [moveOutReasonInput, setMoveOutReasonInput] = useState('');
 
   const getBookingStatusBadge = (status, size = 'sm') => {
     const isSmall = size === 'sm';
@@ -142,6 +147,72 @@ const TenantBookings = () => {
     }
   };
 
+  const handleConfirmMoveIn = async (bookingId) => {
+    setConfirmingMoveInId(bookingId);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/confirm-move-in`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast.success('Move-in confirmed successfully! Escrow payout initiated.');
+        setBookings(bookings.map(b => b._id === bookingId ? { ...b, tenantConfirmedMoveIn: true, payoutStatus: 'Paid', status: 'Active' } : b));
+        if (selectedBooking && selectedBooking._id === bookingId) {
+          setSelectedBooking({ ...selectedBooking, tenantConfirmedMoveIn: true, payoutStatus: 'Paid', status: 'Active' });
+        }
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.message || 'Failed to confirm move-in.');
+      }
+    } catch (error) {
+      console.error('Error confirming move-in:', error);
+      toast.error('An error occurred while confirming move-in.');
+    } finally {
+      setConfirmingMoveInId(null);
+    }
+  };
+
+  const handleRequestMoveOut = async (bookingId) => {
+    if (!moveOutDateInput) {
+      toast.error('Please select an intended move-out date.');
+      return;
+    }
+    setRequestingMoveOutId(bookingId);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/request-move-out`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          intendedMoveOutDate: moveOutDateInput,
+          reason: moveOutReasonInput
+        })
+      });
+      if (res.ok) {
+        const updatedBooking = await res.json();
+        toast.success('Move-out requested successfully.');
+        setBookings(bookings.map(b => b._id === bookingId ? updatedBooking : b));
+        if (selectedBooking && selectedBooking._id === bookingId) {
+          setSelectedBooking(updatedBooking);
+        }
+        setMoveOutDateInput('');
+        setMoveOutReasonInput('');
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.message || 'Failed to request move-out.');
+      }
+    } catch (error) {
+      console.error('Error requesting move-out:', error);
+      toast.error('An error occurred while requesting move-out.');
+    } finally {
+      setRequestingMoveOutId(null);
+    }
+  };
+
   if (loading) {
     return <div className="p-8 text-center text-slate-500">Loading bookings...</div>;
   }
@@ -225,13 +296,42 @@ const TenantBookings = () => {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); navigate(`/tenant/bookings/${booking._id}/pay-rent`); }}
-                          className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm"
-                        >
-                          <Icon icon="lucide:wallet" className="w-4 h-4 mr-1.5" />
-                          <span className="text-xs font-bold">Pay Rent</span>
-                        </button>
+                        {(() => {
+                          const isTokenPaidRow = (booking.status === 'Reserved' || booking.status === 'Confirmed') && ['Token Amount', 'Token (40%)'].includes(booking.paymentDetails?.paymentMethod);
+                          const needsConfirmationRow = (booking.status === 'Confirmed' || booking.status === 'Active') && booking.paymentDetails?.status === 'Paid' && !isTokenPaidRow && !booking.tenantConfirmedMoveIn;
+
+                          if (needsConfirmationRow) {
+                            return (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setSelectedBooking(booking); }}
+                                className="text-white px-3 py-2 rounded-lg cursor-pointer bg-indigo-600 hover:bg-indigo-700 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
+                              >
+                                <Icon icon="lucide:home" className="w-4 h-4 mr-1.5" />
+                                <span className="text-xs font-bold">Confirm Move-in</span>
+                              </button>
+                            );
+                          } else if (booking.status === 'Pending Payment' || (isTokenPaidRow && booking.status === 'Reserved')) {
+                            return (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setSelectedBooking(booking); }}
+                                className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
+                              >
+                                <Icon icon="lucide:wallet" className="w-4 h-4 mr-1.5" />
+                                <span className="text-xs font-bold">Pay Now</span>
+                              </button>
+                            );
+                          } else {
+                            return (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); navigate(`/tenant/bookings/${booking._id}/pay-rent`); }}
+                                className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
+                              >
+                                <Icon icon="lucide:wallet" className="w-4 h-4 mr-1.5" />
+                                <span className="text-xs font-bold">Pay Rent</span>
+                              </button>
+                            );
+                          }
+                        })()}
                         <button className="text-brand-teal px-3 py-2 rounded-lg cursor-pointer bg-brand-teal/5 hover:bg-brand-teal/15 transition-colors flex items-center justify-center shadow-sm">
                           <span className="text-xs font-bold mr-1">View</span>
                           <Icon icon="lucide:arrow-right" className="w-4 h-4" />
@@ -493,6 +593,103 @@ const TenantBookings = () => {
                           </button>
                         )}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Move-in Confirmation Banner */}
+                  {(booking.status === 'Confirmed' || booking.status === 'Active') && booking.paymentDetails?.status === 'Paid' && !isTokenPaid && (
+                    <div className="mt-6">
+                      <h3 className="text-lg font-bold text-[#062F26] mb-4">Move-in Status</h3>
+                      <div className={`border rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${booking.tenantConfirmedMoveIn ? 'bg-emerald-50 border-emerald-200' : 'bg-indigo-50 border-indigo-200'}`}>
+                        <div className="flex gap-4">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${booking.tenantConfirmedMoveIn ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-100 text-indigo-600'}`}>
+                            <Icon icon={booking.tenantConfirmedMoveIn ? "lucide:check-circle" : "lucide:home"} className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className={`text-sm font-bold ${booking.tenantConfirmedMoveIn ? 'text-emerald-800' : 'text-indigo-900'}`}>
+                              {booking.tenantConfirmedMoveIn ? 'Move-in Confirmed' : 'Confirm Your Move-in'}
+                            </p>
+                            <p className={`text-xs mt-1 leading-relaxed ${booking.tenantConfirmedMoveIn ? 'text-emerald-600' : 'text-indigo-700/80'}`}>
+                              {booking.tenantConfirmedMoveIn 
+                                ? 'You have successfully confirmed your move-in. Welcome to your new home!' 
+                                : 'Please confirm once you have successfully moved into the property. This will release the escrow payment to the owner.'}
+                            </p>
+                          </div>
+                        </div>
+                        {!booking.tenantConfirmedMoveIn && (
+                          <button
+                            onClick={() => handleConfirmMoveIn(booking._id)}
+                            disabled={confirmingMoveInId === booking._id}
+                            className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-bold text-sm rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors shrink-0 whitespace-nowrap flex items-center justify-center min-w-[150px]"
+                          >
+                            {confirmingMoveInId === booking._id ? (
+                              <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin" />
+                            ) : (
+                              'Confirm Move-in'
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Move-out Banner */}
+                  {booking.status === 'Active' && booking.tenantConfirmedMoveIn && (
+                    <div className="mt-6">
+                      <h3 className="text-lg font-bold text-[#062F26] mb-4">Move-out Request</h3>
+                      
+                      {booking.moveOutRequest?.isRequested ? (
+                        <div className={`border rounded-xl p-5 ${booking.moveOutRequest.status === 'Rejected' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+                          <div className="flex gap-4">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${booking.moveOutRequest.status === 'Rejected' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                              <Icon icon={booking.moveOutRequest.status === 'Rejected' ? 'lucide:x-circle' : 'lucide:clock'} className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <p className={`text-sm font-bold ${booking.moveOutRequest.status === 'Rejected' ? 'text-red-800' : 'text-amber-800'}`}>
+                                {booking.moveOutRequest.status === 'Rejected' ? 'Move-out Request Rejected' : 'Move-out Request Pending'}
+                              </p>
+                              <p className={`text-xs mt-1 leading-relaxed ${booking.moveOutRequest.status === 'Rejected' ? 'text-red-600' : 'text-amber-700/80'}`}>
+                                Intended Move-out Date: {new Date(booking.moveOutRequest.intendedMoveOutDate).toDateString()}
+                              </p>
+                              {booking.moveOutRequest.status === 'Rejected' && booking.moveOutRequest.rejectionReason && (
+                                <p className="text-xs mt-2 text-red-700 font-medium bg-red-100/50 p-2 rounded">
+                                  Reason: {booking.moveOutRequest.rejectionReason}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                          <p className="text-sm text-slate-600 mb-4">Planning to leave? Submit a move-out request to notify the owner and start the checkout process.</p>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <input
+                              type="date"
+                              value={moveOutDateInput}
+                              onChange={(e) => setMoveOutDateInput(e.target.value)}
+                              className="px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent flex-1"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Reason (Optional)"
+                              value={moveOutReasonInput}
+                              onChange={(e) => setMoveOutReasonInput(e.target.value)}
+                              className="px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent flex-1"
+                            />
+                            <button
+                              onClick={() => handleRequestMoveOut(booking._id)}
+                              disabled={requestingMoveOutId === booking._id}
+                              className="px-6 py-2 bg-slate-800 text-white font-bold text-sm rounded-lg hover:bg-slate-900 transition-colors shrink-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+                            >
+                              {requestingMoveOutId === booking._id ? (
+                                <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
+                              ) : (
+                                'Request Move-out'
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

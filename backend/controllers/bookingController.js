@@ -3,6 +3,7 @@ import Property from '../models/Property.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
 import { sendGenericEmail } from '../utils/emailService.js';
+import puppeteer from 'puppeteer';
 import { getIo } from '../socket.js';
 import { triggerRoomAvailabilityAlerts } from './waitlistController.js';
 
@@ -535,5 +536,370 @@ export const getAdminBookings = async (req, res) => {
     res.status(200).json(bookings);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch admin bookings', error: error.message });
+  }
+};
+
+// @desc    Confirm move-in by tenant and trigger payout
+// @route   PUT /api/bookings/:id/confirm-move-in
+// @access  Private (Tenant)
+export const confirmMoveIn = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate('tenantId')
+      .populate('ownerId')
+      .populate('propertyId');
+    
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (booking.tenantId._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the tenant can confirm move-in' });
+    }
+
+    if (booking.tenantConfirmedMoveIn) {
+      return res.status(400).json({ message: 'Move-in already confirmed' });
+    }
+
+    // Set confirmation and trigger payout
+    booking.tenantConfirmedMoveIn = true;
+    booking.moveInConfirmedAt = new Date();
+    booking.payoutStatus = 'Paid'; // Escrow payout simulated as Paid immediately
+    booking.status = 'Active'; // Change status to Active upon move-in confirmation
+
+    const updatedBooking = await booking.save();
+
+    // Send emails
+    try {
+      const propertyName = booking.propertyId?.pgName || booking.propertyId?.societyName || 'Property';
+      
+      // Email to Owner
+      if (booking.ownerId && booking.ownerId.email) {
+        const ownerSubject = `Move-in Confirmed & Payout Initiated - ${propertyName}`;
+        const ownerContent = `
+          Hello ${booking.ownerId.fullName},
+
+          Great news! Your tenant, ${booking.tenantId.fullName}, has successfully confirmed their move-in for ${propertyName}.
+          
+          The rent and security deposit collected by Housynest have now been released from Escrow and the payout has been initiated to your registered bank account.
+          
+          Booking Details:
+          - Property: ${propertyName}
+          - Tenant: ${booking.tenantId.fullName}
+          - Move-in Date: ${new Date(booking.moveInDate).toDateString()}
+          - Payout Status: Released
+
+          Thank you for choosing Housynest!
+        `;
+        await sendGenericEmail(booking.ownerId.email, ownerSubject, ownerContent, null);
+      }
+
+      // Email to Tenant
+      if (booking.tenantId && booking.tenantId.email) {
+        const tenantSubject = `Move-in Confirmation Successful - ${propertyName}`;
+        const tenantContent = `
+          Hello ${booking.tenantId.fullName},
+
+          Thank you for confirming your move-in at ${propertyName}.
+          
+          Your initial rent and security deposit have now been released from Escrow and transferred to the owner.
+          We hope you have a wonderful stay!
+          
+          If you face any issues, feel free to contact Housynest support.
+
+          Thank you for choosing Housynest!
+        `;
+        await sendGenericEmail(booking.tenantId.email, tenantSubject, tenantContent, null);
+      }
+    } catch (emailErr) {
+      console.error('Error sending move-in confirmation emails:', emailErr);
+    }
+
+    res.json(updatedBooking);
+  } catch (error) {
+    console.error('Confirm move-in error:', error);
+    res.status(500).json({ message: 'Server error confirming move-in' });
+  }
+};
+
+// @desc    Request Move Out (Tenant)
+// @route   POST /api/bookings/:id/request-move-out
+// @access  Private (Tenant only)
+export const requestMoveOut = async (req, res) => {
+  try {
+    const { intendedMoveOutDate, reason } = req.body;
+    
+    if (!intendedMoveOutDate) {
+      return res.status(400).json({ message: 'Intended move-out date is required' });
+    }
+
+    const booking = await Booking.findById(req.params.id)
+      .populate('propertyId', 'pgName societyName')
+      .populate('ownerId', 'email fullName')
+      .populate('tenantId', 'fullName email');
+      
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (booking.tenantId._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the tenant can request a move-out' });
+    }
+
+    booking.moveOutRequest = {
+      isRequested: true,
+      requestedAt: new Date(),
+      intendedMoveOutDate: new Date(intendedMoveOutDate),
+      status: 'Pending',
+      reason: reason || ''
+    };
+
+    const updatedBooking = await booking.save();
+
+    // Send email to owner
+    if (booking.ownerId && booking.ownerId.email) {
+      const propertyName = booking.propertyId?.pgName || booking.propertyId?.societyName || 'Property';
+      const ownerSubject = `Move-out Requested - ${propertyName}`;
+      const ownerContent = `
+        Hello ${booking.ownerId.fullName},
+
+        Your tenant, ${booking.tenantId.fullName}, has requested to move out from ${propertyName}.
+        Intended Move-out Date: ${new Date(intendedMoveOutDate).toDateString()}
+        Reason: ${reason || 'Not specified'}
+
+        Please log in to your dashboard to review this request and process the final checkout.
+
+        Thank you!
+      `;
+      try {
+        await sendGenericEmail(booking.ownerId.email, ownerSubject, ownerContent, null);
+      } catch (e) {
+        console.error('Error sending move-out request email:', e);
+      }
+    }
+
+    res.json(updatedBooking);
+  } catch (error) {
+    console.error('Request move out error:', error);
+    res.status(500).json({ message: 'Server error requesting move out' });
+  }
+};
+
+// @desc    Reject Move Out Request (Owner)
+// @route   POST /api/bookings/:id/reject-move-out
+// @access  Private (Owner only)
+export const rejectMoveOut = async (req, res) => {
+  try {
+    const { rejectionReason } = req.body;
+    
+    if (!rejectionReason) {
+      return res.status(400).json({ message: 'Rejection reason is required' });
+    }
+
+    const booking = await Booking.findById(req.params.id)
+      .populate('propertyId', 'pgName societyName')
+      .populate('tenantId', 'email fullName');
+      
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (booking.ownerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the owner can reject a move-out request' });
+    }
+
+    if (!booking.moveOutRequest || !booking.moveOutRequest.isRequested) {
+      return res.status(400).json({ message: 'No move-out request found' });
+    }
+
+    booking.moveOutRequest.status = 'Rejected';
+    booking.moveOutRequest.rejectionReason = rejectionReason;
+
+    const updatedBooking = await booking.save();
+
+    // Send email to tenant
+    if (booking.tenantId && booking.tenantId.email) {
+      const propertyName = booking.propertyId?.pgName || booking.propertyId?.societyName || 'Property';
+      const tenantSubject = `Move-out Request Rejected - ${propertyName}`;
+      const tenantContent = `
+        Hello ${booking.tenantId.fullName},
+
+        Your request to move out from ${propertyName} on ${new Date(booking.moveOutRequest.intendedMoveOutDate).toDateString()} has been rejected by the owner.
+        
+        Reason for rejection:
+        ${rejectionReason}
+
+        Please log in to your dashboard to clear any pending dues or contact the owner for more details.
+
+        Thank you!
+      `;
+      try {
+        await sendGenericEmail(booking.tenantId.email, tenantSubject, tenantContent, null);
+      } catch (e) {
+        console.error('Error sending rejection email:', e);
+      }
+    }
+
+    res.json(updatedBooking);
+  } catch (error) {
+    console.error('Reject move out error:', error);
+    res.status(500).json({ message: 'Server error rejecting move out' });
+  }
+};
+
+// @desc    Process Checkout (Owner)
+// @route   POST /api/bookings/:id/process-checkout
+// @access  Private (Owner only)
+export const processCheckout = async (req, res) => {
+  try {
+    const { deductions } = req.body;
+
+    const booking = await Booking.findById(req.params.id)
+      .populate('propertyId', 'pgName societyName')
+      .populate('tenantId', 'email fullName');
+      
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (booking.ownerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the owner can process a checkout' });
+    }
+
+    if (!booking.moveOutRequest || !booking.moveOutRequest.isRequested) {
+      // If the owner is checking them out without a formal request, we can auto-fill it
+      booking.moveOutRequest = {
+        isRequested: true,
+        requestedAt: new Date(),
+        intendedMoveOutDate: new Date(),
+      };
+    }
+
+    booking.moveOutRequest.status = 'Completed';
+    booking.moveOutRequest.deductions = deductions || 0;
+    
+    // Mark the entire booking as completed
+    booking.status = 'Completed';
+    booking.expectedMoveOutDate = new Date(); // Actual move out date
+
+    const updatedBooking = await booking.save();
+
+    // Send email to tenant
+    if (booking.tenantId && booking.tenantId.email) {
+      const propertyName = booking.propertyId?.pgName || booking.propertyId?.societyName || 'Property';
+      const tenantSubject = `Checkout Completed - ${propertyName}`;
+      const tenantContent = `
+        Hello ${booking.tenantId.fullName},
+
+        The owner has processed your final checkout for ${propertyName}.
+        
+        Final Settlement Details:
+        - Security Deposit Deductions (Damages/Dues): ₹${deductions || 0}
+        
+        We hope you had a great stay!
+
+        Thank you for choosing Housynest.
+      `;
+      try {
+        await sendGenericEmail(booking.tenantId.email, tenantSubject, tenantContent, null);
+      } catch (e) {
+        console.error('Error sending checkout email:', e);
+      }
+    }
+
+    res.json(updatedBooking);
+  } catch (error) {
+    console.error('Process checkout error:', error);
+    res.status(500).json({ message: 'Server error processing checkout' });
+  }
+};
+
+// @desc    Email Agreement PDF
+// @route   POST /api/bookings/:id/email-agreement
+// @access  Private
+export const emailAgreement = async (req, res) => {
+  try {
+    const { htmlContent } = req.body;
+    
+    if (!htmlContent) {
+      return res.status(400).json({ message: 'HTML content is required' });
+    }
+
+    const booking = await Booking.findById(req.params.id)
+      .populate('propertyId', 'pgName societyName')
+      .populate('tenantId', 'email fullName');
+      
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Ensure the requester is either the tenant or the admin/owner
+    if (booking.tenantId._id.toString() !== req.user._id.toString() && booking.ownerId?.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to email this agreement' });
+    }
+
+    if (!booking.tenantId || !booking.tenantId.email) {
+      return res.status(400).json({ message: 'Tenant email not found' });
+    }
+
+    // Generate PDF using Puppeteer
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '20mm', right: '20mm', bottom: '20mm', left: '20mm' }
+    });
+    
+    await browser.close();
+
+    const propertyName = booking.propertyId?.pgName || booking.propertyId?.societyName || 'Property';
+    const subject = `Your Rental Agreement - ${propertyName}`;
+    const textContent = `
+      Hello ${booking.tenantId.fullName},
+
+      Please find attached the PDF copy of your rental agreement for ${propertyName}.
+
+      Thank you for choosing Housynest!
+    `;
+
+    // Email attachment using the existing email service setup
+    // Since sendGenericEmail might not support attachments easily out of the box, we will manually send via nodemailer 
+    // or modify our sendGenericEmail if it supports it.
+    // Let's check if we can pass attachments to sendGenericEmail. 
+    // Usually it doesn't, so let's import nodemailer dynamically or assume sendGenericEmail handles it.
+    // Wait, let's just use nodemailer directly here to be safe, as it's standard.
+    
+    const nodemailer = await import('nodemailer');
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      to: booking.tenantId.email,
+      subject: subject,
+      text: textContent,
+      attachments: [
+        {
+          filename: 'Rental_Agreement.pdf',
+          content: pdfBuffer,
+          contentType: 'application/pdf'
+        }
+      ]
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ message: 'Agreement PDF emailed successfully' });
+  } catch (error) {
+    console.error('Email agreement error:', error);
+    res.status(500).json({ message: 'Server error emailing agreement PDF' });
   }
 };

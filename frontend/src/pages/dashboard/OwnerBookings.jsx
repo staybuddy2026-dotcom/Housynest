@@ -13,6 +13,10 @@ const OwnerBookings = () => {
   const [dateFilter, setDateFilter] = useState('');
   const [activeDropdown, setActiveDropdown] = useState(null);
 
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [deductions, setDeductions] = useState('');
+  const [processingMoveOutId, setProcessingMoveOutId] = useState(null);
+
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -103,6 +107,7 @@ const OwnerBookings = () => {
       status: rawStatus,
       filterStatus: filterStatus,
       source: b.propertyId?.bookingType === 'Direct Booking' ? 'DIRECT' : 'REQUEST',
+      moveOutRequest: b.moveOutRequest || null,
       raw: b,
     };
   });
@@ -146,6 +151,70 @@ const OwnerBookings = () => {
           <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
         </div>
       );
+    }
+  };
+
+  const handleRejectMoveOut = async (bookingId) => {
+    if (!rejectionReason.trim()) {
+      toast.error('Please provide a reason for rejection.');
+      return;
+    }
+    setProcessingMoveOutId(bookingId);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/reject-move-out`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ rejectionReason })
+      });
+      if (res.ok) {
+        const updatedBooking = await res.json();
+        toast.success('Move-out request rejected.');
+        setBookings(bookings.map(b => b._id === bookingId ? updatedBooking : b));
+        setRejectionReason('');
+        setSelectedBooking(null); // close drawer to refresh data smoothly
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.message || 'Failed to reject move-out request.');
+      }
+    } catch (error) {
+      console.error('Error rejecting move-out:', error);
+      toast.error('An error occurred while rejecting the request.');
+    } finally {
+      setProcessingMoveOutId(null);
+    }
+  };
+
+  const handleProcessCheckout = async (bookingId) => {
+    setProcessingMoveOutId(bookingId);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/process-checkout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ deductions: Number(deductions) || 0 })
+      });
+      if (res.ok) {
+        const updatedBooking = await res.json();
+        toast.success('Checkout completed successfully.');
+        setBookings(bookings.map(b => b._id === bookingId ? updatedBooking : b));
+        setDeductions('');
+        setSelectedBooking(null); // close drawer
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.message || 'Failed to process checkout.');
+      }
+    } catch (error) {
+      console.error('Error processing checkout:', error);
+      toast.error('An error occurred while processing checkout.');
+    } finally {
+      setProcessingMoveOutId(null);
     }
   };
 
@@ -386,6 +455,13 @@ const OwnerBookings = () => {
                   </td>
                   <td className="py-4 px-5 align-middle">
                     {getBookingStatusBadge(booking.status)}
+                    {booking.moveOutRequest?.isRequested && booking.moveOutRequest.status === 'Pending' && (
+                      <div className="mt-2 flex">
+                        <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                          <Icon icon="lucide:log-out" className="w-3 h-3" /> Move-out Req
+                        </span>
+                      </div>
+                    )}
                   </td>
                   <td className="py-4 px-5 align-middle text-right">
                     <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
@@ -457,7 +533,72 @@ const OwnerBookings = () => {
             >
               <div className="p-6 space-y-6">
 
+                {/* Move-out Action Card */}
+                {selectedBooking.raw.moveOutRequest?.isRequested && selectedBooking.raw.moveOutRequest?.status === 'Pending' && (
+                  <div className="bg-amber-50 rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-amber-200">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                        <Icon icon="lucide:log-out" className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-amber-900">Move-out Request Pending</h4>
+                        <p className="text-sm font-medium text-amber-700/80 mt-0.5">
+                          Intended Date: {new Date(selectedBooking.raw.moveOutRequest.intendedMoveOutDate).toDateString()}
+                        </p>
+                        {selectedBooking.raw.moveOutRequest.reason && (
+                          <p className="text-xs text-amber-700 mt-1 italic">"{selectedBooking.raw.moveOutRequest.reason}"</p>
+                        )}
+                      </div>
+                    </div>
 
+                    <div className="space-y-4">
+                      {/* Reject Section */}
+                      <div className="bg-white/60 p-3 rounded-xl border border-amber-100">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Reject Request</p>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Reason for rejection (e.g. Unpaid dues)"
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                          />
+                          <button
+                            onClick={() => handleRejectMoveOut(selectedBooking._id)}
+                            disabled={processingMoveOutId === selectedBooking._id}
+                            className="px-4 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold text-sm rounded-lg shadow-sm transition-colors disabled:opacity-50"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Checkout Section */}
+                      <div className="bg-white/60 p-3 rounded-xl border border-amber-100">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Process Checkout</p>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
+                            <input
+                              type="number"
+                              placeholder="Deductions (Damages/Dues)"
+                              value={deductions}
+                              onChange={(e) => setDeductions(e.target.value)}
+                              className="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal"
+                            />
+                          </div>
+                          <button
+                            onClick={() => handleProcessCheckout(selectedBooking._id)}
+                            disabled={processingMoveOutId === selectedBooking._id}
+                            className="px-4 py-2 bg-[#062F26] text-white hover:bg-brand-teal font-bold text-sm rounded-lg shadow-sm transition-colors disabled:opacity-50 whitespace-nowrap"
+                          >
+                            Checkout & Complete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Personal Information */}
                 <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                   <h4 className="text-sm font-bold text-[#062F26] mb-4">Personal Information</h4>

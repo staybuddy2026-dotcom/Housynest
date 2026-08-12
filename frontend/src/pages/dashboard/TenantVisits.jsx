@@ -101,7 +101,7 @@ const TenantVisits = () => {
           <h1 className="text-2xl font-bold text-[#062F26]">My Property Visits</h1>
           <p className="text-sm text-slate-500 mt-1">Track and manage your scheduled property viewings</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700">
+        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-md shadow-sm text-sm font-bold text-slate-700">
           <Icon icon="lucide:calendar-days" className="w-4 h-4 text-[#0AA87D]" />
           Total Visits: <span className="text-[#062F26]">{visits.length}</span>
         </div>
@@ -281,7 +281,7 @@ const TenantVisits = () => {
                               {(visit.message || visit.suggestedTime) && (
                                 <button
                                   onClick={() => setExpandedMessageId(isMessageExpanded ? null : visit._id)}
-                                  className={`p-2 rounded-xl border transition-colors flex items-center justify-center gap-2 text-xs font-bold ${isMessageExpanded
+                                  className={`p-2 rounded-md border transition-colors flex items-center justify-center gap-2 text-xs font-bold ${isMessageExpanded
                                     ? 'bg-slate-800 text-white border-slate-800'
                                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-[#062F26]'
                                     }`}
@@ -293,9 +293,9 @@ const TenantVisits = () => {
                               )}
 
                               {visit.status === 'Completed' && (
-                                <button 
+                                <button
                                   onClick={() => navigate(`/properties/${visit.property?._id || visit.property}?book=true`)}
-                                  className="px-4 py-2 bg-[#062F26] text-white rounded-xl font-bold text-xs hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1.5"
+                                  className="px-4 py-2 bg-[#062F26] text-white rounded-md font-bold text-xs hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1.5"
                                 >
                                   Book Now
                                   <Icon icon="lucide:arrow-right" className="w-3.5 h-3.5" />
@@ -424,7 +424,7 @@ const TenantVisits = () => {
                       ) : <div></div>}
 
                       {visit.status === 'Completed' && (
-                        <button 
+                        <button
                           onClick={() => navigate(`/properties/${visit.property?._id || visit.property}?book=true`)}
                           className="px-3 py-1.5 bg-[#062F26] text-white rounded-lg font-bold text-[11px] hover:bg-[#08483B] transition-colors shadow-xs flex items-center gap-1"
                         >

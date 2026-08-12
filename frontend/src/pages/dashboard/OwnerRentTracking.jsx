@@ -213,7 +213,9 @@ const OwnerRentTracking = () => {
       billingPeriodEnd: cycleEnd,
       status: activeInvoice ? activeInvoice.status : 'Paid',
       paidAt: activeInvoice ? activeInvoice.paidAt : b.paymentDetails?.paidAt,
-      invoiceId: activeInvoice ? activeInvoice._id : null
+      invoiceId: activeInvoice ? activeInvoice._id : null,
+      payoutStatus: b.payoutStatus || 'Pending',
+      isInitialPayment: !activeInvoice
     };
   }).filter(item => {
     const tName = item.tenantId?.fullName || '';
@@ -241,7 +243,15 @@ const OwnerRentTracking = () => {
     return matchesSearch && matchesProperty && matchesStatus && matchesMonth;
   });
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, inv = null) => {
+    if (inv && inv.isInitialPayment && inv.payoutStatus === 'Pending' && status === 'Paid') {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full shadow-sm hover:bg-indigo-100 transition-colors">
+          <Icon icon="lucide:shield-alert" className="w-3.5 h-3.5 text-indigo-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">In Escrow</span>
+        </div>
+      );
+    }
     if (['Paid'].includes(status)) {
       return (
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors">
@@ -374,7 +384,7 @@ const OwnerRentTracking = () => {
                     </div>
                   </div>
                   <div className="shrink-0">
-                    {getStatusBadge(inv.displayStatus)}
+                    {getStatusBadge(inv.displayStatus, inv)}
                   </div>
                 </div>
 
@@ -503,7 +513,7 @@ const OwnerRentTracking = () => {
                       <div className="font-bold text-slate-800 text-sm truncate max-w-[100px]" title={`₹ ${inv.rentAmt?.toLocaleString()}`}>₹ {inv.rentAmt?.toLocaleString()}</div>
                     </td>
                     <td className="py-2.5 px-5 align-middle">
-                      {getStatusBadge(inv.displayStatus)}
+                      {getStatusBadge(inv.displayStatus, inv)}
                     </td>
                     <td className="py-2.5 px-5 align-middle text-center">
                       <button

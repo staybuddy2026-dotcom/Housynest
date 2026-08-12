@@ -193,7 +193,7 @@ const TenantRentPayment = () => {
     }
   }
 
-  const propertyName = booking.propertyId?.pgName || booking.propertyId?.title || 'Property';
+  const propertyName = booking.propertyId?.societyName || booking.propertyId?.pgName || booking.propertyId?.title || 'Property';
   const location = `${booking.propertyId?.locality || ''}, ${booking.propertyId?.city || ''}`;
   const room = booking.roomDetails?.roomName || 'Room';
   const bed = booking.roomDetails?.bedName || 'Bed';
