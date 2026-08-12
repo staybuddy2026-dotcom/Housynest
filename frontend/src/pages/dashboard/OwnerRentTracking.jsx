@@ -287,7 +287,7 @@ const OwnerRentTracking = () => {
       {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Rent Collection</h1>
+          <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Payouts</h1>
           <p className="text-sm text-slate-500 font-medium">Track recurring monthly rent payments across all your active tenants.</p>
         </div>
       </div>

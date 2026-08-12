@@ -101,8 +101,25 @@ export const toggleSavedProperty = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ role: { $ne: 'admin' } }).select('-password');
-    res.json(users);
+    const users = await User.find({ role: { $ne: 'admin' } }).select('-password').sort({ createdAt: -1 }).lean();
+    
+    const enrichedUsers = await Promise.all(users.map(async (u) => {
+      if (u.role === 'owner') {
+        const propCount = await Property.countDocuments({ owner: u._id });
+        return { ...u, propertiesCount: propCount };
+      } else if (u.role === 'tenant') {
+        const booking = await Booking.findOne({ tenantId: u._id, status: { $in: ['Confirmed', 'Active'] } })
+          .populate('propertyId', 'pgName societyName propertyCategory');
+        return {
+          ...u,
+          assignedProperty: booking ? (booking.propertyId?.pgName || booking.propertyId?.societyName || booking.propertyId?.propertyCategory) : null,
+          assignedRoom: booking?.roomDetails?.roomName || null
+        };
+      }
+      return u;
+    }));
+
+    res.json(enrichedUsers);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch users', error: error.message });
   }

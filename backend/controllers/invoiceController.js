@@ -153,7 +153,7 @@ export const remindInvoice = async (req, res) => {
   try {
     const invoice = await RentInvoice.findById(req.params.id).populate('tenantId').populate('propertyId');
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
-    if (invoice.ownerId.toString() !== req.user._id.toString()) {
+    if (invoice.ownerId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -174,6 +174,40 @@ export const remindInvoice = async (req, res) => {
   } catch (error) {
     console.error('Error sending reminder:', error);
     res.status(500).json({ message: 'Server error sending reminder' });
+  }
+};
+
+// @desc    Admin send reminders to all overdue
+// @route   POST /api/invoices/admin/remind-all
+// @access  Private (Admin)
+export const adminRemindAll = async (req, res) => {
+  try {
+    const overdueInvoices = await RentInvoice.find({ status: 'Overdue' })
+      .populate('tenantId', 'fullName email')
+      .populate('propertyId', 'pgName societyName');
+
+    let count = 0;
+    for (const invoice of overdueInvoices) {
+      if (invoice.tenantId && invoice.tenantId.email) {
+        const propertyName = invoice.propertyId?.pgName || invoice.propertyId?.societyName || 'Property';
+        const subject = `URGENT: Rent Overdue Reminder - ${propertyName}`;
+        const content = `
+          Hello ${invoice.tenantId.fullName},
+          
+          This is an urgent reminder that your rent of Rs. ${invoice.amount} for ${propertyName} is OVERDUE (was due on ${new Date(invoice.dueDate).toLocaleDateString()}).
+          
+          Please log in to your Housynest dashboard immediately to complete the payment and avoid further penalties.
+          
+          Thank you.
+        `;
+        await sendGenericEmail(invoice.tenantId.email, subject, content);
+        count++;
+      }
+    }
+    res.json({ message: `Sent ${count} reminders successfully` });
+  } catch (error) {
+    console.error('Error in adminRemindAll:', error);
+    res.status(500).json({ message: 'Server error sending reminders' });
   }
 };
 
@@ -354,35 +388,141 @@ export const getAdminInvoiceStats = async (req, res) => {
     const today = new Date();
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
+    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-    // 1. Get rent invoices paid this month
-    const rentInvoices = await RentInvoice.find({
-      status: 'Paid',
-    });
+    // Fetch all invoices and populate necessary fields
+    const allInvoices = await RentInvoice.find()
+      .populate('tenantId', 'fullName email phone profilePic')
+      .populate('propertyId', 'pgName societyName')
+      .populate({ path: 'bookingId', select: 'roomDetails' })
+      .lean();
+
+    // Fetch all active/paid bookings (for initial payments treated as rent)
+    const bookings = await Booking.find({ 'paymentDetails.status': 'Paid' })
+      .populate('tenantId', 'fullName email phone profilePic')
+      .populate('propertyId', 'pgName societyName')
+      .lean();
+
+    // Inject bookings into invoice list (as they count as month 1 rent)
+    const combinedInvoices = [...allInvoices];
     
-    let totalRentCollected = 0;
-    rentInvoices.forEach(inv => {
-      // Check if paidAt or dueDate is this month (using dueDate for simplicity if paidAt is missing)
+    for (const b of bookings) {
+      if (b.moveInDate) {
+        const moveIn = new Date(b.moveInDate);
+        const endOfFirstMonth = new Date(moveIn);
+        endOfFirstMonth.setMonth(endOfFirstMonth.getMonth() + 1);
+        
+        // Ensure we don't duplicate if there's already an invoice for this booking for the same period
+        const hasExisting = allInvoices.some(inv => 
+           inv.bookingId?._id?.toString() === b._id.toString() &&
+           new Date(inv.billingPeriodStart).getTime() === moveIn.getTime()
+        );
+
+        if (!hasExisting) {
+          combinedInvoices.push({
+            _id: b._id,
+            bookingId: {
+              _id: b._id,
+              roomDetails: b.roomDetails
+            },
+            tenantId: b.tenantId,
+            propertyId: b.propertyId,
+            amount: b.paymentDetails.amount,
+            dueDate: moveIn,
+            billingPeriodStart: moveIn,
+            billingPeriodEnd: endOfFirstMonth,
+            status: 'Paid',
+            paymentMethod: b.paymentDetails.paymentMethod,
+            paidAt: b.paymentDetails.paidAt || b.createdAt,
+            isInitialPayment: true
+          });
+        }
+      }
+    }
+
+    // Sort combined invoices by due date descending
+    combinedInvoices.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
+
+    // --- Calculate Stats ---
+    let stats = {
+      current: { collected: 0, pending: 0, overdue: 0 },
+      previous: { collected: 0, pending: 0, overdue: 0 },
+      historical: {
+        collected: new Array(12).fill(0),
+        pending: new Array(12).fill(0),
+        overdue: new Array(12).fill(0)
+      }
+    };
+
+    const recentOverdue = [];
+
+    combinedInvoices.forEach(inv => {
       const d = new Date(inv.dueDate);
-      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-        totalRentCollected += inv.amount;
+      const invMonth = d.getMonth();
+      const invYear = d.getFullYear();
+      const amount = Number(inv.amount) || 0;
+
+      // Current Month
+      if (invMonth === currentMonth && invYear === currentYear) {
+        if (inv.status === 'Paid') stats.current.collected += amount;
+        if (inv.status === 'Pending') stats.current.pending += amount;
+        if (inv.status === 'Overdue') stats.current.overdue += amount;
+      }
+
+      // Previous Month
+      if (invMonth === previousMonth && invYear === previousMonthYear) {
+        if (inv.status === 'Paid') stats.previous.collected += amount;
+        if (inv.status === 'Pending') stats.previous.pending += amount;
+        if (inv.status === 'Overdue') stats.previous.overdue += amount;
+      }
+
+      // Historical (Current Year Only)
+      if (invYear === currentYear) {
+        if (inv.status === 'Paid') stats.historical.collected[invMonth] += amount;
+        if (inv.status === 'Pending') stats.historical.pending[invMonth] += amount;
+        if (inv.status === 'Overdue') stats.historical.overdue[invMonth] += amount;
+      }
+
+      // Populate Recent Overdue List
+      if (inv.status === 'Overdue' && recentOverdue.length < 10) {
+        const daysOverdue = Math.floor((today - d) / (1000 * 60 * 60 * 24));
+        recentOverdue.push({
+          id: inv._id,
+          tenant: inv.tenantId?.fullName || 'Unknown',
+          property: inv.propertyId?.pgName || inv.propertyId?.societyName || 'Unknown',
+          dueDate: d,
+          amount: amount,
+          daysOverdue: daysOverdue > 0 ? daysOverdue : 0
+        });
       }
     });
 
-    // 2. Get initial booking payments this month
-    const bookings = await Booking.find({
-      'paymentDetails.status': 'Paid'
-    });
-    
-    bookings.forEach(b => {
-      const d = new Date(b.createdAt);
-      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-        totalRentCollected += b.paymentDetails.amount;
-      }
-    });
+    // Helper for percentage change calculation
+    const calcTrend = (curr, prev) => {
+      if (prev === 0) return { value: curr > 0 ? 100 : 0, up: curr >= prev };
+      const change = ((curr - prev) / prev) * 100;
+      return { value: Math.abs(change).toFixed(1), up: change >= 0 };
+    };
 
-    res.status(200).json({ totalRentCollected });
+    const trends = {
+      collected: calcTrend(stats.current.collected, stats.previous.collected),
+      pending: calcTrend(stats.current.pending, stats.previous.pending),
+      overdue: calcTrend(stats.current.overdue, stats.previous.overdue)
+    };
+
+    res.status(200).json({
+      stats: {
+        current: stats.current,
+        trends: trends,
+        expected: stats.current.collected + stats.current.pending + stats.current.overdue
+      },
+      historical: stats.historical,
+      recentOverdue: recentOverdue,
+      invoices: combinedInvoices
+    });
   } catch (error) {
+    console.error('Error in getAdminInvoiceStats:', error);
     res.status(500).json({ message: 'Error fetching admin invoice stats', error: error.message });
   }
 };

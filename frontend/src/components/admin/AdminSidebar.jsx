@@ -66,6 +66,7 @@ const AdminSidebar = ({ isMobile }) => {
     { name: 'Listings Management', path: '/admin/listings', icon: 'lucide:home' },
     { name: 'User Management', path: '/admin/users', icon: 'lucide:users' },
     { name: 'Bookings & Payments', path: '/admin/transactions', icon: 'lucide:receipt' },
+    { name: 'Rent Collection', path: '/admin/rent-collection', icon: 'lucide:wallet' },
     { name: 'Property Requests', path: '/admin/property-requests', icon: 'lucide:clipboard-list', badge: pendingPropertyCount > 0 ? pendingPropertyCount : null },
     // { name: 'Lawyer Requests', path: '/admin/lawyer-requests', icon: 'lucide:scale' },
     { name: 'WA Outreach', path: '/admin/wa-outreach', icon: 'lucide:message-square' },
@@ -141,6 +142,7 @@ const AdminSidebar = ({ isMobile }) => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
+    window.dispatchEvent(new Event('auth-change'));
     navigate('/control/login');
   };
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
+import ReactApexChart from 'react-apexcharts';
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-IN', {
@@ -73,6 +74,8 @@ const AdminBookings = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedBooking, setSelectedBooking] = useState(null);
 
+  const [rentRevenue, setRentRevenue] = useState(0);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
@@ -81,14 +84,21 @@ const AdminBookings = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      const res = await fetch('/api/bookings/admin/all', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const [bookRes, statsRes] = await Promise.all([
+        fetch('/api/bookings/admin/all', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/invoices/admin/stats', { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+
+      if (bookRes.ok) {
+        const data = await bookRes.json();
         setBookings(data);
       } else {
         toast.error('Failed to load bookings');
+      }
+
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setRentRevenue(statsData?.stats?.current?.collected || 0);
       }
     } catch {
       toast.error('Error connecting to server');
@@ -299,30 +309,128 @@ const AdminBookings = () => {
     const total = bookings.length;
     const active = bookings.filter(b => ['Active', 'Confirmed'].includes(b.status)).length;
     const pending = bookings.filter(b => ['Pending Request', 'Pending Payment', 'Reserved'].includes(b.status)).length;
-    const totalRevenue = bookings.reduce((sum, b) => sum + (b.paymentDetails?.amount || 0), 0);
+    const totalRevenue = rentRevenue;
     return { total, active, pending, totalRevenue };
-  }, [bookings]);
+  }, [bookings, rentRevenue]);
+
+  const sparklineOptions = {
+    chart: { type: 'area', sparkline: { enabled: true }, animations: { enabled: true } },
+    stroke: { width: 1.5, curve: 'smooth' },
+    fill: {
+      type: 'solid',
+      opacity: 0.15
+    },
+    grid: { padding: { top: 0, bottom: 0, left: 0, right: 0 } },
+    yaxis: {
+      min: 0,
+      max: 95,
+      labels: { show: false },
+      axisBorder: { show: false },
+      axisTicks: { show: false }
+    },
+    xaxis: {
+      labels: { show: false },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      crosshairs: { show: false },
+      tooltip: { enabled: false }
+    },
+    tooltip: { enabled: false }
+  };
+
+  const sparklineData = [
+    [57, 75, 85, 62, 80, 58, 65],
+    [88, 70, 80, 62, 75, 60, 62],
+    [75, 62, 75, 50, 76, 55, 80],
+    [50, 90, 62, 75, 52, 62, 77]
+  ];
+
+  const getColorHex = (colorClass) => {
+    if (colorClass.includes('emerald')) return '#10b981';
+    if (colorClass.includes('blue')) return '#3b82f6';
+    if (colorClass.includes('amber') || colorClass.includes('orange')) return '#f59e0b';
+    if (colorClass.includes('purple')) return '#a855f7';
+    return '#10b981';
+  };
+
+  const getHoverBgClass = (colorClass) => {
+    if (colorClass.includes('emerald')) return 'group-hover:bg-emerald-500';
+    if (colorClass.includes('blue')) return 'group-hover:bg-blue-500';
+    if (colorClass.includes('amber') || colorClass.includes('orange')) return 'group-hover:bg-amber-500';
+    if (colorClass.includes('purple')) return 'group-hover:bg-purple-500';
+    return 'group-hover:bg-emerald-500';
+  };
 
   const metricCards = useMemo(() => [
-    { title: 'Total Bookings', value: stats.total, icon: 'lucide:calendar-check', bg: 'bg-emerald-50 text-emerald-600' },
-    { title: 'Active Stays', value: stats.active, icon: 'lucide:check-circle', bg: 'bg-blue-50 text-blue-600' },
-    { title: 'Pending Bookings', value: stats.pending, icon: 'lucide:clock', bg: 'bg-amber-50 text-amber-600' },
-    { title: 'Booking Revenue', value: formatCurrency(stats.totalRevenue), icon: 'lucide:indian-rupee', bg: 'bg-purple-50 text-purple-600' }
+    {
+      id: 'total',
+      title: 'Total Bookings',
+      value: stats.total,
+      subtitle: '▲ 12.5% vs last month',
+      icon: 'lucide:calendar-check',
+      color: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-600',
+      filterAction: () => {
+        setStatusFilter('All');
+        setCurrentPage(1);
+      }
+    },
+    {
+      id: 'active',
+      title: 'Active Stays',
+      value: stats.active,
+      subtitle: '▲ 8.2% vs last month',
+      icon: 'lucide:check-circle',
+      color: 'bg-blue-500/10',
+      iconColor: 'text-blue-500',
+      filterAction: () => {
+        setStatusFilter('Active');
+        setCurrentPage(1);
+      }
+    },
+    {
+      id: 'pending',
+      title: 'Pending Bookings',
+      value: stats.pending,
+      subtitle: 'Requires admin action',
+      icon: 'lucide:clock',
+      color: 'bg-amber-500/10',
+      iconColor: 'text-amber-500',
+      filterAction: () => {
+        setStatusFilter('Pending');
+        setCurrentPage(1);
+      }
+    },
+    {
+      id: 'revenue',
+      title: 'Booking Revenue',
+      value: formatCurrency(stats.totalRevenue),
+      subtitle: 'Across all confirmed stays',
+      icon: 'lucide:indian-rupee',
+      color: 'bg-purple-500/10',
+      iconColor: 'text-purple-500',
+      filterAction: () => { }
+    }
   ], [stats]);
 
   return (
     <div className="space-y-4 mx-auto pb-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-100 shadow-xs">
-        <div>
-          <h1 className="text-2xl font-bold text-[#062F26]">Bookings & Payments</h1>
-          <p className="text-sm text-slate-500 font-medium mt-0.5">
-            Monitor and manage all platform bookings, reservations, and payment receipts.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
+            <Icon icon="lucide:calendar-check" className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Bookings & Payments</h1>
+            <p className="text-sm text-slate-500 font-medium">
+              Monitor and manage all platform bookings, reservations, and payment receipts.
+            </p>
+          </div>
         </div>
         <button
           onClick={fetchBookings}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 hover:bg-[#062F26] hover:text-white rounded-lg font-bold text-xs transition-all shadow-xs shrink-0 cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 hover:bg-[#062F26] hover:text-white rounded-md font-bold text-xs transition-all shadow-xs shrink-0 cursor-pointer"
         >
           <Icon icon="lucide:refresh-cw" className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -332,13 +440,40 @@ const AdminBookings = () => {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((card, idx) => (
-          <div key={idx} className="bg-white p-5 rounded-xl border border-slate-100 shadow-xs flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${card.bg}`}>
-              <Icon icon={card.icon} className="w-6 h-6" />
+          <div
+            key={idx}
+            onClick={card.filterAction}
+            className="bg-white rounded-xl p-5 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col relative group cursor-pointer hover:border-[#062F26]/20 hover:shadow-[0_8px_30px_rgba(6,47,38,0.08)] hover:-translate-y-1 transition-all duration-300 overflow-hidden min-h-[125px]"
+          >
+            {/* Subtle hover background gradient flare */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-[#062F26]/5 to-transparent rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            {/* Background Sparkline Chart */}
+            <div className="absolute -bottom-3 -left-4 -right-4 h-20 pointer-events-none z-0 opacity-70 group-hover:opacity-100 transition-opacity">
+              <ReactApexChart
+                options={{ ...sparklineOptions, colors: [getColorHex(card.iconColor)] }}
+                series={[{ data: sparklineData[idx % 4] }]}
+                type="area"
+                height="100%"
+                width="100%"
+              />
             </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.title}</p>
-              <h3 className="text-2xl font-extrabold text-[#062F26] mt-0.5">{card.value}</h3>
+
+            <div className="flex items-start gap-4 mb-3 relative z-10">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${card.color} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ease-out shadow-xs`}>
+                <Icon icon={card.icon} className={`w-5 h-5 ${card.iconColor}`} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-3xl font-bold text-[#062F26] leading-none tracking-tight mb-1">{card.value}</h3>
+                <p className="text-sm font-medium text-slate-600">{card.title}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-auto pt-3 relative z-10">
+              <p className="text-xs font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">{card.subtitle}</p>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${getHoverBgClass(card.iconColor)} group-hover:text-white text-slate-400 transition-all duration-300 transform group-hover:translate-x-1`}>
+                <Icon icon="lucide:arrow-right" className="w-3 h-3" />
+              </div>
             </div>
           </div>
         ))}

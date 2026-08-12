@@ -50,7 +50,7 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border ${error ? 'border-red-500' : (isOpen ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-200')} rounded-lg text-sm sm:text-sm font-medium focus:outline-none transition-all duration-200 focus:shadow-sm hover:border-slate-300 flex justify-between items-center text-left ${buttonClassName}`}
+          className={`w-full px-3 sm:px-4 py-2.5 cursor-pointer bg-white border ${error ? 'border-red-500' : (isOpen ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-200')} rounded-lg text-sm sm:text-sm font-medium focus:outline-none transition-all duration-200 focus:shadow-sm hover:border-slate-300 flex justify-between items-center text-left ${buttonClassName}`}
         >
           <div className="flex items-center gap-2">
             {icon && <Icon icon={icon} className="w-4 h-4 text-slate-400" />}
@@ -58,8 +58,8 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
           </div>
           <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
-        
-        <div 
+
+        <div
           className={`absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden transition-all duration-300 origin-top ease-in-out ${isOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 pointer-events-none'}`}
         >
           <div className="max-h-60 overflow-y-auto py-1" ref={wrapperRef} data-lenis-prevent>

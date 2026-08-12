@@ -193,8 +193,10 @@ const Sidebar = ({ onClose, isMobile }) => {
       console.error('Logout error:', error);
     } finally {
       disconnectSocket();
+      localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('user');
+      window.dispatchEvent(new Event('auth-change'));
       navigate('/login');
     }
   };
@@ -207,7 +209,7 @@ const Sidebar = ({ onClose, isMobile }) => {
     { name: 'Booking Requests', icon: 'lucide:calendar-search', path: '/owner/booking-requests', badge: counts.newBookingRequests > 0 ? counts.newBookingRequests : null },
     { name: 'Bookings', icon: 'lucide:book-open-check', path: '/owner/bookings', badge: counts.newBookings > 0 ? counts.newBookings : null },
     { name: 'Tenants', icon: 'lucide:users-2', path: '/owner/tenants' },
-    { name: 'Rent Collection', icon: 'lucide:wallet', path: '/owner/rent-collection' },
+    { name: 'Payouts', icon: 'lucide:wallet', path: '/owner/rent-collection' },
     { name: 'Messages', icon: 'lucide:message-square', path: '/owner/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
     // { name: 'Lawyer Requests', icon: 'lucide:users', path: '/owner/lawyer-requests', badge: counts.newLawyerRequests > 0 ? counts.newLawyerRequests : null },
     // { name: 'Contracts', icon: 'lucide:file-text', path: '/owner/contracts', badge: counts.newOwnerContracts > 0 ? counts.newOwnerContracts : null },

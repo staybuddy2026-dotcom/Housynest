@@ -107,6 +107,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
+    window.dispatchEvent(new Event('auth-change'));
     navigate('/login');
   };
 
