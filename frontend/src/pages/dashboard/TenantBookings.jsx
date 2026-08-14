@@ -229,10 +229,15 @@ const TenantBookings = () => {
   return (
     <div className="pb-10 mx-auto space-y-4 animate-fadeIn">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#062F26]">My Bookings</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage your active stay and booking details</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-sm group cursor-pointer hover:bg-emerald-100 transition-colors">
+            <Icon icon="lucide:calendar-check" className="w-5 h-5 text-emerald-600 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#062F26] mb-0.5 tracking-tight">My Bookings</h1>
+            <p className="text-sm text-slate-500 font-medium">Manage your active stay and booking details</p>
+          </div>
         </div>
       </div>
 
@@ -243,12 +248,11 @@ const TenantBookings = () => {
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider">
-                  <th className="p-4 font-semibold">Property</th>
-                  <th className="p-4 font-semibold">Booking ID</th>
-                  <th className="p-4 font-semibold">Room</th>
-                  <th className="p-4 font-semibold">Move In</th>
-                  <th className="p-4 font-semibold">Status</th>
-                  <th className="p-4 font-semibold text-right">Action</th>
+                  {['Property', 'Booking ID', 'Room', 'Move In', 'Status', 'Action'].map((header, idx) => (
+                    <th key={idx} className={`p-4 font-semibold ${header === 'Action' ? 'text-right' : ''}`}>
+                      {header}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -266,9 +270,9 @@ const TenantBookings = () => {
                           className="w-12 h-12 rounded-md object-cover border border-slate-200 shrink-0"
                         />
                         <div>
-                          <p className="font-bold text-[#062F26] text-sm line-clamp-1">{booking.propertyId?.societyName || booking.propertyId?.pgName || booking.propertyId?.propertyCategory || 'Property'}</p>
-                          <div className="mt-1.5 mb-0.5">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${booking.propertyId?.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : booking.propertyId?.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="font-bold text-[#062F26] text-sm line-clamp-1">{booking.propertyId?.societyName || booking.propertyId?.pgName || booking.propertyId?.propertyCategory || 'Property'}</p>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${booking.propertyId?.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : booking.propertyId?.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
                               {booking.propertyId?.propertyType || 'N/A'}
                             </span>
                           </div>
@@ -345,7 +349,7 @@ const TenantBookings = () => {
           </div>
         </div>
       ) : (
-        <div className="space-y-6 animate-in slide-in-from-right-8 fade-in duration-500">
+        <div className="space-y-4 animate-in slide-in-from-right-8 fade-in duration-500">
           <button
             onClick={() => setSelectedBooking(null)}
             className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-[#062F26] transition-colors w-max"
@@ -405,7 +409,12 @@ const TenantBookings = () => {
             const remainingAmount = Math.max(0, fullAmount - (booking.paymentDetails?.amount || 0));
 
             const propStats = [
-              { label: 'Room Type', value: booking.roomDetails?.roomName || 'N/A' },
+              {
+                label: booking.propertyId?.propertyType === 'Tenant' ? 'Property Type' : 'Room Type',
+                value: booking.propertyId?.propertyType === 'Tenant'
+                  ? (booking.propertyId?.propertyCategory || 'Flat')
+                  : (booking.roomDetails?.roomName || 'N/A')
+              },
               { label: 'Locality', value: booking.propertyId?.locality || 'N/A' },
               { label: 'Rent', value: pricing.rent > 0 ? `₹${pricing.rent.toLocaleString()}` : 'N/A' },
               { label: 'Status', value: booking.status }
@@ -466,14 +475,14 @@ const TenantBookings = () => {
                               {booking.propertyId?.address ? `${booking.propertyId.address}, ` : ''}{booking.propertyId?.locality}, {booking.propertyId?.city}
                             </p>
                           </div>
-                            {getBookingStatusBadge(booking.status, 'md')}
+                          {getBookingStatusBadge(booking.status, 'md')}
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
                           {propStats.map((stat, idx) => (
                             <div key={idx}>
-                              <p className="text-[11px] text-slate-400 font-semibold mb-1">{stat.label}</p>
-                              <p className="text-sm font-bold text-slate-800">{stat.value}</p>
+                              <p className="text-xs text-slate-400 font-semibold">{stat.label}</p>
+                              <p className="text-base font-bold text-slate-800">{stat.value}</p>
                             </div>
                           ))}
                         </div>
@@ -488,8 +497,8 @@ const TenantBookings = () => {
                             <Icon icon={stat.icon} className="w-5 h-5 text-emerald-600" />
                           </div>
                           <div>
-                            <p className="text-[10px] text-slate-400 font-semibold">{stat.label}</p>
-                            <p className="text-xs font-bold text-[#062F26]">{stat.value}</p>
+                            <p className="text-xs text-slate-400 font-semibold">{stat.label}</p>
+                            <p className="text-base font-bold text-[#062F26]">{stat.value}</p>
                           </div>
                         </div>
                       ))}
@@ -498,7 +507,7 @@ const TenantBookings = () => {
 
                   {/* Quick Actions */}
                   <div>
-                    <h3 className="text-lg font-bold text-[#062F26] mb-4">Quick Actions</h3>
+                    <h3 className="text-lg font-bold text-[#062F26] mb-2">Quick Actions</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {quickActions.map((action, idx) => (
                         <div key={idx} onClick={() => {
@@ -515,8 +524,8 @@ const TenantBookings = () => {
                             <Icon icon="lucide:chevron-right" className="w-5 h-5 text-slate-400" />
                           </div>
                           <div>
-                            <h4 className="font-bold text-[#062F26] text-sm mb-1">{action.title}</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed">{action.desc}</p>
+                            <h4 className="font-bold text-[#062F26] text-base">{action.title}</h4>
+                            <p className="text-[13px] text-slate-500 leading-relaxed">{action.desc}</p>
                           </div>
                         </div>
                       ))}
@@ -537,10 +546,10 @@ const TenantBookings = () => {
                               <Icon icon="lucide:calendar" className="w-6 h-6 text-emerald-600" />
                             </div>
                             <div>
-                              <p className="text-xs text-slate-500 font-medium mb-0.5">
+                              <p className="text-[13px] text-slate-500 font-medium mb-0.5">
                                 {booking.status === 'Pending Payment' ? 'Action Required' : (isTokenPaid ? 'Pay Before Move-In' : 'Next Rent Due On')}
                               </p>
-                              <p className="text-sm font-bold text-[#062F26]">
+                              <p className="text-[15px] font-bold text-[#062F26]">
                                 {booking.status === 'Pending Payment' ? (['Token Amount', 'Token (40%)'].includes(booking.paymentDetails?.paymentMethod) ? 'Complete Token Payment to Reserve Bed' : 'Complete Full Payment to Confirm Booking') : (isTokenPaid ? 'Complete Full Payment' : 'N/A')}
                               </p>
                             </div>
@@ -550,15 +559,15 @@ const TenantBookings = () => {
 
                           <div className="flex items-center justify-between w-full sm:w-auto gap-8 sm:gap-6">
                             <div>
-                              <p className="text-xs text-slate-500 font-medium mb-0.5">Amount Due</p>
-                              <p className="text-sm font-bold text-[#062F26]">₹{booking.status === 'Pending Payment' ? (booking.paymentDetails?.amount?.toLocaleString() || booking.propertyId?.monthlyRent || 0) : (isTokenPaid ? remainingAmount.toLocaleString() : '0')}</p>
+                              <p className="text-[13px] text-slate-500 font-medium mb-0.5">Amount Due</p>
+                              <p className="text-[15px] font-bold text-[#062F26]">₹{booking.status === 'Pending Payment' ? (booking.paymentDetails?.amount?.toLocaleString() || booking.propertyId?.monthlyRent || 0) : (isTokenPaid ? remainingAmount.toLocaleString() : '0')}</p>
                             </div>
 
                             <div className="hidden sm:block w-px h-10 bg-emerald-200/50 shrink-0"></div>
 
                             <div>
-                              <p className="text-xs text-slate-500 font-medium mb-1">Status</p>
-                              <span className={`px-2.5 py-1 text-[10px] font-bold rounded ${booking.status === 'Pending Payment' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              <p className="text-[13px] text-slate-500 font-medium mb-1">Status</p>
+                              <span className={`px-2.5 py-1 text-xs font-semibold rounded ${booking.status === 'Pending Payment' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                 {booking.status === 'Pending Payment' ? 'Pending Payment' : 'Upcoming'}
                               </span>
                             </div>
@@ -609,9 +618,9 @@ const TenantBookings = () => {
                             <p className={`text-sm font-bold ${booking.tenantConfirmedMoveIn ? 'text-emerald-800' : 'text-indigo-900'}`}>
                               {booking.tenantConfirmedMoveIn ? 'Move-in Confirmed' : 'Confirm Your Move-in'}
                             </p>
-                            <p className={`text-xs mt-1 leading-relaxed ${booking.tenantConfirmedMoveIn ? 'text-emerald-600' : 'text-indigo-700/80'}`}>
-                              {booking.tenantConfirmedMoveIn 
-                                ? 'You have successfully confirmed your move-in. Welcome to your new home!' 
+                            <p className={`text-[13px] leading-relaxed ${booking.tenantConfirmedMoveIn ? 'text-emerald-600' : 'text-indigo-700/80'}`}>
+                              {booking.tenantConfirmedMoveIn
+                                ? 'You have successfully confirmed your move-in. Welcome to your new home!'
                                 : 'Please confirm once you have successfully moved into the property. This will release the escrow payment to the owner.'}
                             </p>
                           </div>
@@ -637,7 +646,7 @@ const TenantBookings = () => {
                   {booking.status === 'Active' && booking.tenantConfirmedMoveIn && (
                     <div className="mt-6">
                       <h3 className="text-lg font-bold text-[#062F26] mb-4">Move-out Request</h3>
-                      
+
                       {booking.moveOutRequest?.isRequested ? (
                         <div className={`border rounded-xl p-5 ${booking.moveOutRequest.status === 'Rejected' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
                           <div className="flex gap-4">
@@ -699,8 +708,8 @@ const TenantBookings = () => {
                 <div className="w-full lg:w-[320px] xl:w-[350px] shrink-0 space-y-4">
 
                   {/* Booking Summary Card */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                    <h3 className="text-lg font-bold text-[#062F26] mb-6">Booking Summary</h3>
+                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <h3 className="text-lg font-bold text-[#062F26] mb-5">Booking Summary</h3>
 
                     <div className="space-y-4">
                       {summary.map((item, idx) => (
@@ -715,12 +724,12 @@ const TenantBookings = () => {
                   </div>
 
                   {/* Need Help Card */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                    <h3 className="text-lg font-bold text-[#062F26] mb-2">Need Help?</h3>
-                    <p className="text-sm text-slate-500 mb-5 leading-relaxed">
+                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <h3 className="text-lg font-bold text-[#062F26] mb-1">Need Help?</h3>
+                    <p className="text-sm text-slate-500 mb-4 leading-relaxed">
                       Our support team is here to help you.
                     </p>
-                    <button className="w-full py-3 border border-[#0AA87D] text-[#0AA87D] font-bold text-sm rounded-xl hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2">
+                    <button className="w-full py-2.5 border border-[#0AA87D] text-[#0AA87D] font-bold text-sm rounded-lg hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2">
                       <Icon icon="lucide:headphones" className="w-4 h-4" />
                       Contact Support
                     </button>

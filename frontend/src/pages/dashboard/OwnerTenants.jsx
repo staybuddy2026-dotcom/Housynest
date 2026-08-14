@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { ReactLenis } from 'lenis/react';
 import AddTenantModal from '../../components/dashboard/AddTenantModal';
 import TenantDetailsDrawer from '../../components/dashboard/TenantDetailsDrawer';
+import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const OwnerTenants = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -185,10 +186,10 @@ const OwnerTenants = () => {
   }, []);
 
   const stats = [
-    { title: tenants.length.toString(), subtitle: 'Total Tenants', desc: 'All Active', icon: 'lucide:users', color: 'text-brand-teal', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-    { title: tenants.filter(t => t.payment === 'DUE').length.toString(), subtitle: 'Unpaid Tenants', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
-    { title: `₹${tenants.reduce((acc, curr) => acc + (curr.rentDueAmount || 0), 0).toLocaleString()}`, subtitle: 'Revenue Due', desc: 'This Month', icon: 'lucide:indian-rupee', color: 'text-slate-700', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
-    { title: '0', subtitle: 'Upcoming Move-outs', desc: 'Next 30 Days', icon: 'lucide:calendar-clock', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
+    { title: tenants.length.toString(), subtitle: 'Total Tenants', desc: 'Active & Notice', icon: 'lucide:users', color: 'text-brand-teal', bgColor: 'bg-brand-teal/10', borderColor: 'border-brand-teal/20', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: tenants.filter(t => t.payment === 'DUE').length.toString(), subtitle: 'Unpaid Tenants', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: `₹${tenants.reduce((acc, curr) => acc + (curr.rentDueAmount || 0), 0).toLocaleString()}`, subtitle: 'Revenue Due', desc: 'This Month', icon: 'lucide:indian-rupee', color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-200', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: '0', subtitle: 'Upcoming Move-outs', desc: 'Next 30 Days', icon: 'lucide:calendar-clock', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
   ];
 
   const filteredTenants = tenants.filter(t => {
@@ -219,70 +220,79 @@ const OwnerTenants = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
-            <div className="flex justify-between items-start mb-4">
+          <div key={idx} className="relative overflow-hidden bg-white rounded-xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
+            <div className="flex justify-between items-start mb-2 relative z-10">
               <h3 className="text-2xl font-bold text-[#062F26]">{stat.title}</h3>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${stat.bgColor} ${stat.borderColor} group-hover:scale-110 transition-transform duration-300`}>
                 <Icon icon={stat.icon} className={`w-4 h-4 ${stat.color}`} />
               </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-slate-800">{stat.subtitle}</p>
-              <p className="text-xs text-slate-400 mt-0.5 font-medium">{stat.desc}</p>
+            <div className="relative z-10">
+              <p className="text-base font-bold text-slate-600 group-hover:text-[#062F26] transition-colors">{stat.subtitle}</p>
+              <p className="text-xs text-slate-400 mt-0.5 font-medium group-hover:text-slate-500 transition-colors">{stat.desc}</p>
+            </div>
+
+            {/* Sparkline Chart Anchored to Bottom Right */}
+            <div className="absolute right-0 bottom-0 w-32 h-14 opacity-40 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+              <svg viewBox="0 0 100 30" className="w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                <path
+                  d={stat.chartPath}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={stat.color}
+                />
+
+                {/* Subtle gradient fill under the line */}
+                <path
+                  d={`${stat.chartPath} L 100 40 L 0 40 Z`}
+                  fill="currentColor"
+                  className={`${stat.color} opacity-10`}
+                />
+              </svg>
             </div>
           </div>
         ))}
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden">
 
         {/* Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/30">
           {/* Search */}
-          <div className="relative w-full sm:w-96 group">
+          <div className="relative w-full sm:w-100 group">
             <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
             <input
               type="text"
               placeholder="Search by name, phone, tenant id, room or property..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm"
             />
           </div>
           <div className="flex items-center gap-3 relative">
-            <div className="relative">
-              <button 
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="flex items-center justify-between min-w-[170px] px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-teal focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 transition-all shadow-sm"
-              >
-                <span className="flex items-center gap-2">
-                  <span className="text-slate-400 font-medium">Payment:</span> {paymentFilter}
-                </span>
-                <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isFilterOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {isFilterOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)}></div>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-3 py-2 border-b border-slate-50 mb-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Status</p>
-                    </div>
-                    {['All', 'Paid', 'Due'].map(status => (
-                      <button
-                        key={status}
-                        onClick={() => { setPaymentFilter(status); setIsFilterOpen(false); }}
-                        className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50 flex items-center justify-between ${paymentFilter === status ? 'text-[#062F26] bg-brand-teal/5' : 'text-slate-600'}`}
-                      >
-                        {status}
-                        {paymentFilter === status && <Icon icon="lucide:check" className="w-4 h-4 text-brand-teal" />}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+            <div className="w-[180px]">
+              <CustomDropdown
+                value={
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-slate-400 font-medium">Payment:</span>
+                    <span className="text-[#062F26]">{paymentFilter}</span>
+                  </span>
+                }
+                options={[
+                  { label: 'All', value: 'All' },
+                  { label: 'Paid', value: 'Paid' },
+                  { label: 'Due', value: 'Due' }
+                ]}
+                onChange={setPaymentFilter}
+                buttonClassName="shadow-sm border-slate-200"
+                containerClassName=""
+              />
             </div>
+
           </div>
         </div>
 

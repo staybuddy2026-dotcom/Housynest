@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import OwnerPropertyDetails from '../../components/dashboard/OwnerPropertyDetails';
 import OwnerPropertyEdit from '../../components/dashboard/OwnerPropertyEdit';
+import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const OwnerListings = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,15 +125,15 @@ const OwnerListings = () => {
   return (
     <div className="animate-fadeIn">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 sm:mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#062F26] tracking-tight mb-2">My Listings</h1>
-          <p className="text-sm text-slate-500 font-medium">Manage and monitor all your listed properties in one place.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#062F26] tracking-tight mb-1 sm:mb-2">My Listings</h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">Manage and monitor all your listed properties in one place.</p>
         </div>
 
         <Link
           to="/list-property"
-          className="flex items-center justify-center gap-2 bg-[#062F26] text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-brand-teal transition-all duration-300 shadow-lg shadow-[#062F26]/20 hover:shadow-brand-teal/30 hover:-translate-y-0.5 shrink-0"
+          className="w-full md:w-auto flex items-center justify-center gap-2 bg-[#062F26] text-white px-6 py-2.5 sm:py-3 rounded-lg font-bold text-sm hover:bg-brand-teal transition-all duration-300 shadow-lg shadow-[#062F26]/20 hover:shadow-brand-teal/30 hover:-translate-y-0.5 shrink-0"
         >
           <Icon icon="lucide:plus" className="w-4.5 h-4.5" />
           Add New Property
@@ -140,9 +141,9 @@ const OwnerListings = () => {
       </div>
 
       {/* Filters & Search Bar */}
-      <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+      <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         {/* Search */}
-        <div className="relative w-full sm:max-w-md">
+        <div className="relative w-full md:max-w-md">
           <Icon icon="lucide:search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -154,38 +155,15 @@ const OwnerListings = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
           {/* Custom Status Dropdown */}
-          <div className="relative w-full sm:w-auto">
-            <button
-              onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-              className="flex items-center justify-between w-full sm:w-auto bg-white border border-slate-200 text-[#062F26] text-sm font-bold rounded-lg pl-4 pr-3 py-2.5 outline-none cursor-pointer hover:border-brand-teal transition-colors min-w-32.5"
-            >
-              <span>{filterStatus === 'All' ? 'All Status' : filterStatus}</span>
-              <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isFilterDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isFilterDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setIsFilterDropdownOpen(false)}></div>
-                <div className="absolute right-0 top-[calc(100%+8px)] w-full sm:w-40 bg-white border border-slate-100 shadow-[0_12px_40px_rgba(0,0,0,0.08)] rounded-lg py-1.5 z-20 animate-[fadeIn_0.15s_ease-out]">
-                  {filterOptions.map(option => (
-                    <button
-                      key={option}
-                      onClick={() => {
-                        setFilterStatus(option);
-                        setIsFilterDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 text-sm font-semibold transition-colors flex items-center justify-between ${filterStatus === option ? 'text-brand-teal bg-brand-teal/5' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                        }`}
-                    >
-                      {option === 'All' ? 'All Status' : option}
-                      {filterStatus === option && <Icon icon="lucide:check" className="w-3.5 h-3.5" />}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+          <div className="flex-1 sm:flex-none sm:w-[150px] shrink-0">
+            <CustomDropdown
+              value={filterStatus === 'All' ? 'All Status' : filterStatus}
+              options={filterOptions.map(opt => ({ label: opt === 'All' ? 'All Status' : opt, value: opt }))}
+              onChange={setFilterStatus}
+              buttonClassName="!border-slate-200 text-[#062F26] !font-bold h-[42px]"
+            />
           </div>
 
           <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-1 shrink-0">

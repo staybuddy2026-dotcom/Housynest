@@ -2,58 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ReactLenis } from 'lenis/react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
-
-const CustomDropdown = ({ icon, value, options, onChange, placeholder }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative min-w-[140px] flex-1 xl:flex-none" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between pl-10 pr-4 py-2 bg-white border ${isOpen ? 'border-brand-teal ring-4 ring-brand-teal/10' : 'border-slate-200'} rounded-xl text-sm font-semibold text-slate-700 focus:outline-none transition-all shadow-sm h-[42px]`}
-      >
-        <Icon icon={icon} className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <span className="truncate mr-2">{value === 'All' ? placeholder : value}</span>
-        <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <div className="absolute z-50 left-0 mt-2 min-w-full min-w-[180px] bg-white border border-slate-200 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 origin-top">
-          <ReactLenis options={{ duration: 1.2, smoothWheel: true }} className="max-h-[240px] overflow-y-auto custom-scrollbar flex flex-col py-1.5">
-            <button
-              onClick={() => { onChange('All'); setIsOpen(false); }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${value === 'All' ? 'bg-brand-teal/5 text-brand-teal font-bold' : 'text-slate-600 font-medium hover:bg-slate-50'}`}
-            >
-              <span className="truncate">{placeholder}</span>
-              {value === 'All' && <Icon icon="lucide:check" className="w-4 h-4 shrink-0 ml-3" />}
-            </button>
-            {options.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => { onChange(opt); setIsOpen(false); }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${value === opt ? 'bg-brand-teal/5 text-brand-teal font-bold' : 'text-slate-600 font-medium hover:bg-slate-50'}`}
-              >
-                <span className="truncate">{opt}</span>
-                {value === opt && <Icon icon="lucide:check" className="w-4 h-4 shrink-0 ml-3" />}
-              </button>
-            ))}
-          </ReactLenis>
-        </div>
-      )}
-    </div>
-  );
-};
+import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const OwnerRentTracking = () => {
   const [invoices, setInvoices] = useState([]);
@@ -286,10 +235,10 @@ const OwnerRentTracking = () => {
   };
 
   const stats = [
-    { title: mappedTenants.length.toString(), subtitle: 'Total Tenants', desc: 'Active & Checked-in', icon: 'lucide:users', color: 'text-brand-teal', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-    { title: mappedTenants.filter(i => i.status === 'Pending' || i.status === 'Overdue').length.toString(), subtitle: 'Unpaid Rent', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
-    { title: `₹${mappedTenants.filter(i => i.status === 'Pending' || i.status === 'Overdue').reduce((acc, curr) => acc + (curr.rentAmt || 0), 0).toLocaleString('en-IN')}`, subtitle: 'Pending Amount', desc: 'To be collected', icon: 'lucide:indian-rupee', color: 'text-rose-500', bgColor: 'bg-rose-50', borderColor: 'border-rose-100' },
-    { title: `₹${mappedTenants.filter(i => i.status === 'Paid').reduce((acc, curr) => acc + (curr.rentAmt || 0), 0).toLocaleString('en-IN')}`, subtitle: 'Settled Rent', desc: 'Current Cycle', icon: 'lucide:wallet', color: 'text-slate-700', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
+    { title: mappedTenants.length.toString(), subtitle: 'Total Tenants', desc: 'Active & Checked-in', icon: 'lucide:users', color: 'text-brand-teal', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: mappedTenants.filter(i => i.status === 'Pending' || i.status === 'Overdue').length.toString(), subtitle: 'Unpaid Rent', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: `₹${mappedTenants.filter(i => i.status === 'Pending' || i.status === 'Overdue').reduce((acc, curr) => acc + (curr.rentAmt || 0), 0).toLocaleString('en-IN')}`, subtitle: 'Pending Amount', desc: 'To be collected', icon: 'lucide:indian-rupee', color: 'text-rose-500', bgColor: 'bg-rose-50', borderColor: 'border-rose-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: `₹${mappedTenants.filter(i => i.status === 'Paid').reduce((acc, curr) => acc + (curr.rentAmt || 0), 0).toLocaleString('en-IN')}`, subtitle: 'Settled Rent', desc: 'Current Cycle', icon: 'lucide:wallet', color: 'text-slate-700', bgColor: 'bg-slate-100', borderColor: 'border-slate-200', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
   ];
 
   return (
@@ -303,66 +252,102 @@ const OwnerRentTracking = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
-            <div className="flex justify-between items-start mb-4">
+          <div key={idx} className="relative overflow-hidden bg-white rounded-xl border border-slate-200 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
+            <div className="flex justify-between items-start mb-2 relative z-10">
               <h3 className="text-2xl font-bold text-[#062F26]">{stat.title}</h3>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${stat.bgColor} ${stat.borderColor} group-hover:scale-110 transition-transform duration-300`}>
                 <Icon icon={stat.icon} className={`w-4 h-4 ${stat.color}`} />
               </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-slate-800">{stat.subtitle}</p>
-              <p className="text-xs text-slate-400 mt-0.5 font-medium">{stat.desc}</p>
+            <div className="relative z-10">
+              <p className="text-base font-bold text-slate-800 group-hover:text-[#062F26] transition-colors">{stat.subtitle}</p>
+              <p className="text-xs text-slate-400 mt-0.5 font-medium group-hover:text-slate-500 transition-colors">{stat.desc}</p>
+            </div>
+
+            {/* Sparkline Chart Anchored to Bottom Right */}
+            <div className="absolute right-0 bottom-0 w-32 h-14 opacity-40 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+              <svg viewBox="0 0 100 30" className="w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                <path
+                  d={stat.chartPath}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={stat.color}
+                />
+
+                {/* Subtle gradient fill under the line */}
+                <path
+                  d={`${stat.chartPath} L 100 40 L 0 40 Z`}
+                  fill="currentColor"
+                  className={`${stat.color} opacity-10`}
+                />
+              </svg>
             </div>
           </div>
         ))}
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden min-h-0">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden min-h-0">
 
         {/* Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50/30 relative z-20">
-          <div className="relative w-full xl:w-80 group shrink-0">
+          <div className="relative w-full xl:w-96 group shrink-0">
             <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
             <input
               type="text"
               placeholder="Search by name, phone, email or property..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm h-[42px]"
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm h-[42px]"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-            {/* Property Filter */}
-            <CustomDropdown
-              icon="lucide:building"
-              value={filterProperty}
-              options={uniqueProperties}
-              onChange={setFilterProperty}
-              placeholder="All Properties"
-            />
+            <div className="w-[180px]">
+              {/* Property Filter */}
+              <CustomDropdown
+                icon="lucide:building"
+                value={filterProperty === 'All' ? 'All Properties' : filterProperty}
+                options={[{ label: 'All Properties', value: 'All' }, ...uniqueProperties.map(p => ({ label: p, value: p }))]}
+                onChange={setFilterProperty}
+                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px]"
+                containerClassName=""
+              />
+            </div>
 
-            {/* Month Filter */}
-            <CustomDropdown
-              icon="lucide:calendar"
-              value={filterMonth}
-              options={uniqueMonths}
-              onChange={setFilterMonth}
-              placeholder="All Months"
-            />
+            <div className="w-[160px]">
+              {/* Month Filter */}
+              <CustomDropdown
+                icon="lucide:calendar"
+                value={filterMonth === 'All' ? 'All Months' : filterMonth}
+                options={[{ label: 'All Months', value: 'All' }, ...uniqueMonths.map(m => ({ label: m, value: m }))]}
+                onChange={setFilterMonth}
+                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px]"
+                containerClassName=""
+              />
+            </div>
 
-            {/* Status Filter */}
-            <CustomDropdown
-              icon="lucide:activity"
-              value={filterStatus}
-              options={['Paid', 'Pending', 'Overdue']}
-              onChange={setFilterStatus}
-              placeholder="All Statuses"
-            />
+            <div className="w-[160px]">
+              {/* Status Filter */}
+              <CustomDropdown
+                icon="lucide:activity"
+                value={filterStatus === 'All' ? 'All Statuses' : filterStatus}
+                options={[
+                  { label: 'All Statuses', value: 'All' },
+                  { label: 'Paid', value: 'Paid' },
+                  { label: 'Pending', value: 'Pending' },
+                  { label: 'Overdue', value: 'Overdue' }
+                ]}
+                onChange={setFilterStatus}
+                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px]"
+                containerClassName=""
+              />
+            </div>
           </div>
         </div>
 

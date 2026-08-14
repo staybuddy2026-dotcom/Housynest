@@ -54,7 +54,7 @@ const PerformanceChartWidget = () => {
         setLoading(false);
       }
     };
-    
+
     fetchAnalytics();
   }, [filter]);
 
@@ -78,7 +78,7 @@ const PerformanceChartWidget = () => {
     colors: ['#bfdbfe', '#fde68a', '#a7f3d0', '#3b82f6', '#f59e0b', '#0AA87D'],
     stroke: {
       width: [
-        0, 0, 0, 
+        0, 0, 0,
         hoveredSeries && hoveredSeries !== 'Bookings' ? 1 : 3,
         hoveredSeries && hoveredSeries !== 'Leads' ? 1 : 3,
         hoveredSeries && hoveredSeries !== 'Rent Collected' ? 1 : 3
@@ -217,7 +217,53 @@ const PerformanceChartWidget = () => {
           return y;
         }
       }
-    }
+    },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: {
+            height: 280,
+            offsetX: -5
+          },
+          plotOptions: {
+            bar: {
+              columnWidth: '50%'
+            }
+          },
+          xaxis: {
+            labels: {
+              style: {
+                fontSize: '10px'
+              },
+              rotate: -45,
+              hideOverlappingLabels: true
+            }
+          },
+          yaxis: [
+            {
+              opposite: true,
+              show: true,
+              labels: {
+                style: { fontSize: '10px', colors: '#94a3b8', fontWeight: 600 },
+                formatter: (value) => value % 1 === 0 ? value : ''
+              }
+            },
+            { show: false },
+            {
+              show: true,
+              labels: {
+                style: { fontSize: '10px', colors: '#0AA87D', fontWeight: 600 },
+                formatter: (value) => value >= 1000 ? `₹${(value / 1000).toFixed(1)}k` : `₹${Math.round(value)}`
+              }
+            },
+            { show: false },
+            { show: false },
+            { show: false }
+          ]
+        }
+      }
+    ]
   };
 
   const handleLegendClick = (seriesName) => {
@@ -242,16 +288,16 @@ const PerformanceChartWidget = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 relative group cursor-default hover:border-brand-teal/20 hover:shadow-[0_8px_30px_rgba(10,168,125,0.06)] transition-all duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-1 relative z-10">
+    <div className="bg-white rounded-xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-0 sm:p-6 relative group cursor-default hover:border-brand-teal/20 hover:shadow-[0_8px_30px_rgba(10,168,125,0.06)] transition-all duration-300">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-1 relative z-10 p-4 sm:p-0">
         <div>
           <h3 className="text-[22px] font-bold text-[#062F26] flex items-center gap-1.5 transition-colors">
             Organization Performance
           </h3>
-          
+
           {/* Interactive Custom Legend */}
-          <div className="flex items-center gap-5 mt-3 text-[13px] font-bold">
-            <div 
+          <div className="flex flex-wrap items-center gap-3 sm:gap-5 mt-3 text-[12px] sm:text-[13px] font-bold">
+            <div
               onClick={() => handleLegendClick('Bookings')}
               onMouseEnter={() => setHoveredSeries('Bookings')}
               onMouseLeave={() => setHoveredSeries(null)}
@@ -260,7 +306,7 @@ const PerformanceChartWidget = () => {
               <div className={`w-3.5 h-3.5 rounded-full transition-colors ${hiddenSeries.Bookings ? 'bg-slate-200' : 'bg-blue-500'}`}></div>
               Bookings
             </div>
-            <div 
+            <div
               onClick={() => handleLegendClick('Leads')}
               onMouseEnter={() => setHoveredSeries('Leads')}
               onMouseLeave={() => setHoveredSeries(null)}
@@ -269,7 +315,7 @@ const PerformanceChartWidget = () => {
               <div className={`w-3.5 h-3.5 rounded-full transition-colors ${hiddenSeries.Leads ? 'bg-slate-200' : 'bg-amber-400'}`}></div>
               Leads
             </div>
-            <div 
+            <div
               onClick={() => handleLegendClick('Rent Collected')}
               onMouseEnter={() => setHoveredSeries('Rent Collected')}
               onMouseLeave={() => setHoveredSeries(null)}
@@ -280,17 +326,16 @@ const PerformanceChartWidget = () => {
             </div>
           </div>
         </div>
-        
-        <div className="flex bg-slate-50/80 p-1 rounded-xl border border-slate-100/80 shadow-sm">
+
+        <div className="flex w-full sm:w-auto bg-slate-50/80 p-1 rounded-xl border border-slate-100/80 shadow-sm">
           {['Monthly', 'Weekly', 'Daily'].map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`px-5 py-1.5 text-[13px] font-bold rounded-lg transition-all ${
-                filter === tab 
-                  ? 'bg-white text-[#062F26] shadow-sm ring-1 ring-slate-200/50' 
-                  : 'text-slate-500 hover:text-[#062F26]'
-              }`}
+              className={`flex-1 sm:flex-none px-3 sm:px-5 py-1.5 text-[12px] sm:text-[13px] font-bold rounded-lg transition-all ${filter === tab
+                ? 'bg-white text-[#062F26] shadow-sm ring-1 ring-slate-200/50'
+                : 'text-slate-500 hover:text-[#062F26]'
+                }`}
             >
               {tab}
             </button>
@@ -298,7 +343,7 @@ const PerformanceChartWidget = () => {
         </div>
       </div>
 
-      <div className="h-[320px] w-full relative z-10 mt-6">
+      <div className="h-[320px] w-full relative z-10 mt-0 sm:mt-2">
         {loading ? (
           <div className="h-[350px] w-full flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-brand-teal/20 border-t-brand-teal rounded-full animate-spin"></div>

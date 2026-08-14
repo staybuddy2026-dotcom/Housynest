@@ -286,7 +286,7 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                   </div>
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Rent Cycle</p>
-                    <p className="text-sm font-bold text-slate-700">{item.cycleStart ? new Date(item.cycleStart).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'} - {item.cycleEnd ? new Date(item.cycleEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'}</p>
+                    <p className="text-[11px] sm:text-sm font-bold text-slate-700 leading-tight break-words">{item.cycleStart ? new Date(item.cycleStart).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'} - {item.cycleEnd ? new Date(item.cycleEnd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'}</p>
                   </div>
                 </div>
 
@@ -445,7 +445,7 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
                           {inv.paidAt && ` • Paid: ${new Date(inv.paidAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0 border-slate-100">
                         <div className="text-base font-bold text-slate-800">
                           ₹ {inv.amount?.toLocaleString('en-IN')}
                         </div>

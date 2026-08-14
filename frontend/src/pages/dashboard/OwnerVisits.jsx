@@ -336,35 +336,35 @@ const OwnerVisits = () => {
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
         <div className="absolute bottom-0 right-32 -mb-16 w-48 h-48 rounded-full bg-[#25D366]/10 blur-2xl"></div>
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
           <div>
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-              <Icon icon="lucide:calendar-days" className="w-8 h-8 text-[#25D366]" />
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2 flex items-center gap-2 sm:gap-3">
+              <Icon icon="lucide:calendar-days" className="w-6 h-6 sm:w-8 sm:h-8 text-[#25D366]" />
               Visit Requests
             </h1>
-            <p className="text-[#EAF5F2]/80 text-[15px] font-medium max-w-xl leading-relaxed">
+            <p className="text-[#EAF5F2]/80 text-sm sm:text-[15px] font-medium max-w-xl leading-relaxed">
               Manage physical property visits requested by prospective tenants. Accept, reject, or suggest alternative times seamlessly.
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 flex items-center gap-6 shrink-0">
-            <div className="flex flex-col items-center px-2">
-              <span className="text-[10px] uppercase font-bold text-[#EAF5F2]/70 tracking-widest mb-1.5">Pending Action</span>
-              <span className="text-3xl font-black text-[#25D366] leading-none">{pendingCount}</span>
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-4 flex items-center justify-between sm:justify-start gap-4 sm:gap-6 shrink-0 w-full md:w-auto">
+            <div className="flex flex-col items-center px-2 flex-1 sm:flex-none">
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#EAF5F2]/70 tracking-widest mb-1 sm:mb-1.5">Pending Action</span>
+              <span className="text-2xl sm:text-3xl font-black text-[#25D366] leading-none">{pendingCount}</span>
             </div>
-            <div className="w-px h-12 bg-white/20"></div>
-            <div className="flex flex-col items-center px-2">
-              <span className="text-[10px] uppercase font-bold text-[#EAF5F2]/70 tracking-widest mb-1.5">Total Visits</span>
-              <span className="text-3xl font-black text-white leading-none">{visits.length}</span>
+            <div className="w-px h-10 sm:h-12 bg-white/20"></div>
+            <div className="flex flex-col items-center px-2 flex-1 sm:flex-none">
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-[#EAF5F2]/70 tracking-widest mb-1 sm:mb-1.5">Total Visits</span>
+              <span className="text-2xl sm:text-3xl font-black text-white leading-none">{visits.length}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4 flex flex-col lg:flex-row gap-4 items-center">
+      <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm mb-4 flex flex-col gap-3 sm:gap-4">
         {/* Search */}
-        <div className="flex-1 w-full relative">
+        <div className="w-full relative">
           <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -375,40 +375,42 @@ const OwnerVisits = () => {
           />
         </div>
 
-        {/* Property Filter */}
-        <div className="w-full lg:w-48 relative shrink-0">
-          <CustomDropdown
-            icon="lucide:building-2"
-            placeholder="All Properties"
-            value={filterProperty || "All Properties"}
-            options={["All Properties", ...uniqueProperties]}
-            onChange={(val) => setFilterProperty(val === "All Properties" ? "" : val)}
-            containerClassName="w-full"
-            buttonClassName="py-2.5 !border-slate-200 hover:!border-slate-300 bg-slate-50 text-slate-700 font-semibold"
-          />
-        </div>
+        <div className="grid grid-cols-2 lg:flex gap-3 sm:gap-4 w-full">
+          {/* Property Filter */}
+          <div className="col-span-2 lg:col-span-1 w-full lg:w-48 relative shrink-0">
+            <CustomDropdown
+              icon="lucide:building-2"
+              placeholder="All Properties"
+              value={filterProperty || "All Properties"}
+              options={["All Properties", ...uniqueProperties]}
+              onChange={(val) => setFilterProperty(val === "All Properties" ? "" : val)}
+              containerClassName="w-full"
+              buttonClassName="py-2.5 !border-slate-200 hover:!border-slate-300 bg-slate-50 text-slate-700 font-semibold"
+            />
+          </div>
 
-        {/* Date Filter */}
-        <div className="w-full lg:w-40 relative shrink-0">
-          <input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:border-brand-teal transition-all text-center"
-          />
-        </div>
+          {/* Date Filter */}
+          <div className="col-span-1 w-full lg:w-40 relative shrink-0">
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:border-brand-teal transition-all text-center lg:text-left"
+            />
+          </div>
 
-        {/* Time Filter */}
-        <div className="w-full lg:w-40 relative shrink-0">
-          <CustomDropdown
-            icon="lucide:clock"
-            placeholder="All Times"
-            value={filterTime ? filterTime.charAt(0).toUpperCase() + filterTime.slice(1) : "All Times"}
-            options={["All Times", "Morning", "Afternoon", "Evening"]}
-            onChange={(val) => setFilterTime(val === "All Times" ? "" : val.toLowerCase())}
-            containerClassName="w-full"
-            buttonClassName="py-2.5 !border-slate-200 hover:!border-slate-300 bg-slate-50 text-slate-700 font-semibold"
-          />
+          {/* Time Filter */}
+          <div className="col-span-1 w-full lg:w-40 relative shrink-0">
+            <CustomDropdown
+              icon="lucide:clock"
+              placeholder="All Times"
+              value={filterTime ? filterTime.charAt(0).toUpperCase() + filterTime.slice(1) : "All Times"}
+              options={["All Times", "Morning", "Afternoon", "Evening"]}
+              onChange={(val) => setFilterTime(val === "All Times" ? "" : val.toLowerCase())}
+              containerClassName="w-full"
+              buttonClassName="py-2.5 !border-slate-200 hover:!border-slate-300 bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm"
+            />
+          </div>
         </div>
 
         {/* Clear Filters */}

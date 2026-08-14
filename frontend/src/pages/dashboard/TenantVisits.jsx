@@ -96,10 +96,15 @@ const TenantVisits = () => {
     <div className="animate-fadeIn mx-auto pb-10 space-y-4">
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#062F26]">My Property Visits</h1>
-          <p className="text-sm text-slate-500 mt-1">Track and manage your scheduled property viewings</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-sm group cursor-pointer hover:bg-emerald-100 transition-colors">
+            <Icon icon="lucide:calendar-days" className="w-5 h-5 text-emerald-600 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#062F26] mb-0.5 tracking-tight">My Property Visits</h1>
+            <p className="text-sm text-slate-500 font-medium">Track and manage your scheduled property viewings</p>
+          </div>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-md shadow-sm text-sm font-bold text-slate-700">
           <Icon icon="lucide:calendar-days" className="w-4 h-4 text-[#0AA87D]" />

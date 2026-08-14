@@ -53,19 +53,21 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden animate-fadeIn">
-      <div className="flex-1 overflow-x-auto custom-scrollbar bg-white">
-        <table className="w-full min-w-[900px] text-left border-collapse">
-          <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
-            <tr>
-              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">#</th>
-              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
-              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Room / Bed</th>
-              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move-in Date</th>
-              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
-              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
-              <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
-            </tr>
-          </thead>
+      <div className="flex-1 bg-white relative">
+        {/* Desktop View (Table) */}
+        <div className="hidden md:block overflow-x-auto custom-scrollbar">
+          <table className="w-full min-w-[900px] text-left border-collapse">
+            <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
+              <tr>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">#</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Room / Bed</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move-in Date</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
+              </tr>
+            </thead>
           <tbody className="divide-y divide-slate-100">
             {bookings.map((booking, index) => {
               const tenantName = booking.tenantId?.fullName || 'Unknown Tenant';
@@ -202,8 +204,128 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                 </tr>
               );
             })}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden flex flex-col p-4 gap-4 bg-slate-50/50">
+          {bookings.map((booking, index) => {
+            const tenantName = booking.tenantId?.fullName || 'Unknown Tenant';
+            const tenantInitials = tenantName.charAt(0).toUpperCase();
+            const moveInDate = new Date(booking.moveInDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const roomType = booking.propertyId?.propertyType === 'Tenant' ? 'Full Property' : booking.roomDetails?.roomName || 'N/A';
+            const bedType = booking.propertyId?.propertyType === 'Tenant' ? '-' : booking.roomDetails?.bedName || 'N/A';
+            
+            const getPricing = (b) => {
+              if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
+                const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
+                const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
+                let baseType = 'Single';
+                let isAC = false;
+                if (room) {
+                  baseType = room.sharingType || 'Single';
+                  isAC = room.isAC;
+                } else if (b.roomDetails?.sharingType) {
+                  const st = b.roomDetails.sharingType;
+                  baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+                  isAC = st.includes('(AC)');
+                }
+                const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
+                const pgPric = b.propertyId.pgPricing?.[typeStr];
+                if (pgPric) {
+                  return {
+                    rent: Number(pgPric.rentPerBed?.replace(/\D/g, '') || 0),
+                    deposit: Number(pgPric.depositPerBed?.replace(/\D/g, '') || 0)
+                  };
+                }
+              }
+              return {
+                rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
+                deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0)
+              };
+            };
+            
+            const pricing = getPricing(booking);
+            const rentAmount = pricing.rent;
+            const paidAmount = booking.paymentDetails?.amount || 0;
+            const dueAmount = Math.max(rentAmount - paidAmount, 0);
+            const isTokenPaid = paidAmount > 0 && paidAmount < rentAmount;
+            const isFullPaid = paidAmount > 0 && paidAmount >= rentAmount;
+            
+            return (
+              <div 
+                key={booking._id} 
+                className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm"
+                onClick={() => setSelectedBooking({
+                  raw: booking,
+                  tenant: tenantName,
+                  property: booking.propertyId?.pgName || booking.propertyId?.societyName || booking.propertyId?.propertyCategory || 'Property',
+                  bed: bedType
+                })}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex gap-3 items-center">
+                    <div className="w-10 h-10 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center font-bold text-sm shrink-0">
+                      {booking.tenantId?.profilePic ? (
+                        <img src={booking.tenantId.profilePic} alt={tenantName} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        tenantInitials
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-[#062F26] text-sm">{tenantName}</h3>
+                      <p className="text-[11px] font-medium text-slate-400 mt-0.5">{roomType} • {bedType}</p>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border shrink-0 ${
+                      ['Confirmed', 'Active', 'Completed'].includes(booking.status) ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                      ['Pending Request', 'Pending Payment'].includes(booking.status) ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                      booking.status === 'Reserved' ? 'bg-teal-50 text-teal-600 border-teal-200' :
+                      'bg-rose-50 text-rose-600 border-rose-200'
+                    }`}>
+                    {booking.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Rent</p>
+                    <p className="text-sm font-bold text-slate-700">₹{rentAmount.toLocaleString()}</p>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Move In</p>
+                    <p className="text-sm font-bold text-slate-700">{moveInDate}</p>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 w-full flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Payment Status</p>
+                      <p className="text-sm font-bold text-slate-700">
+                        {isFullPaid ? 'Fully Paid' : isTokenPaid ? `₹${paidAmount.toLocaleString()} Paid` : 'Unpaid'}
+                      </p>
+                    </div>
+                    {!isFullPaid && (
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-rose-400 uppercase tracking-wider mb-1">Due</p>
+                        <p className="text-sm font-bold text-rose-600">₹{isTokenPaid ? dueAmount.toLocaleString() : rentAmount.toLocaleString()}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {booking.status === 'Pending Request' && (
+                  <div className="flex gap-2 mt-2 border-t border-slate-100 pt-3" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => updateBookingStatus(booking._id, 'Confirmed')} className="flex-1 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold rounded-lg hover:bg-emerald-100 transition-colors">Approve</button>
+                    <button onClick={() => updateBookingStatus(booking._id, 'Rejected')} className="flex-1 py-2 bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold rounded-lg hover:bg-rose-100 transition-colors">Reject</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Side Drawer Overlay */}
@@ -216,7 +338,7 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
 
       {/* Side Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${selectedBooking ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed top-0 right-0 h-[100dvh] w-full max-w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${selectedBooking ? 'translate-x-0' : 'translate-x-full'
           }`}
       >
         {selectedBooking && (
@@ -245,7 +367,7 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
               className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50"
               options={{ smoothTouch: true }}
             >
-              <div className="p-6 space-y-6">
+              <div className="p-6 pb-24 sm:pb-6 space-y-6">
 
 
                 {/* Personal Information */}

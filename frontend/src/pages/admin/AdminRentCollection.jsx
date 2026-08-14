@@ -53,25 +53,27 @@ const AdminRentCollection = () => {
     }, 2000);
   };
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/invoices/admin/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error('Failed to fetch rent stats');
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        const res = await fetch('/api/invoices/admin/stats', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (!res.ok) throw new Error('Failed to fetch rent stats');
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
+    fetchData();
   }, []);
 
   const uniqueProperties = useMemo(() => {
@@ -436,8 +438,25 @@ const AdminRentCollection = () => {
     <div className="space-y-4 mx-auto pb-10">
 
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#062F26] tracking-tight">Rent Collection</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
+            <Icon icon="lucide:wallet" className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Rent Collection</h1>
+            <p className="text-sm text-slate-500 font-medium">
+              Monitor and track all rent payments and collections across the platform.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={fetchData}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 hover:bg-[#062F26] hover:text-white rounded-md font-bold text-xs transition-all shadow-xs shrink-0 cursor-pointer"
+        >
+          <Icon icon="lucide:refresh-cw" className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
       </div>
 
       {/* Top Stat Cards */}

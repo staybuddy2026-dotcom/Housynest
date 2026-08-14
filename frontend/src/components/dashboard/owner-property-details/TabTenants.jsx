@@ -123,7 +123,7 @@ const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelect
       securityDepositNum: `₹${pricing.deposit.toLocaleString()}`,
       personalInfo: b.personalInfo,
       emergencyContact: b.emergencyContact,
-      propertyName: property.propertyName || b.propertyId?.propertyName || 'Unknown Property',
+      propertyName: property.pgName || property.societyName || b.propertyId?.pgName || b.propertyId?.societyName || 'Unknown Property',
       propertyType: property.propertyType || b.propertyId?.propertyType || 'PG',
       paymentDetails: b.paymentDetails,
       status: b.status,
@@ -146,8 +146,10 @@ const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelect
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden animate-fadeIn">
 
-      <div className="flex-1 overflow-x-auto custom-scrollbar bg-white">
-        <table className="w-full min-w-[1000px] text-left border-collapse">
+      <div className="flex-1 bg-white relative">
+        {/* Desktop View (Table) */}
+        <div className="hidden md:block overflow-x-auto custom-scrollbar">
+          <table className="w-full min-w-[1000px] text-left border-collapse">
           <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
             <tr>
               <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">#</th>
@@ -227,8 +229,73 @@ const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelect
           </tbody>
         </table>
       </div>
+
+      {/* Mobile View (Cards) */}
+      <div className="md:hidden flex flex-col p-4 gap-4 bg-slate-50/50">
+        {filteredTenants.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-slate-400 py-12">
+            <Icon icon="lucide:search-x" className="w-10 h-10 mb-3 text-slate-300" />
+            <p className="text-sm font-medium text-slate-500">No tenants found.</p>
+          </div>
+        ) : (
+          filteredTenants.map((t) => (
+            <div
+              key={t.id}
+              onClick={() => setSelectedTenant(t)}
+              className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex gap-3 items-center">
+                  <div className="w-10 h-10 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center font-bold text-sm shrink-0">
+                    {t.initials}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#062F26] text-sm line-clamp-1">{t.name}</h3>
+                    <p className="text-[11px] font-medium text-slate-400 mt-0.5">{t.room} • {t.bed}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border shrink-0 ${getPaymentStyle(t.payment)}`}>
+                  {t.payment}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Rent</p>
+                  <p className="text-sm font-bold text-slate-700">{t.rent}</p>
+                </div>
+                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Move In</p>
+                  <p className="text-sm font-bold text-slate-700">{t.moveIn}</p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 w-full flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Payment Info</p>
+                    <p className="text-sm font-bold text-slate-700">{t.paidStr}</p>
+                  </div>
+                  {t.payment === 'DUE' && (
+                    <div className="text-right">
+                      <p className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-1">Status</p>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); }}
+                        className="text-[10px] font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md transition-colors uppercase tracking-wide"
+                      >
+                        Remind Now
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default TabTenants;

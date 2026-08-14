@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { ReactLenis } from 'lenis/react';
+import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const OwnerBookingRequests = () => {
   const [activeTab, setActiveTab] = useState('All');
@@ -92,12 +93,12 @@ const OwnerBookingRequests = () => {
       else if (sharing.includes('Double')) baseType = 'Double';
       else if (sharing.includes('Triple')) baseType = 'Triple';
       else if (sharing.includes('Four')) baseType = 'Four';
-      
+
       const typeAC = `${baseType}_AC`;
       const typeNonAC = `${baseType}_NonAC`;
-      
+
       let rentAmt = 0;
-      
+
       if (b.propertyId?.propertyType === 'PG' && b.propertyId?.pgPricing) {
         if (b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
           rentAmt = Number(String(b.propertyId.pgPricing[typeNonAC].rentPerBed).replace(/\\D/g, ''));
@@ -107,7 +108,7 @@ const OwnerBookingRequests = () => {
       } else if (b.propertyId) {
         rentAmt = Number(String(b.propertyId.monthlyRent || '').replace(/\\D/g, '') || 0);
       }
-      
+
       const tokenAmt = Math.round(rentAmt * 0.40);
 
       const paidAmount = b.paymentDetails?.amount || 0;
@@ -116,29 +117,29 @@ const OwnerBookingRequests = () => {
       const dueAmount = Math.max(rentAmt - paidAmount, 0);
 
       return {
-      _id: b._id,
-      id: b._id.substring(b._id.length - 8).toUpperCase(),
-      date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
-      customer: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
-      phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
-      email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
-      property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
-      propertyType: b.propertyId?.propertyType || 'N/A',
-      bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
-      moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
-      rent: `₹ ${rentAmt.toLocaleString()}`,
-      token: `₹ ${tokenAmt.toLocaleString()}`,
-      paymentStatus: b.paymentDetails?.status || 'Pending',
-      isFullPaid,
-      isTokenPaid,
-      paid: paidAmount,
-      due: dueAmount,
-      rentRaw: rentAmt,
-      status: getStatusMapping(b.status),
-      originalStatus: b.status,
-      raw: b
-    };
-  });
+        _id: b._id,
+        id: b._id.substring(b._id.length - 8).toUpperCase(),
+        date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
+        customer: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
+        phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
+        email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
+        property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
+        propertyType: b.propertyId?.propertyType || 'N/A',
+        bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
+        moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
+        rent: `₹ ${rentAmt.toLocaleString()}`,
+        token: `₹ ${tokenAmt.toLocaleString()}`,
+        paymentStatus: b.paymentDetails?.status || 'Pending',
+        isFullPaid,
+        isTokenPaid,
+        paid: paidAmount,
+        due: dueAmount,
+        rentRaw: rentAmt,
+        status: getStatusMapping(b.status),
+        originalStatus: b.status,
+        raw: b
+      };
+    });
 
   const tabs = ['All', 'Pending Approval', 'Approved', 'Rejected'];
 
@@ -146,7 +147,7 @@ const OwnerBookingRequests = () => {
     const matchesSearch = req.customer.toLowerCase().includes(searchQuery.toLowerCase()) || req.phone.includes(searchQuery) || req.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesProperty = propertyFilter === 'All Properties' || req.property === propertyFilter;
     const matchesDate = !dateFilter || req.moveIn === dateFilter;
-    
+
     return matchesSearch && matchesProperty && matchesDate;
   });
 
@@ -165,11 +166,10 @@ const OwnerBookingRequests = () => {
 
   const uniqueProperties = ['All Properties', ...new Set(requests.map(r => r.property))];
   const stats = [
-    { title: statsBaseRequests.filter(r => r.status === 'PENDING APPROVAL').length, subtitle: 'Total Pending', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' },
-    { title: statsBaseRequests.filter(r => r.status === 'APPROVED').length, subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100' },
-    { title: statsBaseRequests.filter(r => r.status === 'REJECTED').length, subtitle: 'Rejected', desc: 'Not Proceeded', icon: 'lucide:x-circle', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100' },
-    { title: statsBaseRequests.length > 0 ? Math.round((statsBaseRequests.filter(r => r.status === 'APPROVED').length / statsBaseRequests.length) * 100) + '%' : '0%', subtitle: 'Conversion Rate', desc: 'Requests to Bookings', icon: 'lucide:percent', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100' },
-    { title: `₹ ${statsBaseRequests.reduce((acc, curr) => acc + parseInt(curr.token.replace(/\D/g, '') || 0), 0).toLocaleString()}`, subtitle: 'Total Request Revenue', desc: 'From Tokens', icon: 'lucide:indian-rupee', color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-200' },
+    { title: statsBaseRequests.filter(r => r.status === 'PENDING APPROVAL').length, subtitle: 'Total Pending', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: statsBaseRequests.filter(r => r.status === 'APPROVED').length, subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: statsBaseRequests.filter(r => r.status === 'REJECTED').length, subtitle: 'Rejected', desc: 'Not Proceeded', icon: 'lucide:x-circle', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: statsBaseRequests.length > 0 ? Math.round((statsBaseRequests.filter(r => r.status === 'APPROVED').length / statsBaseRequests.length) * 100) + '%' : '0%', subtitle: 'Conversion Rate', desc: 'Requests to Bookings', icon: 'lucide:percent', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
   ];
 
   const getStatusBadge = (status) => {
@@ -216,18 +216,40 @@ const OwnerBookingRequests = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className={`bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group ${idx === 4 ? 'col-span-2 md:col-span-1' : ''}`}>
-            <div className="flex justify-between items-start mb-3 sm:mb-4">
+          <div key={idx} className="relative overflow-hidden bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all duration-300 group">
+            <div className="flex justify-between items-start mb-2 relative z-10">
               <h3 className="text-xl sm:text-2xl font-bold text-[#062F26]">{stat.title}</h3>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${stat.bgColor} ${stat.borderColor} group-hover:scale-110 transition-transform duration-300`}>
                 <Icon icon={stat.icon} className={`w-4 h-4 ${stat.color}`} />
               </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-slate-800">{stat.subtitle}</p>
-              <p className="text-xs text-slate-400 mt-0.5 font-medium">{stat.desc}</p>
+            <div className="relative z-10">
+              <p className="text-base font-bold text-slate-600 group-hover:text-[#062F26] transition-colors">{stat.subtitle}</p>
+              <p className="text-xs text-slate-400 font-medium group-hover:text-slate-500 transition-colors">{stat.desc}</p>
+            </div>
+
+            {/* Sparkline Chart Anchored to Bottom Right */}
+            <div className="absolute right-0 bottom-0 w-32 h-14 opacity-40 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+              <svg viewBox="0 0 100 30" className="w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
+                <path
+                  d={stat.chartPath}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={stat.color}
+                />
+
+                {/* Subtle gradient fill under the line */}
+                <path
+                  d={`${stat.chartPath} L 100 40 L 0 40 Z`}
+                  fill="currentColor"
+                  className={`${stat.color} opacity-10`}
+                />
+              </svg>
             </div>
           </div>
         ))}
@@ -239,58 +261,39 @@ const OwnerBookingRequests = () => {
         {/* Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50/30 rounded-t-xl relative z-20">
           {/* Search */}
-          <div className="relative w-full xl:w-80 group shrink-0">
+          <div className="relative w-full xl:w-96 group shrink-0">
             <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
             <input
               type="text"
               placeholder="Search by name or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal transition-all shadow-sm"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Property Dropdown */}
-            <div className="relative">
-              <button 
-                onClick={() => setActiveDropdown(activeDropdown === 'property' ? null : 'property')}
-                className="flex items-center justify-between min-w-[200px] max-w-[240px] px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-teal focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 transition-all shadow-sm"
-              >
-                <span className="flex items-center gap-2 truncate">
-                  <span className="text-slate-400 font-medium shrink-0">Property:</span> 
-                  <span className="truncate">{propertyFilter}</span>
-                </span>
-                <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${activeDropdown === 'property' ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {activeDropdown === 'property' && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200 max-h-72 overflow-y-auto custom-scrollbar">
-                    <div className="px-3 py-2 border-b border-slate-50 mb-1 sticky top-0 bg-white z-10">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Property</p>
-                    </div>
-                    {uniqueProperties.map(prop => (
-                      <button
-                        key={prop}
-                        onClick={() => { setPropertyFilter(prop); setActiveDropdown(null); }}
-                        className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50 flex items-center justify-between ${propertyFilter === prop ? 'text-[#062F26] bg-brand-teal/5' : 'text-slate-600'}`}
-                      >
-                        <span className="truncate pr-2">{prop}</span>
-                        {propertyFilter === prop && <Icon icon="lucide:check" className="w-4 h-4 text-brand-teal shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+            <div className="w-[220px]">
+              <CustomDropdown
+                value={
+                  <span className="flex items-center gap-1.5 truncate">
+                    <span className="text-slate-400 font-medium shrink-0">Property:</span>
+                    <span className="truncate text-[#062F26]">{propertyFilter}</span>
+                  </span>
+                }
+                options={uniqueProperties.map(prop => ({ label: prop, value: prop }))}
+                onChange={(val) => setPropertyFilter(val)}
+                buttonClassName="shadow-sm !py-2.5 border-slate-200"
+                containerClassName=""
+              />
             </div>
 
             {/* Date Filter */}
-            <div className="relative flex items-center bg-white border border-slate-200 rounded-xl px-4 py-2.5 hover:border-brand-teal focus-within:border-brand-teal focus-within:ring-4 focus-within:ring-brand-teal/10 transition-all shadow-sm">
+            <div className="relative flex items-center bg-white border border-slate-200 rounded-lg px-4 py-2 hover:border-brand-teal focus-within:border-brand-teal focus-within:ring-4 focus-within:ring-brand-teal/10 transition-all shadow-sm">
               <span className="flex items-center gap-2">
                 <span className="text-slate-400 font-medium shrink-0">Move-in:</span>
-                <input 
+                <input
                   type="date"
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}

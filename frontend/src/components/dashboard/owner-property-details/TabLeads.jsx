@@ -78,13 +78,13 @@ const TabLeads = ({ leads, loadingLeads, setLeads, property }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-fadeIn p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-[#062F26]">Property Leads Kanban <span className="text-brand-teal bg-brand-teal/10 px-2 py-0.5 rounded-md text-sm ml-2">{leads.length}</span></h3>
-        <p className="text-sm font-medium text-slate-500">Drag and drop cards to update status</p>
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-fadeIn p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-start sm:justify-between items-start sm:items-center gap-2 sm:gap-0 mb-6">
+        <h3 className="text-lg font-bold text-[#062F26] flex items-center flex-wrap gap-2">Property Leads Kanban <span className="text-brand-teal bg-brand-teal/10 px-2 py-0.5 rounded-md text-sm">{leads.length}</span></h3>
+        <p className="text-xs sm:text-sm font-medium text-slate-500">Drag and drop cards to update status</p>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-4 min-h-[500px]">
+      <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-4 min-h-[500px] -mx-4 sm:mx-0 px-4 sm:px-0 snap-x snap-mandatory">
         {columns.map(col => {
           const columnLeads = leads.filter(l => {
             const status = l.status || 'New';
@@ -97,7 +97,7 @@ const TabLeads = ({ leads, loadingLeads, setLeads, property }) => {
               key={col.id}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, col.id)}
-              className={`flex flex-col min-w-[280px] w-full max-w-[320px] rounded-2xl border ${col.color} transition-colors`}
+              className={`snap-center sm:snap-none shrink-0 flex flex-col min-w-[280px] w-full max-w-[320px] rounded-2xl border ${col.color} transition-colors`}
             >
               <div className={`p-4 rounded-t-2xl border-b border-inherit flex items-center justify-between ${col.headerBg}`}>
                 <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ const TabLeads = ({ leads, loadingLeads, setLeads, property }) => {
                   <h4 className="text-sm font-bold text-[#062F26] mb-2 flex items-center gap-2">
                     <Icon icon="lucide:building" className="w-4 h-4 text-slate-400" /> Selected Unit
                   </h4>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     {selectedLead.floorName && (
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-1">Floor</span>

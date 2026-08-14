@@ -21,9 +21,9 @@ const TabReports = ({ property, invoices = [] }) => {
     if (timeRange === '6M') startDate.setMonth(now.getMonth() - 5);
     if (timeRange === '12M') startDate.setMonth(now.getMonth() - 11);
     if (timeRange === 'YTD') startDate = new Date(now.getFullYear(), 0, 1);
-    
+
     startDate.setDate(1);
-    startDate.setHours(0,0,0,0);
+    startDate.setHours(0, 0, 0, 0);
 
     const filtered = propertyInvoices.filter(inv => new Date(inv.dueDate) >= startDate);
 
@@ -33,10 +33,10 @@ const TabReports = ({ property, invoices = [] }) => {
     let totOverdue = 0;
 
     filtered.forEach(inv => {
-        totExpected += inv.amount;
-        if (inv.status === 'Paid') totCollected += inv.amount;
-        else if (inv.status === 'Overdue') totOverdue += inv.amount;
-        else totPending += inv.amount;
+      totExpected += inv.amount;
+      if (inv.status === 'Paid') totCollected += inv.amount;
+      else if (inv.status === 'Overdue') totOverdue += inv.amount;
+      else totPending += inv.amount;
     });
 
     const months = [];
@@ -45,33 +45,33 @@ const TabReports = ({ property, invoices = [] }) => {
 
     const numMonths = timeRange === '6M' ? 6 : timeRange === '12M' ? 12 : now.getMonth() + 1;
     let currentMonth = new Date(startDate);
-    
+
     for (let i = 0; i < numMonths; i++) {
-        const monthLabel = currentMonth.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        months.push(monthLabel);
-        
-        const monthInvoices = filtered.filter(inv => {
-            const d = new Date(inv.dueDate);
-            return d.getMonth() === currentMonth.getMonth() && d.getFullYear() === currentMonth.getFullYear();
-        });
+      const monthLabel = currentMonth.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      months.push(monthLabel);
 
-        const mCollected = monthInvoices.filter(i => i.status === 'Paid').reduce((sum, i) => sum + i.amount, 0);
-        const mExpected = monthInvoices.reduce((sum, i) => sum + i.amount, 0);
+      const monthInvoices = filtered.filter(inv => {
+        const d = new Date(inv.dueDate);
+        return d.getMonth() === currentMonth.getMonth() && d.getFullYear() === currentMonth.getFullYear();
+      });
 
-        collectedData.push(mCollected);
-        expectedData.push(mExpected);
+      const mCollected = monthInvoices.filter(i => i.status === 'Paid').reduce((sum, i) => sum + i.amount, 0);
+      const mExpected = monthInvoices.reduce((sum, i) => sum + i.amount, 0);
 
-        currentMonth.setMonth(currentMonth.getMonth() + 1);
+      collectedData.push(mCollected);
+      expectedData.push(mExpected);
+
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
     }
 
     return {
-        chartCategories: months,
-        collectedSeries: collectedData,
-        expectedSeries: expectedData,
-        totalExpected: totExpected,
-        totalCollected: totCollected,
-        totalPending: totPending,
-        totalOverdue: totOverdue
+      chartCategories: months,
+      collectedSeries: collectedData,
+      expectedSeries: expectedData,
+      totalExpected: totExpected,
+      totalCollected: totCollected,
+      totalPending: totPending,
+      totalOverdue: totOverdue
     };
 
   }, [propertyInvoices, timeRange]);
@@ -138,7 +138,7 @@ const TabReports = ({ property, invoices = [] }) => {
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
-      
+
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
         <div>
@@ -150,9 +150,8 @@ const TabReports = ({ property, invoices = [] }) => {
             <button
               key={range}
               onClick={() => setTimeRange(range)}
-              className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
-                timeRange === range ? 'bg-white text-brand-teal shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-700'
-              }`}
+              className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${timeRange === range ? 'bg-white text-brand-teal shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-700'
+                }`}
             >
               {range === '6M' ? 'Last 6 Months' : range === '12M' ? 'Last 12 Months' : 'Year to Date'}
             </button>
@@ -196,7 +195,7 @@ const TabReports = ({ property, invoices = [] }) => {
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Main Area Chart */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2">
           <div className="mb-4">
@@ -214,12 +213,12 @@ const TabReports = ({ property, invoices = [] }) => {
             <h4 className="text-sm font-bold text-[#062F26]">Payment Status Breakdown</h4>
             <p className="text-[11px] font-medium text-slate-400">Total volume across selected period</p>
           </div>
-          
+
           <div className="flex-1 flex flex-col justify-center">
             <div className="h-[200px] w-full flex items-center justify-center">
               <Chart options={donutOptions} series={donutSeries} type="donut" height="100%" />
             </div>
-            
+
             {/* Legend underneath */}
             <div className="grid grid-cols-2 gap-3 mt-4">
               <div className="flex items-center gap-2">

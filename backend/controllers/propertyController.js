@@ -261,6 +261,35 @@ export const updateProperty = async (req, res) => {
   }
 };
 
+// Helper to attach ratings to properties
+const attachRatings = async (properties) => {
+  const isArray = Array.isArray(properties);
+  const propsArray = isArray ? properties : [properties];
+  if (propsArray.length === 0) return properties;
+
+  const propertyIds = propsArray.map(p => p._id);
+  const reviewsAggregation = await Review.aggregate([
+    { $match: { property: { $in: propertyIds } } },
+    { $group: { _id: '$property', avgRating: { $avg: '$rating' }, count: { $sum: 1 } } }
+  ]);
+
+  const reviewsMap = {};
+  reviewsAggregation.forEach(r => {
+    reviewsMap[r._id.toString()] = {
+      rating: r.avgRating.toFixed(1),
+      count: r.count
+    };
+  });
+
+  const propsWithRatings = propsArray.map(p => {
+    const pId = p._id.toString();
+    const rev = reviewsMap[pId] || { rating: '0', count: 0 };
+    return { ...p, rating: rev.rating, reviewCount: rev.count };
+  });
+
+  return isArray ? propsWithRatings : propsWithRatings[0];
+};
+
 // @desc    Get all properties (with filters)
 // @route   GET /api/properties
 // @access  Public
@@ -271,7 +300,9 @@ export const getProperties = async (req, res) => {
       query.propertyType = req.query.type;
     }
 
-    const properties = await Property.find(query).populate('owner', 'fullName email profilePic');
+    let properties = await Property.find(query).populate('owner', 'fullName email profilePic').lean();
+    properties = await attachRatings(properties);
+    
     res.status(200).json(properties);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -337,11 +368,15 @@ export const getOwnerProperties = async (req, res) => {
 // @access  Public
 export const getPropertyById = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id).populate('owner', 'fullName email phone profilePic');
-    if (property) {
+    const propertyDoc = await Property.findById(req.params.id).populate('owner', 'fullName email phone profilePic');
+    if (propertyDoc) {
       // Increment views
-      property.views = (property.views || 0) + 1;
-      await property.save();
+      propertyDoc.views = (propertyDoc.views || 0) + 1;
+      await propertyDoc.save();
+      
+      let property = propertyDoc.toObject();
+      property = await attachRatings(property);
+      
       res.json(property);
     } else {
       res.status(404).json({ message: 'Property not found' });
@@ -471,10 +506,12 @@ export const getSavedProperties = async (req, res) => {
     const validIds = savedPropertyIds.filter(id => /^[0-9a-fA-F]{24}$/.test(String(id)));
 
     // Find all properties whose ID is in the savedPropertyIds array
-    const properties = await Property.find({
+    let properties = await Property.find({
       _id: { $in: validIds },
       status: { $in: ['Approved', 'Active'] }
-    }).populate('owner', 'fullName email');
+    }).populate('owner', 'fullName email').lean();
+
+    properties = await attachRatings(properties);
 
     res.status(200).json(properties);
   } catch (error) {
@@ -518,7 +555,7 @@ export const getSimilarProperties = async (req, res) => {
       status: { $in: ['Approved', 'Active'] },
       city: property.city,
       propertyType: property.propertyType
-    }).limit(4).populate('owner', 'fullName email profilePic');
+    }).limit(4).populate('owner', 'fullName email profilePic').lean();
 
     // If less than 4, find just by city
     if (similarProperties.length < 4) {
@@ -526,7 +563,7 @@ export const getSimilarProperties = async (req, res) => {
         _id: { $ne: propertyId, $nin: similarProperties.map(p => p._id) },
         status: { $in: ['Approved', 'Active'] },
         city: property.city
-      }).limit(4 - similarProperties.length).populate('owner', 'fullName email profilePic');
+      }).limit(4 - similarProperties.length).populate('owner', 'fullName email profilePic').lean();
       similarProperties = [...similarProperties, ...moreProps];
     }
 
@@ -535,9 +572,11 @@ export const getSimilarProperties = async (req, res) => {
       const moreProps = await Property.find({
         _id: { $ne: propertyId, $nin: similarProperties.map(p => p._id) },
         status: { $in: ['Approved', 'Active'] }
-      }).limit(4 - similarProperties.length).populate('owner', 'fullName email profilePic');
+      }).limit(4 - similarProperties.length).populate('owner', 'fullName email profilePic').lean();
       similarProperties = [...similarProperties, ...moreProps];
     }
+    
+    similarProperties = await attachRatings(similarProperties);
 
     res.status(200).json(similarProperties);
   } catch (error) {

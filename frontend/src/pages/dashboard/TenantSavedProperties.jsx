@@ -51,8 +51,8 @@ const TenantSavedProperties = () => {
             image: property.images && property.images.length > 0 ? property.images[0].url : null,
             images: property.images && property.images.length > 0 ? property.images.map(img => img.url) : [],
             isVerified: property.isVerified || false,
-            rating: property.rating || '4.5',
-            reviews: property.views || 0,
+            rating: property.rating || '0',
+            reviews: property.reviewCount || 0,
             amenities: [
               ...(property.societyAmenities || []),
               ...(property.commonAmenities || []),
@@ -101,7 +101,7 @@ const TenantSavedProperties = () => {
   return (
     <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-100 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 shadow-sm">
             <Icon icon="lucide:heart" className="w-5 h-5 text-rose-500 fill-rose-500/20" />

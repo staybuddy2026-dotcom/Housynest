@@ -16,7 +16,7 @@ const formatPropertyPrice = (p) => {
   }
 
   const validPrices = [];
-  
+
   if (p.pgPricing) {
     Object.entries(p.pgPricing).forEach(([type, obj]) => {
       if (obj && obj.rentPerBed) {
@@ -68,6 +68,7 @@ const formatPropertyPrice = (p) => {
   return '₹0';
 };
 import AdminPropertyViewModal from './AdminPropertyViewModal';
+import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const AdminListings = () => {
   const [data, setData] = useState([]);
@@ -77,32 +78,15 @@ const AdminListings = () => {
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Listings');
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedListingForDelete, setSelectedListingForDelete] = useState(null);
   const [deleteReason, setDeleteReason] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.listing-dropdown')) {
-        setOpenDropdownId(null);
-      }
-      if (!event.target.closest('.filter-dropdown')) {
-        setIsFilterDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleOpenDeleteModal = (listing) => {
     setSelectedListingForDelete(listing);
     setDeleteReason('');
     setIsDeleteModalOpen(true);
-    setOpenDropdownId(null);
   };
 
   const handleCloseDeleteModal = () => {
@@ -268,43 +252,32 @@ const AdminListings = () => {
       header: 'Actions',
       cell: ({ row }) => {
         const item = row.original;
-        const isDropdownOpen = openDropdownId === item.id;
 
         return (
-          <div className="flex items-center gap-2 relative listing-dropdown">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => {
                 const fullProp = rawProperties.find(p => p._id === item._id);
                 setSelectedProperty(fullProp);
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+              title="View Listing"
             >
               <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
               View
             </button>
             <button
-              onClick={() => setOpenDropdownId(isDropdownOpen ? null : item.id)}
-              className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors"
+              onClick={() => handleOpenDeleteModal(item)}
+              className="p-1.5 border border-transparent text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-md transition-colors"
+              title="Delete Listing"
             >
-              <Icon icon="lucide:more-vertical" className="w-4 h-4" />
+              <Icon icon="lucide:trash-2" className="w-4 h-4" />
             </button>
-
-            {isDropdownOpen && (
-              <div className="absolute right-0 top-10 w-44 bg-white border border-slate-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] py-2 z-60 flex flex-col">
-                <button
-                  onClick={() => handleOpenDeleteModal(item)}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors text-left"
-                >
-                  <Icon icon="lucide:trash-2" className="w-4 h-4" />
-                  Delete Listing
-                </button>
-              </div>
-            )}
           </div>
         );
       },
     }
-  ], [rawProperties, openDropdownId]);
+  ], [rawProperties]);
 
   useEffect(() => {
     fetchProperties();
@@ -384,7 +357,7 @@ const AdminListings = () => {
     <div className="max-w-350 3xl:max-w-420 mx-auto pb-10">
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-200 pb-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 mt-1">
             <Icon icon="lucide:building-2" className="w-5 h-5 text-emerald-600" />
@@ -397,46 +370,14 @@ const AdminListings = () => {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           {/* Status Filter */}
-          <div className="relative filter-dropdown shrink-0 w-full sm:w-auto">
-            <button
-              onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-              className={`flex items-center justify-between w-full sm:w-40 bg-white border rounded-lg px-3 py-2 transition-all ${isFilterDropdownOpen ? 'border-[#062F26] ring-2 ring-[#062F26]/10' : 'border-slate-200 hover:border-slate-300'
-                }`}
-            >
-              <div className="flex items-center gap-2">
-                <Icon icon="lucide:filter" className={`w-4 h-4 ${isFilterDropdownOpen ? 'text-[#062F26]' : 'text-slate-400'}`} />
-                <span className={`text-sm font-bold ${statusFilter !== 'All Listings' ? 'text-[#062F26]' : 'text-slate-600'}`}>
-                  {statusFilter === 'All Listings' ? 'All Listings' : statusFilter}
-                </span>
-              </div>
-              <Icon
-                icon="lucide:chevron-down"
-                className={`w-4 h-4 transition-transform duration-200 ${isFilterDropdownOpen ? 'rotate-180 text-[#062F26]' : 'text-slate-400'
-                  }`}
-              />
-            </button>
-
-            {isFilterDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-full min-w-35 bg-white border border-slate-100 rounded-xl shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                {['All Listings', 'Verified', 'Pending', 'Rejected'].map(status => (
-                  <button
-                    key={status}
-                    onClick={() => {
-                      setStatusFilter(status);
-                      setIsFilterDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center px-4 py-2 text-sm font-bold transition-colors text-left ${statusFilter === status
-                      ? 'bg-[#062F26]/5 text-[#062F26]'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                      }`}
-                  >
-                    {statusFilter === status && <Icon icon="lucide:check" className="w-4 h-4 mr-2 text-[#062F26]" />}
-                    <span className={statusFilter === status ? '' : 'ml-6'}>{status === 'All Listings' ? 'All Listings' : status}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <CustomDropdown
+            options={['All Listings', 'Verified', 'Pending', 'Rejected']}
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val)}
+            placeholder="All Listings"
+            icon="lucide:filter"
+            containerClassName="w-full sm:w-40 shrink-0"
+          />
 
           {/* Search Input */}
           <div className="relative flex items-center shrink-0 w-full sm:w-auto">
@@ -446,12 +387,12 @@ const AdminListings = () => {
               value={globalFilter ?? ''}
               onChange={e => setGlobalFilter(e.target.value)}
               placeholder="Search property..."
-              className="w-full sm:w-64 pl-9 pr-4 py-2 text-sm font-medium border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-slate-400"
+              className="w-full sm:w-64 pl-9 pr-4 py-2.5 text-sm font-medium border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-slate-400"
             />
           </div>
 
           {/* Add New Button */}
-          <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#062F26] text-white rounded-xl hover:bg-[#05261e] transition-colors shrink-0 w-full sm:w-auto">
+          <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#062F26] text-white rounded-lg hover:bg-[#05261e] transition-colors shrink-0 w-full sm:w-auto">
             <Icon icon="lucide:plus" className="w-4 h-4" />
             <span className="text-sm font-bold">Add New Listing</span>
           </button>
@@ -459,8 +400,8 @@ const AdminListings = () => {
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col w-full overflow-hidden">
-        <div className="w-full overflow-x-auto custom-scrollbar">
+      <div className="bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col w-full overflow-hidden transition-all duration-300">
+        <div className="w-full overflow-x-auto custom-scrollbar transition-all duration-300">
           <table className="w-full text-left border-collapse table-auto min-w-[1000px]">
             <thead className="bg-slate-50/80 border-b border-slate-100">
               {table.getHeaderGroups().map(headerGroup => (

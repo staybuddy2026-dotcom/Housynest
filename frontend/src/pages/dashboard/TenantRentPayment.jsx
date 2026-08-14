@@ -195,14 +195,22 @@ const TenantRentPayment = () => {
 
   const propertyName = booking.propertyId?.societyName || booking.propertyId?.pgName || booking.propertyId?.title || 'Property';
   const location = `${booking.propertyId?.locality || ''}, ${booking.propertyId?.city || ''}`;
-  const room = booking.roomDetails?.roomName || 'Room';
-  const bed = booking.roomDetails?.bedName || 'Bed';
-  const floor = booking.roomDetails?.floor || '1st Floor';
-  const sharingType = booking.roomDetails?.sharingType || 'Single Sharing';
+  const room = booking.roomDetails?.roomName || 'N/A';
+  const bed = booking.roomDetails?.bedName || 'N/A';
+  const floor = booking.roomDetails?.floor || 'N/A';
+  const sharingType = booking.roomDetails?.sharingType || 'N/A';
   const image = booking.propertyId?.images?.[0]?.url || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=600&auto=format&fit=crop";
 
   const formatDate = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   const formatMonth = (d) => d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+
+  const propertyType = booking.propertyId?.propertyType === 'Tenant'
+    ? (booking.propertyId?.propertyCategory || 'Flat')
+    : 'PG';
+  const bookingDate = booking.createdAt ? formatDate(new Date(booking.createdAt)) : 'N/A';
+  const moveInDateStr = booking.moveInDate ? formatDate(new Date(booking.moveInDate)) : 'N/A';
+
+  const isTenant = booking.propertyId?.propertyType === 'Tenant';
 
   // Calculate Time Remaining for Pending Invoice
   let diffMs = 0;
@@ -215,7 +223,7 @@ const TenantRentPayment = () => {
     const nextDueDate = new Date(pendingInvoice.dueDate);
     const today = new Date();
     diffMs = nextDueDate - today;
-    
+
     if (diffMs < 0) {
       isOverdue = true;
       const overDueMs = Math.abs(diffMs);
@@ -246,100 +254,108 @@ const TenantRentPayment = () => {
         Back to Bookings
       </button>
 
-      {/* Property Header Card */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col sm:flex-row gap-6 items-start relative">
-        <div className="absolute top-6 right-6 px-3 py-1 bg-emerald-50 text-emerald-700 font-bold text-[10px] uppercase tracking-wider rounded-lg border border-emerald-100">
-          Active
-        </div>
-        <img src={image} alt={propertyName} className="w-full sm:w-48 h-48 sm:h-32 object-cover rounded-xl shrink-0" />
-
-        <div className="flex-1 space-y-4 w-full">
-          <div>
-            <h1 className="text-xl font-bold text-[#062F26]">{propertyName}</h1>
-            <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
-              <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-slate-400" />
-              {location}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100">
-            <div>
-              <p className="text-[10px] text-slate-400 font-semibold mb-0.5">Room</p>
-              <p className="text-sm font-bold text-slate-800">{room}</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-400 font-semibold mb-0.5">Bed</p>
-              <p className="text-sm font-bold text-slate-800">{bed}</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-400 font-semibold mb-0.5">Floor</p>
-              <p className="text-sm font-bold text-slate-800">{floor}</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-400 font-semibold mb-0.5">Room Type</p>
-              <p className="text-sm font-bold text-slate-800">{sharingType}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Column */}
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-3">
+
+          {/* Property Header Card */}
+          <div className="bg-white rounded-xl p-4  shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col sm:flex-row gap-6 items-start relative">
+            <div className="absolute top-6 right-6 px-3 py-1 bg-emerald-50 text-emerald-700 font-bold text-[10px] uppercase tracking-wider rounded-lg border border-emerald-100">
+              Active
+            </div>
+            <img src={image} alt={propertyName} className="w-full sm:w-48 h-48 sm:h-32 object-cover rounded-lg shrink-0" />
+
+            <div className="flex-1 space-y-4 w-full">
+              <div>
+                <h1 className="text-xl font-bold text-[#062F26]">{propertyName}</h1>
+                <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
+                  <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-slate-400" />
+                  {location}
+                </p>
+              </div>
+
+              <div className={`grid grid-cols-2 ${isTenant ? 'sm:grid-cols-3' : 'sm:grid-cols-5'} gap-4 pt-4 border-t border-slate-100`}>
+                <div>
+                  <p className="text-xs text-slate-400 font-semibold mb-0.5">Property Type</p>
+                  <p className="text-base font-bold text-slate-800">{propertyType}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 font-semibold mb-0.5">Booking Date</p>
+                  <p className="text-base font-bold text-slate-800">{bookingDate}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 font-semibold mb-0.5">Move In Date</p>
+                  <p className="text-base font-bold text-slate-800">{moveInDateStr}</p>
+                </div>
+                {!isTenant && (
+                  <>
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-semibold mb-0.5">Room & Bed</p>
+                      <p className="text-sm font-bold text-slate-800">{room !== 'N/A' ? `${room} - ${bed}` : 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-semibold mb-0.5">Room Type</p>
+                      <p className="text-sm font-bold text-slate-800">{sharingType}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
 
           <h2 className="text-lg font-bold text-[#062F26]">Pay Rent</h2>
 
           {/* Pay Rent Details Card */}
           {pendingInvoice ? (
             <div className="space-y-4">
-              <div className="bg-[#FAFAF9] rounded-2xl p-4 sm:p-5 border border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-              <div className="flex items-center justify-between w-full lg:w-auto border-b border-slate-200 pb-4 lg:border-0 lg:pb-0">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
-                    <Icon icon="lucide:calendar-clock" className="w-6 h-6 text-emerald-600" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-slate-500 font-medium mb-0.5">Next Rent Due On</p>
-                    <p className="text-base font-bold text-[#062F26]">{formatDate(new Date(pendingInvoice.dueDate))}</p>
+              <div className="bg-[#FAFAF9] rounded-xl p-4 sm:p-5 border border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                <div className="flex items-center justify-between w-full lg:w-auto border-b border-slate-200 pb-4 lg:border-0 lg:pb-0">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
+                      <Icon icon="lucide:calendar-clock" className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-500 font-medium mb-0.5">Next Rent Due On</p>
+                      <p className="text-base font-bold text-[#062F26]">{formatDate(new Date(pendingInvoice.dueDate))}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="hidden lg:block w-px h-10 bg-slate-200"></div>
-
-              <div className="flex flex-row lg:flex-row items-center justify-between w-full lg:w-auto gap-4">
-                <div>
-                  <p className="text-[11px] text-slate-500 font-medium mb-0.5">Rent Period</p>
-                  <p className="text-xs sm:text-sm font-bold text-slate-800">{formatDate(new Date(pendingInvoice.billingPeriodStart))} - {formatDate(new Date(pendingInvoice.billingPeriodEnd))}</p>
-                </div>
-
-                <div className="hidden sm:block lg:hidden w-px h-10 bg-slate-200"></div>
                 <div className="hidden lg:block w-px h-10 bg-slate-200"></div>
 
-                <div className="flex items-center gap-2">
-                  <div className="text-right sm:text-center">
-                    <p className={`text-[10px] ${isOverdue ? 'text-rose-600' : 'text-slate-500'} font-bold uppercase tracking-wider mb-1.5 text-center`}>
-                      {isOverdue ? 'Overdue By' : 'Due In'}
-                    </p>
-                    <div className="flex gap-1 sm:gap-1.5 text-center">
-                      <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
-                        <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{daysDue}</span>
-                        <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Days</span>
-                      </div>
-                      <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
-                        <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{hoursDue}</span>
-                        <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Hours</span>
-                      </div>
-                      <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
-                        <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{minsDue}</span>
-                        <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Mins</span>
+                <div className="flex flex-row lg:flex-row items-center justify-between w-full lg:w-auto gap-4">
+                  <div>
+                    <p className="text-[11px] text-slate-500 font-medium mb-0.5">Rent Period</p>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800">{formatDate(new Date(pendingInvoice.billingPeriodStart))} - {formatDate(new Date(pendingInvoice.billingPeriodEnd))}</p>
+                  </div>
+
+                  <div className="hidden sm:block lg:hidden w-px h-10 bg-slate-200"></div>
+                  <div className="hidden lg:block w-px h-10 bg-slate-200"></div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="text-right sm:text-center">
+                      <p className={`text-[10px] ${isOverdue ? 'text-rose-600' : 'text-slate-500'} font-bold uppercase tracking-wider mb-1.5 text-center`}>
+                        {isOverdue ? 'Overdue By' : 'Due In'}
+                      </p>
+                      <div className="flex gap-1 sm:gap-1.5 text-center">
+                        <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
+                          <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{daysDue}</span>
+                          <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Days</span>
+                        </div>
+                        <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
+                          <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{hoursDue}</span>
+                          <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Hours</span>
+                        </div>
+                        <div className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded border shadow-sm min-w-[32px] sm:min-w-[36px] ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
+                          <span className={`block text-xs sm:text-sm font-bold ${isOverdue ? 'text-rose-700' : 'text-[#062F26]'}`}>{minsDue}</span>
+                          <span className={`block text-[8px] font-medium uppercase mt-0.5 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>Mins</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                </div>
               </div>
-              
+
               {isOverdue && (
                 <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3 shadow-sm animate-fadeIn">
                   <Icon icon="lucide:alert-circle" className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
@@ -353,29 +369,30 @@ const TenantRentPayment = () => {
               )}
             </div>
           ) : (
-            <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100 flex flex-col items-center justify-center text-center">
-              <Icon icon="lucide:check-circle-2" className="w-12 h-12 text-emerald-500 mb-3" />
-              <h3 className="text-lg font-bold text-[#062F26]">All Dues Cleared!</h3>
-              <p className="text-sm text-slate-500 font-medium mt-1">You don't have any pending rent invoices for this booking.</p>
+            <div className="space-y-4">
+              <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-100 flex flex-col items-center justify-center text-center">
+                <Icon icon="lucide:check-circle-2" className="w-12 h-12 text-emerald-500 mb-3" />
+                <h3 className="text-lg font-bold text-[#062F26]">All Dues Cleared!</h3>
+                <p className="text-sm text-slate-500 font-medium mt-1">You don't have any pending rent invoices for this booking.</p>
+              </div>
             </div>
           )}
 
-          <h2 className="text-lg font-bold text-[#062F26] pt-2">Rent Payment History</h2>
+          <h2 className="text-lg font-bold text-[#062F26]">Rent Payment History</h2>
           {/* History Table */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_15px_rgba(0,0,0,0.02)] overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-100 shadow-[0_2px_15px_rgba(0,0,0,0.02)] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                    <th className="p-4 font-bold">Month</th>
-                    <th className="p-4 font-bold">Rent Period</th>
-                    <th className="p-4 font-bold">Amount</th>
-                    <th className="p-4 font-bold">Paid On</th>
-                    <th className="p-4 font-bold">Status</th>
-                    <th className="p-4 font-bold text-right">Action</th>
+                  <tr className="bg-slate-50/50 border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
+                    {['Month', 'Rent Period', 'Amount', 'Paid On', 'Status', 'Action'].map((header, idx) => (
+                      <th key={idx} className={`p-4 font-bold ${header === 'Action' ? 'text-right' : ''}`}>
+                        {header}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-50">
+                <tbody className="text-xs lg:text-sm font-medium text-slate-700 divide-y divide-slate-50">
                   {pastInvoices.length > 0 ? (
                     pastInvoices.map((inv) => (
                       <tr key={inv._id} className="hover:bg-slate-50/50 transition-colors">
@@ -407,12 +424,12 @@ const TenantRentPayment = () => {
           </div>
 
           {/* Set Auto Pay Card */}
-          <div className="bg-white rounded-2xl border border-[#FCD34D] shadow-sm overflow-hidden mt-4">
+          <div className="bg-white rounded-xl border border-[#FCD34D] shadow-sm overflow-hidden mt-4">
             <div className="bg-[#FFFDF0] px-4 sm:px-5 py-3 border-b border-[#FDE68A] flex items-center justify-between">
               <h3 className="font-bold text-[#B45309] text-sm flex items-center gap-2">
-                Set Auto Pay <span className="bg-[#FEF3C7] text-[#D97706] text-[10px] px-2 py-0.5 rounded-full border border-[#FDE68A] hidden sm:inline-block">(Recommended)</span>
+                Set Auto Pay <span className="bg-[#FEF3C7] text-[#D97706] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-[#FDE68A] hidden sm:inline-block">(Recommended)</span>
               </h3>
-              <p className="text-[11px] font-semibold text-[#B45309] hidden sm:block">Save time, never miss a payment</p>
+              <p className="text-xs font-semibold text-[#B45309] hidden sm:block">Save time, never miss a payment</p>
             </div>
             <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative">
               <div className="flex gap-4 items-start w-full sm:w-auto">
@@ -446,8 +463,8 @@ const TenantRentPayment = () => {
         <div className="w-full lg:w-[350px] xl:w-[380px] shrink-0 space-y-4">
 
           {/* Payment Summary */}
-          <div className="bg-white rounded-2xl p-6 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100">
-            <h3 className="text-base font-bold text-[#062F26] mb-4 border-b border-slate-100 pb-3">Payment Summary</h3>
+          <div className="bg-white rounded-xl p-6 shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100">
+            <h3 className="text-base 3xl:text-lg font-bold text-[#062F26] mb-4 border-b border-slate-100 pb-3">Payment Summary</h3>
             <div className="space-y-4">
               {pendingInvoice && pendingInvoice.isInitialPayment && pendingInvoice.breakdown ? (
                 <>
@@ -516,7 +533,7 @@ const TenantRentPayment = () => {
             <button
               onClick={handlePayRent}
               disabled={!pendingInvoice || processingId === pendingInvoice._id}
-              className="w-full py-4 mt-6 bg-[#0AA87D] hover:bg-[#062F26] text-white rounded-xl font-bold transition-all shadow-[0_4px_10px_rgba(10,168,125,0.2)] hover:shadow-[0_4px_15px_rgba(6,47,38,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-2.5 mt-4 bg-[#0AA87D] hover:bg-[#062F26] text-white rounded-lg font-bold transition-all shadow-[0_4px_10px_rgba(10,168,125,0.2)] hover:shadow-[0_4px_15px_rgba(6,47,38,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {processingId ? (
                 <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin" />
@@ -524,24 +541,24 @@ const TenantRentPayment = () => {
                 'Pay Now'
               )}
             </button>
-            <div className="mt-5 p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-center gap-2 text-emerald-700 text-[11px] font-bold">
+            <div className="mt-4 p-2 bg-emerald-50 rounded-lg border border-emerald-100 flex items-center justify-center gap-2 text-emerald-700 text-xs font-semibold">
               <Icon icon="lucide:shield-check" className="w-4 h-4" /> Your payment is secure and encrypted
             </div>
           </div>
 
           {/* Need Help Card */}
-          <div className="bg-[#F8FAFC] rounded-2xl border border-slate-200 p-5 flex flex-col items-start gap-4 mt-6">
+          <div className="bg-[#F8FAFC] rounded-xl border border-slate-200 p-5 flex flex-col items-start gap-4 mt-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                <Icon icon="lucide:info" className="w-5 h-5 text-slate-400" />
+              <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                <Icon icon="lucide:info" className="w-6 h-6 text-slate-400" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-slate-800">Need help?</h4>
-                <p className="text-[11px] font-medium text-slate-500 mt-0.5 max-w-[200px]">Contact our support team and we'll be happy to assist you.</p>
+                <h4 className="font-bold text-base text-slate-800">Need help?</h4>
+                <p className="text-xs font-medium text-slate-500 max-w-[200px]">Contact our support team and we'll be happy to assist you.</p>
               </div>
             </div>
-            <button className="w-full px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold text-xs rounded-xl shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 cursor-pointer">
-              <Icon icon="lucide:headphones" className="w-3.5 h-3.5" /> Contact Support
+            <button className="w-full px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-semibold text-sm rounded-lg shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+              <Icon icon="lucide:headphones" className="w-4 h-4" /> Contact Support
             </button>
           </div>
 

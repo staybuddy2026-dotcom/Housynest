@@ -297,7 +297,7 @@ const AdminPropertyRequests = () => {
       {/* Data Table Card */}
       <div className="bg-white rounded-xl border border-slate-100 shadow-xs overflow-hidden">
         {/* Search & Filter Bar */}
-        <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-50/50">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-50/50">
           <div className="relative w-full sm:w-80">
             <Icon icon="lucide:search" className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -383,7 +383,7 @@ const AdminPropertyRequests = () => {
                           <div>
                             <span className="text-sm font-bold text-[#062F26] leading-tight block">{item.propertyName}</span>
                             <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider inline-block mt-1 ${isPg ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider inline-block mt-1 ${isPg ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
                                 }`}
                             >
                               {item.type}

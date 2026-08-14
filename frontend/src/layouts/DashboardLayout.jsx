@@ -23,7 +23,7 @@ const DashboardLayout = () => {
           <div className="flex items-center gap-4 lg:hidden">
             {/* Logo in Header for Mobile */}
             <Link to="/">
-              <img src="/src/assets/logo.png" alt="Housynest" className="h-9 object-contain" />
+              <img src="/src/assets/logo.png" alt="Housynest" className="h-11 sm:h-9 object-contain" />
             </Link>
           </div>
 

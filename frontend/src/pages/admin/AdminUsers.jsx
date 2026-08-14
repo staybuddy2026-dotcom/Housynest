@@ -3,59 +3,7 @@ import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
 import ReactApexChart from 'react-apexcharts';
 
-const CustomDropdown = ({ options, value, onChange, placeholder = 'Select...' }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find(o => o.value === value) || { label: placeholder, value };
-
-  return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-[13px] font-semibold text-slate-700 hover:border-[#062F26]/40 focus:outline-none flex items-center justify-between gap-2 shadow-2xs transition-all cursor-pointer min-w-[130px]"
-      >
-        <span className="truncate">{selectedOption.label}</span>
-        <Icon icon="lucide:chevron-down" className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#062F26]' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 sm:left-0 mt-1.5 min-w-[160px] bg-white border border-slate-100 rounded-xl shadow-xl z-30 py-1 max-h-56 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => {
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-              className={`w-full text-left px-3.5 py-2 text-[13px] font-medium transition-colors flex items-center justify-between cursor-pointer ${value === opt.value
-                ? 'bg-[#062F26]/5 text-[#062F26] font-bold'
-                : 'text-slate-600 hover:bg-slate-50'
-                }`}
-            >
-              <span className="truncate">{opt.label}</span>
-              {value === opt.value && (
-                <Icon icon="lucide:check" className="w-3.5 h-3.5 text-[#062F26]" />
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const getVerificationBadge = (isVerified) => {
   if (isVerified === true || isVerified === 'Verified') {
@@ -659,7 +607,8 @@ const AdminUsers = () => {
                 />
               </div>
 
-              <CustomDropdown
+              <CustomDropdown containerClassName="w-[110px] sm:w-[130px]"
+                icon="lucide:building"
                 options={tenantPropertyOptions}
                 value={tenantPropertyFilter}
                 onChange={(val) => {
@@ -668,7 +617,8 @@ const AdminUsers = () => {
                 }}
               />
 
-              <CustomDropdown
+              <CustomDropdown containerClassName="w-[110px] sm:w-[130px]"
+                icon="lucide:shield-check"
                 options={verificationOptions}
                 value={tenantVerificationFilter}
                 onChange={(val) => {
@@ -677,7 +627,8 @@ const AdminUsers = () => {
                 }}
               />
 
-              <CustomDropdown
+              <CustomDropdown containerClassName="w-[110px] sm:w-[130px]"
+                icon="lucide:activity"
                 options={statusOptions}
                 value={tenantStatusFilter}
                 onChange={(val) => {
@@ -880,7 +831,8 @@ const AdminUsers = () => {
                 />
               </div>
 
-              <CustomDropdown
+              <CustomDropdown containerClassName="w-[110px] sm:w-[130px]"
+                icon="lucide:building"
                 options={ownerPropertyOptions}
                 value={ownerPropertyFilter}
                 onChange={(val) => {
@@ -889,7 +841,8 @@ const AdminUsers = () => {
                 }}
               />
 
-              <CustomDropdown
+              <CustomDropdown containerClassName="w-[110px] sm:w-[130px]"
+                icon="lucide:shield-check"
                 options={verificationOptions}
                 value={ownerVerificationFilter}
                 onChange={(val) => {
@@ -898,7 +851,8 @@ const AdminUsers = () => {
                 }}
               />
 
-              <CustomDropdown
+              <CustomDropdown containerClassName="w-[110px] sm:w-[130px]"
+                icon="lucide:activity"
                 options={statusOptions}
                 value={ownerStatusFilter}
                 onChange={(val) => {

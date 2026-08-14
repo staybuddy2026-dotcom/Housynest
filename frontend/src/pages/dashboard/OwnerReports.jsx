@@ -157,7 +157,9 @@ const OwnerReports = () => {
       icon: 'lucide:percent',
       borderHover: 'hover:border-emerald-300',
       iconBg: 'bg-emerald-50 text-emerald-600',
-      giantIconColor: 'text-emerald-50'
+      giantIconColor: 'text-emerald-50',
+      gradientBottom: 'from-emerald-500/25',
+      timeRangeColor: 'bg-emerald-50 text-emerald-600'
     },
     {
       id: 2,
@@ -165,9 +167,11 @@ const OwnerReports = () => {
       label: 'Total Collected',
       isPositive: true,
       icon: 'lucide:indian-rupee',
-      borderHover: 'hover:border-brand-teal',
-      iconBg: 'bg-brand-teal/10 text-brand-teal',
-      giantIconColor: 'text-brand-teal/5'
+      borderHover: 'hover:border-orange-300',
+      iconBg: 'bg-orange-50 text-orange-500',
+      giantIconColor: 'text-orange-50',
+      gradientBottom: 'from-orange-500/25',
+      timeRangeColor: 'bg-orange-50 text-orange-500'
     },
     {
       id: 3,
@@ -175,9 +179,11 @@ const OwnerReports = () => {
       label: 'Total Overdue',
       isPositive: false,
       icon: 'lucide:alert-circle',
-      borderHover: 'hover:border-rose-300',
-      iconBg: 'bg-rose-50 text-rose-500',
-      giantIconColor: 'text-rose-50'
+      borderHover: 'hover:border-purple-300',
+      iconBg: 'bg-purple-50 text-purple-500',
+      giantIconColor: 'text-purple-50',
+      gradientBottom: 'from-purple-500/25',
+      timeRangeColor: 'bg-purple-50 text-purple-500'
     },
     {
       id: 4,
@@ -185,9 +191,11 @@ const OwnerReports = () => {
       label: 'Total Expected',
       isPositive: true,
       icon: 'lucide:trending-up',
-      borderHover: 'hover:border-indigo-300',
-      iconBg: 'bg-indigo-50 text-indigo-500',
-      giantIconColor: 'text-indigo-50'
+      borderHover: 'hover:border-rose-300',
+      iconBg: 'bg-rose-50 text-rose-500',
+      giantIconColor: 'text-rose-50',
+      gradientBottom: 'from-rose-500/25',
+      timeRangeColor: 'bg-rose-50 text-rose-500'
     },
   ];
 
@@ -205,7 +213,7 @@ const OwnerReports = () => {
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative pb-24 lg:pb-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
         <div>
           <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Financial Reports</h1>
           <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-1">
@@ -231,22 +239,25 @@ const OwnerReports = () => {
 
           <button
             onClick={handleRefresh}
-            className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal transition-all"
+            className="w-10 h-10 rounded-md bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal transition-all"
           >
             <Icon icon="lucide:refresh-cw" className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-brand-teal' : ''}`} />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {statsData.map((stat) => (
-          <div key={stat.id} className={`bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden group ${stat.borderHover}`}>
+          <div key={stat.id} className={`bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden group ${stat.borderHover}`}>
 
             {/* Background pattern for hover state */}
             <Icon icon={stat.icon} className={`absolute -right-4 -bottom-4 w-32 h-32 opacity-0 group-hover:opacity-100 transition-all duration-500 ${stat.giantIconColor} pointer-events-none group-hover:rotate-12 group-hover:scale-110`} />
+            
+            {/* Gradient shadow at the bottom */}
+            <div className={`absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t ${stat.gradientBottom} to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}></div>
 
-            <div className="flex justify-between items-start mb-2 relative z-10">
-              <h3 className={`text-2xl lg:text-3xl font-bold text-[#062F26] transition-colors duration-300 tracking-tight`}>{stat.title}</h3>
+            <div className="flex justify-between items-start relative z-10">
+              <h3 className={`text-2xl lg:text-[28px] font-bold text-[#062F26] transition-colors duration-300 tracking-tight`}>{stat.title}</h3>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${stat.iconBg} transition-all duration-300 group-hover:scale-110 group-hover:shadow-sm`}>
                 <Icon icon={stat.icon} className="w-5 h-5" />
               </div>
@@ -254,8 +265,7 @@ const OwnerReports = () => {
 
             <p className={`text-xs font-bold text-slate-500 mb-4 transition-colors duration-300 relative z-10`}>{stat.label}</p>
 
-            <span className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md font-bold transition-colors duration-300 relative z-10 ${stat.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
-              }`}>
+            <span className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md font-bold transition-colors duration-300 relative z-10 ${stat.timeRangeColor}`}>
               <Icon icon={stat.isPositive ? 'lucide:trending-up' : 'lucide:trending-down'} className="w-3 h-3" />
               {timeRange}
             </span>

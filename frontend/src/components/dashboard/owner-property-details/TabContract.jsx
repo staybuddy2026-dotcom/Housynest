@@ -88,30 +88,42 @@ By proceeding with occupation of the premises, the Licensee acknowledges that th
 <b>Licensee:</b> [tenant_full_name]
 <b>Date:</b> [agreement_date]`;
 
-const TabContract = ({ property }) => {
+const TabContract = ({ property, bookings = [] }) => {
   const [showContractFormat, setShowContractFormat] = useState(false);
 
-  // Mock data for tenant contracts
-  const tenantContracts = [
-    { id: 1, tenantName: 'Rahul Kumar', room: 'Room 101', bed: 'Bed A', date: '12 Aug 2026', status: 'Signed', size: '2.4 MB' },
-    { id: 2, tenantName: 'Amit Singh', room: 'Room 102', bed: 'Bed B', date: '05 Aug 2026', status: 'Signed', size: '1.8 MB' },
-    { id: 3, tenantName: 'Priya Sharma', room: 'Room 201', bed: 'Private', date: '28 Jul 2026', status: 'Signed', size: '2.1 MB' },
-  ];
+  const activeBookings = bookings.filter(b => b.status === 'Active' || b.status === 'Confirmed' || b.status === 'Completed');
+
+  const tenantContracts = activeBookings.map((b) => {
+    const firstName = b.personalInfo?.firstName || '';
+    const lastName = b.personalInfo?.lastName || '';
+    const fullName = b.tenantId?.fullName || `${firstName} ${lastName}`.trim() || 'Unknown Tenant';
+    const room = property.propertyType === 'Tenant' ? 'Full Property' : b.roomDetails?.roomName || 'N/A';
+    const bed = property.propertyType === 'Tenant' ? '-' : b.roomDetails?.bedName || 'N/A';
+    
+    return {
+      id: b._id,
+      tenantName: fullName,
+      room: room,
+      bed: bed,
+      date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      status: (b.status === 'Active' || b.status === 'Completed') ? 'Signed' : 'Pending'
+    };
+  });
 
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Contract Agreement Card */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm w-full">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#EAF5F2] text-brand-teal rounded-xl flex items-center justify-center shrink-0">
-              <Icon icon="lucide:file-text" className="w-6 h-6" />
+      <div className="bg-white p-4 sm:p-8 rounded-2xl border border-slate-100 shadow-sm w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-slate-100">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#EAF5F2] text-brand-teal rounded-xl flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <Icon icon="lucide:file-text" className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-[#062F26]">
+              <h3 className="text-lg sm:text-xl font-bold text-[#062F26]">
                 {showContractFormat ? 'Contract Format' : 'Tenant Contracts'}
               </h3>
-              <p className="text-sm font-medium text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5 sm:mt-1">
                 {showContractFormat
                   ? "Review the property's base contract format"
                   : "View and download signed tenant agreements"}
@@ -121,9 +133,9 @@ const TabContract = ({ property }) => {
           <button
             type="button"
             onClick={() => setShowContractFormat(!showContractFormat)}
-            className="px-4 py-2 bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-[#062F26] rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+            className="px-4 py-2 sm:py-2.5 bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-[#062F26] rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm w-full sm:w-auto mt-2 sm:mt-0"
           >
-            <Icon icon={showContractFormat ? "lucide:users" : "lucide:file-cog"} width="16" />
+            <Icon icon={showContractFormat ? "lucide:users" : "lucide:file-cog"} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             {showContractFormat ? 'View Tenant Contracts' : 'Contract Format'}
           </button>
         </div>
@@ -174,16 +186,16 @@ const TabContract = ({ property }) => {
                 )}
               </>
             ) : (
-              <div className="bg-[#FAF6F0] border border-[#F3EFE9] rounded-xl p-5 md:p-6 flex flex-col gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold shrink-0">
-                    <Icon icon="lucide:shield-check" width="24" />
+              <div className="bg-[#FAF6F0] border border-[#F3EFE9] rounded-xl p-4 sm:p-5 md:p-6 flex flex-col gap-4 sm:gap-6">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold shrink-0 mt-1 sm:mt-0">
+                    <Icon icon="lucide:shield-check" className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <p className="text-base font-bold text-[#062F26]">
+                    <p className="text-sm sm:text-base font-bold text-[#062F26]">
                       {property.ownerContract?.isCustomized ? 'Customized Agreement' : 'Standard Agreement'}
                     </p>
-                    <p className="text-sm font-medium text-slate-500">
+                    <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5">
                       {property.ownerContract?.isCustomized ? 'Using customized contract text' : 'Using Housynest\'s default standardized contract'}
                     </p>
                   </div>
@@ -205,38 +217,45 @@ const TabContract = ({ property }) => {
           </>
         ) : (
           <div className="space-y-4">
-            <div className="grid gap-4">
-              {tenantContracts.map((contract) => (
-                <div key={contract.id} className="bg-white border border-slate-200 hover:border-brand-teal/40 transition-colors rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:shadow-md">
-                  <div className="flex items-start sm:items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
-                      <Icon icon="lucide:user" className="w-6 h-6 text-slate-400" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#062F26] text-base">{contract.tenantName}</h4>
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-xs font-medium text-slate-500">
-                        <span className="flex items-center gap-1"><Icon icon="lucide:door-closed" className="w-3.5 h-3.5" /> {contract.room} ({contract.bed})</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1"><Icon icon="lucide:calendar" className="w-3.5 h-3.5" /> {contract.date}</span>
-                        <span>•</span>
-                        <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-200">{contract.status}</span>
+            {tenantContracts.length > 0 ? (
+              <div className="grid gap-4">
+                {tenantContracts.map((contract) => (
+                  <div key={contract.id} className="bg-white border border-slate-200 hover:border-brand-teal/40 transition-colors rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:shadow-md">
+                    <div className="flex items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+                        <Icon icon="lucide:user" className="w-5 h-5 sm:w-6 sm:h-6 text-slate-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-[#062F26] text-sm sm:text-base truncate">{contract.tenantName}</h4>
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 text-[10px] sm:text-xs font-medium text-slate-500">
+                          <span className="flex items-center gap-1"><Icon icon="lucide:door-closed" className="w-3.5 h-3.5" /> {contract.room} {contract.bed !== '-' ? `(${contract.bed})` : ''}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="flex items-center gap-1"><Icon icon="lucide:calendar" className="w-3.5 h-3.5" /> {contract.date}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border mt-1 sm:mt-0 ${contract.status === 'Signed' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-amber-600 bg-amber-50 border-amber-200'}`}>{contract.status}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                    <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#EAF5F2] text-[#0AA87D] hover:bg-[#0AA87D] hover:text-white transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-                      <Icon icon="lucide:eye" width="16" />
-                      View
-                    </button>
-                    <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-                      <Icon icon="lucide:download" width="16" />
-                      Download
-                    </button>
+                    <div className="flex items-center gap-2 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#EAF5F2] text-[#0AA87D] hover:bg-[#0AA87D] hover:text-white transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                        <Icon icon="lucide:eye" width="16" />
+                        View
+                      </button>
+                      <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                        <Icon icon="lucide:download" width="16" />
+                        Download
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-slate-50/50 rounded-xl border border-slate-100">
+                <Icon icon="lucide:users" className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 font-medium">No tenant contracts available yet.</p>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -53,7 +53,7 @@ const TabRoomsAndBeds = ({ property, bookings }) => {
           <div className="space-y-6">
             {property.floors.map((floor, idx) => (
               <div key={idx} className="border border-slate-100 rounded-xl overflow-hidden">
-                <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h4 className="font-bold text-[#062F26]">{floor.floorName || `Floor ${floor.floorNumber || idx + 1}`}</h4>
                   <span className="text-xs font-semibold text-slate-500">{floor.rooms?.length || 0} Rooms</span>
                 </div>

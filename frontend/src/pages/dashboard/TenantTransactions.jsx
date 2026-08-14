@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { jsPDF } from 'jspdf';
 
 const TenantTransactions = () => {
   const navigate = useNavigate();
@@ -67,6 +68,7 @@ const TenantTransactions = () => {
       text: 'text-[#062F26]',
       progress: nextInvoice ? 'w-[40%]' : 'w-[0%]',
       progressBg: 'bg-brand-teal',
+      gradientBottom: 'from-brand-teal/20',
       hoverBg: 'hover:shadow-[0_8px_30px_rgba(10,168,125,0.15)] hover:border-brand-teal/30',
       hoverText: 'group-hover:text-[#062F26]',
       hoverSubtitle: 'group-hover:text-slate-600',
@@ -83,6 +85,7 @@ const TenantTransactions = () => {
       text: 'text-[#062F26]',
       progress: nextInvoice ? 'w-[100%]' : 'w-[0%]',
       progressBg: 'bg-indigo-500',
+      gradientBottom: 'from-indigo-500/20',
       hoverBg: 'hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] hover:border-indigo-500/30',
       hoverText: 'group-hover:text-[#062F26]',
       hoverSubtitle: 'group-hover:text-slate-600',
@@ -99,6 +102,7 @@ const TenantTransactions = () => {
       text: 'text-[#062F26]',
       progress: 'w-[0%]',
       progressBg: 'bg-amber-500',
+      gradientBottom: 'from-amber-500/20',
       hoverBg: 'hover:shadow-[0_8px_30px_rgba(245,158,11,0.15)] hover:border-amber-500/30',
       hoverText: 'group-hover:text-[#062F26]',
       hoverSubtitle: 'group-hover:text-slate-600',
@@ -115,6 +119,7 @@ const TenantTransactions = () => {
       text: 'text-[#062F26]',
       progress: totalPaidYTD > 0 ? 'w-[75%]' : 'w-[0%]',
       progressBg: 'bg-emerald-500',
+      gradientBottom: 'from-emerald-500/20',
       hoverBg: 'hover:shadow-[0_8px_30px_rgba(16,185,129,0.15)] hover:border-emerald-500/30',
       hoverText: 'group-hover:text-[#062F26]',
       hoverSubtitle: 'group-hover:text-slate-600',
@@ -169,17 +174,121 @@ const TenantTransactions = () => {
     navigate('/tenant/bookings');
   };
 
+  const handleDownloadReceipt = async (tx) => {
+    toast.loading('Generating receipt...', { id: 'receipt' });
+    try {
+      const doc = new jsPDF();
+
+      // Housynest Header
+      doc.setFillColor(6, 47, 38); // #062F26 (Dark Green)
+      doc.rect(0, 0, 210, 45, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(28);
+      doc.setFont("helvetica", "bold");
+      doc.text("Housynest", 14, 25);
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("Your perfect PG partner", 14, 33);
+      
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text("RECEIPT", 196, 25, { align: "right" });
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 196, 33, { align: "right" });
+
+      // Transaction Details
+      doc.setTextColor(40, 40, 40);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Transaction Details", 14, 65);
+      
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Receipt No: #${tx._id.substring(tx._id.length - 8).toUpperCase()}`, 14, 75);
+      doc.text(`Date of Payment: ${new Date(tx.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`, 14, 82);
+      doc.text(`Payment Method: ${tx.paymentMethod || 'Online Transfer'}`, 14, 89);
+      doc.text(`Status: ${tx.status}`, 14, 96);
+
+      // Bill To (Tenant Info - optional/placeholder if not available)
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Billed To", 120, 65);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.text(tx.bookingId?.tenantDetails?.fullName || "Tenant", 120, 75);
+      if (tx.bookingId?.tenantDetails?.phone) doc.text(tx.bookingId.tenantDetails.phone, 120, 82);
+      if (tx.bookingId?.tenantDetails?.email) doc.text(tx.bookingId.tenantDetails.email, 120, 89);
+
+      // Property Name
+      const propertyName = tx.propertyId ? tx.propertyId.societyName || tx.propertyId.pgName || tx.propertyId.propertyCategory : 'Property';
+      const roomName = tx.bookingId?.roomDetails?.roomName ? `${tx.bookingId.roomDetails.roomName} - ${tx.bookingId.roomDetails.bedName}` : 'Entire Property';
+
+      // Custom Table (Native jsPDF instead of autotable)
+      const startY = 110;
+      doc.setFillColor(10, 168, 125); // #0AA87D
+      doc.rect(14, startY, 182, 10, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("Description", 20, startY + 7);
+      doc.text("Amount", 188, startY + 7, { align: 'right' });
+      
+      // Table Content
+      doc.setTextColor(40, 40, 40);
+      doc.setFont("helvetica", "normal");
+      doc.rect(14, startY + 10, 182, 16); // Border for row
+      
+      doc.text(`Rent Payment for ${propertyName}`, 20, startY + 17);
+      doc.text(`Room: ${roomName}`, 20, startY + 23);
+      doc.text(`Rs. ${tx.amount.toLocaleString('en-IN')}`, 188, startY + 17, { align: 'right' });
+
+      const finalY = startY + 26;
+
+      // Total Summary
+      doc.setFillColor(248, 250, 252);
+      doc.rect(120, finalY + 10, 76, 20, 'F');
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(6, 47, 38);
+      doc.text("Total Paid:", 125, finalY + 23);
+      doc.text(`Rs. ${tx.amount.toLocaleString('en-IN')}`, 192, finalY + 23, { align: 'right' });
+
+      // Footer
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(120, 120, 120);
+      doc.text("This is a computer generated receipt and does not require a physical signature.", 105, 275, { align: "center" });
+      doc.text("Thank you for using Housynest!", 105, 282, { align: "center" });
+
+      // Save
+      doc.save(`Receipt_${tx._id.substring(tx._id.length - 8).toUpperCase()}.pdf`);
+      toast.success('Receipt downloaded successfully!', { id: 'receipt' });
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      toast.error('Failed to generate receipt.', { id: 'receipt' });
+    }
+  };
+
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#062F26] mb-1">My Transactions</h1>
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase flex-wrap">
-            <span>{today}</span>
-            <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block"></span>
-            <span>Transaction History</span>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-sm group cursor-pointer hover:bg-emerald-100 transition-colors">
+            <Icon icon="lucide:receipt" className="w-5 h-5 text-emerald-600 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#062F26] mb-0.5 tracking-tight">My Transactions</h1>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase flex-wrap mt-0.5">
+              <span>{today}</span>
+              <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block"></span>
+              <span>Transaction History</span>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -199,6 +308,9 @@ const TenantTransactions = () => {
 
             {/* Background pattern for hover state */}
             <Icon icon={item.icon} className={`absolute -right-4 -bottom-4 w-24 h-24 sm:w-32 sm:h-32 opacity-0 group-hover:opacity-10 transition-all duration-500 pointer-events-none ${item.bgIconColor} transform group-hover:-rotate-12`} />
+
+            {/* Gradient shadow at the bottom */}
+            <div className={`absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t ${item.gradientBottom} to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
 
             <div className="flex justify-between items-start mb-2 relative z-10">
               <h2 className={`text-2xl sm:text-[28px] font-bold ${item.text} ${item.hoverText} transition-colors duration-400 tracking-tight`}>{item.title}</h2>
@@ -268,7 +380,11 @@ const TenantTransactions = () => {
                 <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto border-t sm:border-0 border-slate-100 pt-3 sm:pt-0 mt-2 sm:mt-0">
                   {getStatusBadge(tx.status)}
                   <div className="flex items-center gap-2 ml-4">
-                    <button className="w-9 h-9 cursor-pointer rounded-lg bg-slate-100 text-slate-500 group-hover:bg-brand-teal group-hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-brand-teal/20" title="Download Receipt">
+                    <button 
+                      onClick={() => handleDownloadReceipt(tx)}
+                      className="w-9 h-9 cursor-pointer rounded-lg bg-slate-100 text-slate-500 group-hover:bg-brand-teal group-hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-brand-teal/20" 
+                      title="Download Receipt"
+                    >
                       <Icon icon="lucide:download" className="w-4.5 h-4.5" />
                     </button>
                   </div>

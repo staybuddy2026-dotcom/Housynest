@@ -85,41 +85,47 @@ const MyListingsWidget = () => {
       </div>
       <div className="flex flex-col p-2">
         {listings.map((listing) => (
-          <div key={listing.id} className="flex items-center gap-4 p-3 hover:bg-[#F8F9FA] rounded-xl transition-colors group">
-            <div className="w-25 h-17.5 rounded-lg overflow-hidden shrink-0">
-              <img src={listing.image} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="text-sm font-bold text-[#062F26] truncate">{listing.title}</h4>
-                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${listing.status === 'Active' ? 'bg-[#EAF5F2] text-brand-teal' : 'bg-slate-100 text-slate-500'
-                  }`}>
-                  {listing.status}
-                </span>
+          <div key={listing.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 hover:bg-[#F8F9FA] rounded-xl transition-colors group">
+            
+            {/* Left side: Image and Info */}
+            <div className="flex items-center gap-3 sm:gap-4 w-full sm:flex-1 min-w-0">
+              <div className="w-20 sm:w-25 h-14 sm:h-17.5 rounded-lg overflow-hidden shrink-0">
+                <img src={listing.image} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
-              <div className="flex items-center gap-1 text-xs font-medium text-slate-500 mb-1.5">
-                <Icon icon="lucide:map-pin" className="w-3 h-3" />
-                <span className="truncate">{listing.location}</span>
-              </div>
-              {listing.propertyType === 'PG' && listing.pgPrices && listing.pgPrices.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {listing.pgPrices.slice(0, 2).map((pgPrice, idx) => (
-                    <span key={idx} className="flex items-center gap-1 bg-[#EAF5F2] text-[#062F26] px-1.5 py-0.5 rounded text-[10px] font-bold border border-brand-teal/20">
-                      <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
-                      ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
-                    </span>
-                  ))}
-                  {listing.pgPrices.length > 2 && (
-                    <span className="flex items-center bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] font-bold border border-slate-200">
-                      +{listing.pgPrices.length - 2} more
-                    </span>
-                  )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="text-sm font-bold text-[#062F26] truncate">{listing.title}</h4>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${listing.status === 'Active' ? 'bg-[#EAF5F2] text-brand-teal' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                    {listing.status}
+                  </span>
                 </div>
-              ) : (
-                <p className="text-xs font-bold text-[#062F26]">{listing.price}</p>
-              )}
+                <div className="flex items-center gap-1 text-xs font-medium text-slate-500 mb-1.5">
+                  <Icon icon="lucide:map-pin" className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{listing.location}</span>
+                </div>
+                {listing.propertyType === 'PG' && listing.pgPrices && listing.pgPrices.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {listing.pgPrices.slice(0, 2).map((pgPrice, idx) => (
+                      <span key={idx} className="flex items-center gap-1 bg-[#EAF5F2] text-[#062F26] px-1.5 py-0.5 rounded text-[10px] font-bold border border-brand-teal/20">
+                        <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal shrink-0" />
+                        <span className="whitespace-nowrap">₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span></span>
+                      </span>
+                    ))}
+                    {listing.pgPrices.length > 2 && (
+                      <span className="flex items-center bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[10px] font-bold border border-slate-200 whitespace-nowrap">
+                        +{listing.pgPrices.length - 2} more
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs font-bold text-[#062F26]">{listing.price}</p>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-6 shrink-0 text-center pr-4">
+
+            {/* Right side: Stats */}
+            <div className="flex items-center justify-around sm:justify-end gap-4 sm:gap-6 shrink-0 text-center px-4 sm:px-0 sm:pr-4 pt-3 sm:pt-0 border-t border-slate-100 sm:border-0 mt-1 sm:mt-0">
               <div className="flex flex-col items-center">
                 <Icon icon="lucide:eye" className="w-4 h-4 text-slate-400 mb-1" />
                 <span className="text-sm font-bold text-[#062F26] leading-none mb-0.5">{listing.views}</span>
@@ -136,9 +142,7 @@ const MyListingsWidget = () => {
                 <span className="text-[10px] font-semibold text-slate-400">Bookings</span>
               </div>
             </div>
-            <button className="p-2 text-slate-400 hover:text-brand-teal hover:bg-brand-teal/10 rounded-lg transition-colors">
-              <Icon icon="lucide:more-horizontal" className="w-5 h-5" />
-            </button>
+
           </div>
         ))}
       </div>

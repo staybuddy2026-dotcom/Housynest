@@ -82,26 +82,28 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-6 border-b border-slate-100 bg-white flex items-center gap-2 overflow-x-auto custom-scrollbar">
-          {[
-            { id: 'overview', label: 'Overview & Location', icon: 'lucide:map-pin' },
-            { id: 'details', label: isPg ? 'PG Pricing & Rooms' : 'Property Specs & Rent', icon: isPg ? 'lucide:bed' : 'lucide:building' },
-            { id: 'amenities', label: 'Food, Amenities & Rules', icon: 'lucide:sparkles' },
-            { id: 'media', label: `Media & Docs (${(property.images?.length || 0) + (property.verificationDocs?.length || 0)})`, icon: 'lucide:image' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === tab.id
-                  ? 'border-[#062F26] text-[#062F26]'
-                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200'
-              }`}
-            >
-              <Icon icon={tab.icon} className="w-4 h-4" />
-              {tab.label}
-            </button>
-          ))}
+        <div className="px-4 sm:px-6 pt-2 pb-3 border-b border-slate-100 bg-white relative z-10">
+          <div className="flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {[
+              { id: 'overview', label: 'Overview & Location', icon: 'lucide:map-pin' },
+              { id: 'details', label: isPg ? 'PG Pricing & Rooms' : 'Property Specs & Rent', icon: isPg ? 'lucide:bed' : 'lucide:building' },
+              { id: 'amenities', label: 'Food, Amenities & Rules', icon: 'lucide:sparkles' },
+              { id: 'media', label: `Media & Docs (${(property.images?.length || 0) + (property.verificationDocs?.length || 0)})`, icon: 'lucide:image' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 py-2 px-4 text-xs font-bold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer border ${
+                  activeTab === tab.id
+                    ? 'bg-emerald-50 border-emerald-200 text-[#062F26] shadow-sm ring-1 ring-emerald-500/10'
+                    : 'bg-white border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 hover:border-slate-300'
+                }`}
+              >
+                <Icon icon={tab.icon} className={`w-4 h-4 transition-colors ${activeTab === tab.id ? 'text-[#0AA87D]' : 'text-slate-400'}`} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Modal Body */}

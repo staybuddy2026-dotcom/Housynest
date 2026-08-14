@@ -15,7 +15,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
 
       {/* Side Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform translate-x-0 flex flex-col`}
+        className={`fixed top-0 right-0 h-[100dvh] w-full max-w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform translate-x-0 flex flex-col`}
       >
         {/* Drawer Header */}
         <div className="p-6 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
@@ -55,7 +55,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
           className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50"
           options={{ smoothTouch: true }}
         >
-          <div className="p-6 space-y-6">
+          <div className="p-6 pb-24 sm:pb-6 space-y-6">
 
             {/* Personal Information */}
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">

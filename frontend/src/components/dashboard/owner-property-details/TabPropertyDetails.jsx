@@ -67,39 +67,39 @@ const TabPropertyDetails = ({ property }) => {
               <Icon icon="lucide:indian-rupee" className="w-4 h-4 text-brand-teal" />
               Rental & Financials
             </h4>
-            <div className="space-y-2.5">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Rent</span>
-                <span className="text-sm font-black text-[#062F26]">₹{Number(property.monthlyRent || 0).toLocaleString('en-IN')}</span>
+            <div className="space-y-3 sm:space-y-2.5">
+              <div className="flex justify-between items-start gap-3 border-b border-slate-200/50 pb-2 sm:border-0 sm:pb-0">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">Monthly Rent</span>
+                <span className="text-sm font-black text-[#062F26] text-right break-words">₹{Number(property.monthlyRent || 0).toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Security Deposit</span>
-                <span className="text-sm font-bold text-slate-700">{property.securityAmount ? `₹${Number(property.securityAmount).toLocaleString('en-IN')}` : 'N/A'}</span>
+              <div className="flex justify-between items-start gap-3 border-b border-slate-200/50 pb-2 sm:border-0 sm:pb-0">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">Security Deposit</span>
+                <span className="text-sm font-bold text-slate-700 text-right break-words">{property.securityAmount ? `₹${Number(property.securityAmount).toLocaleString('en-IN')}` : 'N/A'}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Maintenance</span>
-                <span className="text-sm font-bold text-slate-700">{property.maintenanceCharges && property.maintenanceCharges !== '0' ? `₹${Number(property.maintenanceCharges).toLocaleString('en-IN')} / ${property.maintenancePeriod || 'month'}` : 'Included'}</span>
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">Maintenance</span>
+                <span className="text-sm font-bold text-slate-700 text-right break-words">{property.maintenanceCharges && property.maintenanceCharges !== '0' ? `₹${Number(property.maintenanceCharges).toLocaleString('en-IN')} / ${property.maintenancePeriod || 'month'}` : 'Included'}</span>
               </div>
             </div>
           </div>
 
           <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#F3EFE9]">
-            <h4 className="text-sm font-bold text-[#062F26] mb-3 flex items-center gap-2">
+            <h4 className="text-sm font-bold text-[#062F26] mb-4 sm:mb-3 flex items-center gap-2">
               <Icon icon="lucide:users" className="w-4 h-4 text-blue-500" />
               Tenant Preferences
             </h4>
-            <div className="space-y-2.5">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Preferred Tenants</span>
-                <span className="text-sm font-bold text-slate-700">{property.preferredTenants?.length > 0 ? property.preferredTenants.join(', ') : 'Anyone'}</span>
+            <div className="space-y-3 sm:space-y-2.5">
+              <div className="flex justify-between items-start gap-3 border-b border-slate-200/50 pb-2 sm:border-0 sm:pb-0">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">Preferred Tenants</span>
+                <span className="text-sm font-bold text-slate-700 text-right break-words">{property.preferredTenants?.length > 0 ? property.preferredTenants.join(', ') : 'Anyone'}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Max People</span>
-                <span className="text-sm font-bold text-slate-700">{property.maxPeople || 'N/A'}</span>
+              <div className="flex justify-between items-start gap-3 border-b border-slate-200/50 pb-2 sm:border-0 sm:pb-0">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">Max People</span>
+                <span className="text-sm font-bold text-slate-700 text-right break-words">{property.maxPeople || 'N/A'}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Available From</span>
-                <span className="text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">{property.availableFromType === 'Immediate' ? 'Immediate' : (property.availableDate || 'N/A')}</span>
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">Available From</span>
+                <span className="text-[11px] sm:text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md text-right break-words mt-[-2px]">{property.availableFromType === 'Immediate' ? 'Immediate' : (property.availableDate || 'N/A')}</span>
               </div>
             </div>
           </div>

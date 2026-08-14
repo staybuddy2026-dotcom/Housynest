@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import Lenis from 'lenis';
 
@@ -39,6 +39,12 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
     };
   }, [isOpen]);
 
+  const selectedLabel = useMemo(() => {
+    if (!value) return null;
+    const selected = options?.find(opt => (opt?.value || opt) === value);
+    return selected ? (selected?.label || selected) : value;
+  }, [value, options]);
+
   return (
     <div className={`${containerClassName}`} ref={dropdownRef}>
       {label && (
@@ -52,15 +58,15 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
           onClick={() => setIsOpen(!isOpen)}
           className={`w-full px-3 sm:px-4 py-2.5 cursor-pointer bg-white border ${error ? 'border-red-500' : (isOpen ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-200')} rounded-lg text-sm sm:text-sm font-medium focus:outline-none transition-all duration-200 focus:shadow-sm hover:border-slate-300 flex justify-between items-center text-left ${buttonClassName}`}
         >
-          <div className="flex items-center gap-2">
-            {icon && <Icon icon={icon} className="w-4 h-4 text-slate-400" />}
-            <span className={value ? 'text-slate-800' : 'text-slate-400'}>{value || placeholder}</span>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            {icon && <Icon icon={icon} className="w-4 h-4 text-slate-400 shrink-0" />}
+            <span className={`truncate ${value ? 'text-slate-800' : 'text-slate-400'}`}>{selectedLabel || placeholder}</span>
           </div>
-          <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+          <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         <div
-          className={`absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden transition-all duration-300 origin-top ease-in-out ${isOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 pointer-events-none'}`}
+          className={`absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top ease-in-out ${isOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 pointer-events-none'}`}
         >
           <div className="max-h-60 overflow-y-auto py-1" ref={wrapperRef} data-lenis-prevent>
             <div ref={contentRef}>
