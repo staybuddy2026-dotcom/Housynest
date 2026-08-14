@@ -274,34 +274,34 @@ const OwnerReports = () => {
       </div>
 
       {/* Chart Section */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 mb-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
           <div>
             <h2 className="text-base font-bold text-[#062F26]">Portfolio Revenue Trend</h2>
             <p className="text-[11px] font-medium text-slate-400 mt-1">Aggregate collected vs expected revenue across all properties</p>
           </div>
-          <span className="px-3 py-1 bg-emerald-50 text-brand-teal rounded-lg text-xs font-bold flex items-center gap-1 border border-emerald-100">
+          <span className="px-3 py-1 bg-emerald-50 text-brand-teal rounded-lg text-xs font-bold flex items-center gap-1 border border-emerald-100 shrink-0">
             <Icon icon="lucide:arrow-up" className="w-3 h-3" />
             Active
           </span>
         </div>
-        <div className="h-[380px] w-full mt-2">
+        <div className="h-[300px] sm:h-[380px] w-full mt-2">
           <Chart options={chartOptions} series={chartSeries} type="area" height="100%" />
         </div>
       </div>
 
       {/* Floating Action / Just Collected */}
       {lastPayment && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-8 fade-in duration-700">
-          <div className="bg-[#062F26] rounded-2xl p-4 pr-6 flex items-center gap-4 shadow-2xl hover:scale-105 transition-transform cursor-pointer group">
-            <div className="w-12 h-12 rounded-full bg-brand-teal/20 flex items-center justify-center shrink-0 group-hover:bg-brand-teal transition-colors">
-              <span className="text-xl font-black text-white">₹</span>
+        <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 animate-in slide-in-from-bottom-8 fade-in duration-700 max-w-[calc(100vw-32px)] md:max-w-none">
+          <div className="bg-[#062F26] rounded-2xl p-3 sm:p-4 pr-4 sm:pr-6 flex items-center gap-3 sm:gap-4 shadow-2xl hover:scale-105 transition-transform cursor-pointer group">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-brand-teal/20 flex items-center justify-center shrink-0 group-hover:bg-brand-teal transition-colors">
+              <span className="text-lg sm:text-xl font-black text-white">₹</span>
             </div>
-            <div>
-              <p className="text-[10px] font-bold text-white uppercase tracking-wider mb-0.5">Most Recent Payment</p>
-              <p className="text-white font-bold text-lg">
+            <div className="min-w-0">
+              <p className="text-[9px] sm:text-[10px] font-bold text-white uppercase tracking-wider mb-0.5 truncate">Most Recent Payment</p>
+              <p className="text-white font-bold text-base sm:text-lg truncate">
                 {formatNum(lastPayment.amount)}{' '}
-                <span className="font-medium text-white/70 text-sm">from {lastPayment.tenantId?.fullName || lastPayment.bookingId?.personalInfo?.firstName || 'Tenant'}</span>
+                <span className="font-medium text-white/70 text-xs sm:text-sm">from {lastPayment.tenantId?.fullName || lastPayment.bookingId?.personalInfo?.firstName || 'Tenant'}</span>
               </p>
             </div>
           </div>

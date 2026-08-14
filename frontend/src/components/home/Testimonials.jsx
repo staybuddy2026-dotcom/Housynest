@@ -92,20 +92,20 @@ const Testimonials = () => {
   };
 
   return (
-    <section className="max-w-340 3xl:max-w-420 mx-auto w-full py-12 px-4 sm:px-6 xl:px-0">
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-8">
+    <section className="max-w-340 3xl:max-w-420 mx-auto w-full py-8 sm:py-12 px-4 sm:px-6 xl:px-0">
+      <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-10 lg:gap-8">
 
         {/* Left Content (Testimonials) */}
         <div className="w-full lg:w-[50%] xl:w-[55%] flex flex-col relative">
 
           {/* Header */}
-          <div className="flex items-start gap-4 mb-8 pl-2">
-            <Icon icon="ri:double-quotes-l" className="text-slate-200 text-5xl shrink-0 -mt-1" />
+          <div className="flex items-start gap-2 sm:gap-4 mb-8 pl-0 sm:pl-2">
+            <Icon icon="ri:double-quotes-l" className="text-slate-200 text-3xl sm:text-5xl shrink-0 -mt-1" />
             <div className="flex flex-col">
-              <h2 className="text-[28px] sm:text-3xl md:text-4xl font-serif font-bold text-[#04473a] leading-tight">
+              <h2 className="text-[26px] sm:text-3xl md:text-4xl font-serif font-bold text-[#04473a] leading-tight">
                 What Our Residents Say
               </h2>
-              <div className="relative mt-3 w-28 flex items-center self-end mr-8 md:mr-12">
+              <div className="relative mt-3 w-28 flex items-center self-end mr-28 sm:mr-8 md:mr-12">
                 <div className="w-full h-0.75 bg-[#04473a] rounded-full"></div>
                 <div className="absolute left-0 w-[60%] h-0.75 bg-[#04473a] rounded-full"></div>
                 <div className="absolute left-[50%] w-2.5 h-2.5 rounded-full ring-[3px] ring-[#04473a] bg-brand-yellow shadow-sm"></div>
@@ -200,7 +200,7 @@ const Testimonials = () => {
         </div>
 
         {/* Right Content (Phones Image) */}
-        <div className="w-full lg:w-[50%] xl:w-[45%] flex justify-center lg:justify-end relative mt-2 lg:mt-0 px-4 sm:px-0">
+        <div className="w-full lg:w-[50%] xl:w-[45%] flex justify-center lg:justify-end relative lg:mt-0 px-4 sm:px-0">
           {/* Subtle background glow for image */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-teal-50/80 rounded-full blur-3xl -z-10"></div>
 

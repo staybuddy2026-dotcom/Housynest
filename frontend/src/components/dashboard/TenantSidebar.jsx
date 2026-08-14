@@ -88,59 +88,80 @@ const TenantSidebar = ({ onClose, isMobile }) => {
   // Wait, I will add socket.io here if needed, but since it's inside DashboardLayout we can just rely on the `OwnerMessages/TenantMessages` socket for now, or connect it here too.
   // For safety, let's just connect it.
   useEffect(() => {
-    if (!user) return;
-
-    joinUserRoom(user.id || user._id);
-
-    const onNewNotification = () => setCounts(prev => ({ ...prev, unreadMessages: prev.unreadMessages + 1 }));
-    const onNewTenantContract = () => setCounts(prev => ({ ...prev, newTenantContracts: prev.newTenantContracts + 1 }));
-    const onMaintenanceTicketUpdated = () => {
-      setCounts(prev => ({ ...prev, newMaintenanceUpdates: prev.newMaintenanceUpdates + 1 }));
-      toast.success('Maintenance ticket updated by owner!', {
-        id: 'maintenance-ticket-updated',
-        icon: '🔧',
-        style: {
-          borderRadius: '10px',
-          background: '#333',
-          color: '#fff',
-        },
+    const onNewBookingRequest = () => {
+      setCounts(prev => ({ ...prev, newBookingRequests: prev.newBookingRequests + 1 }));
+      toast.success('You have a new booking request!', {
+        id: 'new-booking-request',
+        icon: '🔔',
+        style: { borderRadius: '10px', background: '#333', color: '#fff' },
       });
     };
 
+    const onNewMaintenanceTicket = () => {
+      setCounts(prev => ({ ...prev, newMaintenanceTickets: prev.newMaintenanceTickets + 1 }));
+      toast.success('New maintenance ticket raised by tenant!', {
+        id: 'new-maintenance-ticket',
+        icon: '🔧',
+        style: { borderRadius: '10px', background: '#333', color: '#fff' },
+      });
+    };
+
+    const onMaintenanceTicketUpdated = () => {
+      if (user?.role === 'tenant') {
+        setCounts(prev => ({ ...prev, newMaintenanceUpdates: prev.newMaintenanceUpdates + 1 }));
+        toast.success('Maintenance ticket updated by owner!', {
+          id: 'maintenance-ticket-updated',
+          icon: '🔧',
+          style: { borderRadius: '10px', background: '#333', color: '#fff' },
+        });
+      }
+    };
+
     socket.on('newNotification', onNewNotification);
-    socket.on('newTenantContract', onNewTenantContract);
+    socket.on('newLead', onNewLead);
+    socket.on('visit_update', onVisitUpdate);
+    socket.on('newBookingRequest', onNewBookingRequest);
+    socket.on('newMaintenanceTicket', onNewMaintenanceTicket);
     socket.on('maintenanceTicketUpdated', onMaintenanceTicketUpdated);
 
     return () => {
       socket.off('newNotification', onNewNotification);
-      socket.off('newTenantContract', onNewTenantContract);
+      socket.off('newLead', onNewLead);
+      socket.off('visit_update', onVisitUpdate);
+      socket.off('newBookingRequest', onNewBookingRequest);
+      socket.off('newMaintenanceTicket', onNewMaintenanceTicket);
       socket.off('maintenanceTicketUpdated', onMaintenanceTicketUpdated);
     };
   }, [user]);
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch (err) {
-      console.error('Logout error', err);
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      disconnectSocket();
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('auth-change'));
+      navigate('/login');
     }
-    disconnectSocket();
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
-    window.dispatchEvent(new Event('auth-change'));
-    navigate('/login');
   };
 
   const navItems = [
-    { name: 'Saved Properties', icon: 'lucide:heart', path: '/tenant/dashboard' },
-    { name: 'My Visits', icon: 'lucide:calendar-days', path: '/tenant/visits' },
-    { name: 'My Bookings', icon: 'lucide:bookmark', path: '/tenant/bookings' },
-    { name: 'My Requests', icon: 'lucide:message-circle', path: '/tenant/requests', badge: counts.newRequests > 0 ? counts.newRequests : null },
-    { name: 'Messages', icon: 'lucide:message-square', path: '/tenant/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
+    { name: 'Dashboard', icon: 'lucide:layout-dashboard', path: '/tenant/dashboard' },
+    { name: 'My Bookings', icon: 'lucide:book-open-check', path: '/tenant/bookings' },
+    { name: 'Contracts', icon: 'lucide:file-text', path: '/tenant/contracts', badge: counts.newTenantContracts > 0 ? counts.newTenantContracts : null },
+    { name: 'Rent Payments', icon: 'lucide:credit-card', path: '/tenant/rent-payments' },
     { name: 'Maintenance', icon: 'lucide:wrench', path: '/tenant/maintenance', badge: counts.newMaintenanceUpdates > 0 ? counts.newMaintenanceUpdates : null },
-    // { name: 'Contracts', icon: 'lucide:file-text', path: '/tenant/contracts', badge: counts.newTenantContracts > 0 ? counts.newTenantContracts : null },
-    { name: 'Transactions', icon: 'lucide:credit-card', path: '/tenant/transactions' },
+    { name: 'Messages', icon: 'lucide:message-square', path: '/tenant/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
   ];
 
   if (isMobile) {
@@ -191,25 +212,27 @@ const TenantSidebar = ({ onClose, isMobile }) => {
                   {isActive && (
                     <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-8 h-8 bg-[#25D366]/30 blur-[6px] rounded-full pointer-events-none" />
                   )}
-                  <Icon
-                    icon={item.icon}
-                    className={`w-5 h-5 mb-1.5 transition-all duration-300 relative z-10 ${isActive ? 'text-[#062F26] transform -translate-y-0.5' : ''}`}
-                  />
+                  <div className="relative mb-1.5">
+                    <Icon
+                      icon={item.icon}
+                      className={`w-5 h-5 transition-all duration-300 relative z-10 ${isActive ? 'text-[#062F26] transform -translate-y-0.5' : ''}`}
+                    />
+                    {item.badge && (
+                      <span className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] flex items-center justify-center px-0.5 bg-[#062F26] rounded-full border-[1.5px] border-white text-[8px] font-bold text-white shadow-sm">
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    )}
+                  </div>
                   <span className={`text-[9px] font-bold text-center leading-none ${isActive ? 'text-[#062F26]' : ''} truncate w-full px-0.5`}>
                     {item.name.replace('My ', '').replace(' Properties', '')}
                   </span>
-                  {item.badge && (
-                    <span className="absolute top-1 right-0.5 min-w-[14px] h-[14px] flex items-center justify-center px-0.5 bg-[#062F26] rounded-full border border-white text-[8px] font-bold text-white shadow-sm">
-                      {item.badge > 9 ? '9+' : item.badge}
-                    </span>
-                  )}
                 </>
               )}
             </NavLink>
           ))}
 
-          {/* More Button */}
           <button
+            ref={moreBtnRef}
             onClick={() => setShowMoreMenu(!showMoreMenu)}
             className={`relative flex flex-col items-center justify-center w-1/5 h-full transition-all duration-300 ${showMoreMenu ? 'text-[#062F26]' : 'text-slate-400'}`}
           >
@@ -219,16 +242,18 @@ const TenantSidebar = ({ onClose, isMobile }) => {
             {showMoreMenu && (
               <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-8 h-8 bg-slate-300/30 blur-[6px] rounded-full pointer-events-none" />
             )}
-            <Icon
-              icon="lucide:menu"
-              className={`w-5 h-5 mb-1.5 transition-all duration-300 relative z-10 ${showMoreMenu ? 'text-[#062F26] transform -translate-y-0.5' : ''}`}
-            />
+            <div className="relative mb-1.5">
+              <Icon
+                icon="lucide:menu"
+                className={`w-5 h-5 transition-all duration-300 relative z-10 ${showMoreMenu ? 'text-[#062F26] transform -translate-y-0.5' : ''}`}
+              />
+              {moreItems.some(i => i.badge) && !showMoreMenu && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-[1.5px] border-white z-10" />
+              )}
+            </div>
             <span className={`text-[9px] font-bold text-center leading-none ${showMoreMenu ? 'text-[#062F26]' : ''}`}>
               More
             </span>
-            {moreItems.some(i => i.badge) && !showMoreMenu && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full border border-white" />
-            )}
           </button>
         </div>
       </>
@@ -237,7 +262,6 @@ const TenantSidebar = ({ onClose, isMobile }) => {
 
   return (
     <div className="h-full bg-white border-r border-slate-100 flex flex-col w-full">
-      {/* Logo */}
       <div className="h-16.25 px-6 flex items-center shrink-0 border-b border-slate-100 mb-2">
         <Link to="/" onClick={onClose}>
           <img src={logo} alt="Housynest" className="h-12 object-contain" />
@@ -329,8 +353,8 @@ const TenantSidebar = ({ onClose, isMobile }) => {
         <button
           onClick={() => setIsProfileOpen(!isProfileOpen)}
           className={`w-full flex items-center justify-between p-2 rounded-2xl transition-all duration-300 border ${isProfileOpen
-              ? 'bg-slate-50 border-slate-200 shadow-inner'
-              : 'bg-white border-transparent hover:border-slate-100 hover:bg-slate-50 hover:shadow-sm'
+            ? 'bg-slate-50 border-slate-200 shadow-inner'
+            : 'bg-white border-transparent hover:border-slate-100 hover:bg-slate-50 hover:shadow-sm'
             }`}
         >
           <div className="flex items-center gap-3 overflow-hidden">

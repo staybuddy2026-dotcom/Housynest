@@ -20,8 +20,8 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
   return (
     <div className="flex flex-col xl:flex-row gap-8 mb-8">
       {/* Reviews & Ratings (75%) */}
-      <div className="w-full xl:w-[75%] bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-6 lg:p-8 flex flex-col">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
+      <div className="w-full xl:w-[75%] bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-4 sm:p-6 lg:p-8 flex flex-col">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-8 pb-6 border-b border-slate-100">
           <div>
             <h3 className="text-xl font-bold text-[#062F26] mb-1">Guest Reviews</h3>
             <p className="text-sm font-medium text-slate-500">Real feedback from verified residents</p>
@@ -34,10 +34,10 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
           )}
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-10">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-10">
           {/* Left: Rating Summary */}
           <div className="w-full lg:w-[40%] shrink-0">
-            <div className="bg-white rounded-xl p-7 lg:p-8 shadow-sm border border-slate-100 relative overflow-hidden h-full hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-lg p-5 sm:p-7 lg:p-8 shadow-sm border border-slate-100 relative overflow-hidden h-full hover:shadow-md transition-shadow">
               {/* Decorative background element */}
               <Icon icon="mdi:star-circle" className="absolute -right-12 -bottom-12 w-64 h-64 text-brand-teal opacity-[0.03] pointer-events-none" />
 
@@ -82,9 +82,9 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
           </div>
 
           {/* Right: Review List */}
-          <div className="flex-1 flex flex-col gap-6">
+          <div className="flex-1 flex flex-col gap-4 sm:gap-6">
             {reviews.length === 0 ? (
-              <div className="bg-[#F4F9F8] border border-brand-teal/10 rounded-3xl h-full flex flex-col items-center justify-center min-h-[350px] p-8 relative overflow-hidden">
+              <div className="bg-[#F4F9F8] border border-brand-teal/10 rounded-xl h-full flex flex-col items-center justify-center min-h-[350px] p-8 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,rgba(10,168,125,0.05)_0%,transparent_70%)] pointer-events-none"></div>
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(10,168,125,0.12)] mb-6 relative z-10">
                   <Icon icon="lucide:message-square-dashed" className="w-10 h-10 text-brand-teal" />

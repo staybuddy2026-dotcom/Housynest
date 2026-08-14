@@ -434,7 +434,7 @@ const PropertyDetails = () => {
         </div>
 
         {/* Top Grid: Gallery & Right Sidebar */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start mb-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8 items-start mb-4 sm:mb-8">
           <PropertyGallery
             property={property}
             galleryImages={galleryImages}
@@ -463,7 +463,7 @@ const PropertyDetails = () => {
         <PropertyQuickStats property={property} propertyType={propertyType} />
 
         {/* Lower Main Grid: Tabs Sidebar & Content */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start mb-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8 items-start mb-4 sm:mb-8">
           <PropertyTabsSidebar
             tabs={tabs}
             activeTab={activeTab}

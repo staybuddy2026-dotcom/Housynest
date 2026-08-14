@@ -14,6 +14,9 @@ import TabBookings from './owner-property-details/TabBookings';
 import TabRules from './owner-property-details/TabRules';
 import TabContract from './owner-property-details/TabContract';
 import TabReports from './owner-property-details/TabReports';
+import TabExpenses from './owner-property-details/TabExpenses';
+import TabConditionReports from './owner-property-details/TabConditionReports';
+import TabNoticePeriods from './owner-property-details/TabNoticePeriods';
 
 const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
 
@@ -224,6 +227,9 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
     'Bookings',
     'Tenants',
     'Rent Collection',
+    'Expenses & ROI',
+    'Condition Reports',
+    'Notice Periods',
     'Rules & Regulations',
     'Contract Agreement',
     'Reports'
@@ -458,6 +464,9 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
         {activeTab === 'Property Details' && <TabPropertyDetails property={property} />}
         {activeTab === 'Tenants' && <TabTenants bookings={bookings} invoices={invoices} property={property} tenantSearchQuery={tenantSearchQuery} setSelectedTenant={setSelectedTenant} />}
         {activeTab === 'Rent Collection' && <TabRentCollection bookings={bookings} invoices={invoices} property={property} setSelectedTenant={setSelectedTenant} />}
+        {activeTab === 'Expenses & ROI' && <TabExpenses propertyId={propertyId} />}
+        {activeTab === 'Condition Reports' && <TabConditionReports propertyId={propertyId} />}
+        {activeTab === 'Notice Periods' && <TabNoticePeriods propertyId={propertyId} />}
         {activeTab === 'Leads' && <TabLeads leads={leads} loadingLeads={loadingLeads} setLeads={setLeads} property={property} />}
         {activeTab === 'Bookings' && <TabBookings bookings={bookings} loadingBookings={loadingBookings} setBookings={setBookings} />}
         {activeTab === 'Rules & Regulations' && <TabRules property={property} />}

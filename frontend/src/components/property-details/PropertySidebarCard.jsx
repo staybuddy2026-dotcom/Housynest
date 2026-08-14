@@ -24,9 +24,9 @@ const PropertySidebarCard = ({
 
   return (
     <div className="w-full lg:w-[32%]">
-      <div className="bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] p-6  border border-slate-50">
+      <div className="bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] p-4 sm:p-6  border border-slate-50">
 
-        <div className="flex items-start justify-between mb-2">
+        <div className="flex items-start justify-between sm:mb-2">
           <div className="flex gap-2">
             <span className="bg-[#062F26] text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded shadow-sm">{propertyType === 'PG' ? 'PG' : 'TENANT'}</span>
             <span className="bg-[#0aa87d] text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded shadow-sm">

@@ -34,7 +34,7 @@ const CityCard = ({ name, properties, image }) => {
     </>
   );
 
-  const cardClasses = `group relative rounded-xl overflow-hidden h-[300px] md:h-[340px] w-full flex-shrink-0 shadow-sm block ${isComingSoon
+  const cardClasses = `group relative rounded-xl overflow-hidden h-[260px] sm:h-[300px] md:h-[340px] w-full flex-shrink-0 shadow-sm block ${isComingSoon
     ? 'cursor-not-allowed border border-transparent'
     : 'cursor-pointer hover:shadow-[0_10px_30px_rgba(4,71,58,0.2)] transition-all duration-300 transform hover:-translate-y-1.5 border border-transparent hover:border-brand-yellow/30'
     }`;

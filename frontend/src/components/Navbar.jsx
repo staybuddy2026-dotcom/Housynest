@@ -92,7 +92,7 @@ const Navbar = () => {
                 {({ isActive }) => (
                   <>
                     {link.title}
-                    <span className={`absolute -bottom-1.5 left-0 w-full h-[1.5px] bg-brand-teal origin-left transition-transform duration-300 ease-out ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
+                    <span className={`absolute -bottom-1.5 left-0 w-full h-[2px] bg-brand-teal origin-left transition-transform duration-300 ease-out ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
                   </>
                 )}
               </NavLink>

@@ -114,9 +114,9 @@ const OwnerMaintenance = () => {
         </div>
       </div>
 
-      {/* Desktop Table View */}
-      <div className="hidden lg:block flex-1 mb-10 bg-white rounded-xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.02)] overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Responsive Table View */}
+      <div className="flex-1 mb-10 bg-white rounded-xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200">

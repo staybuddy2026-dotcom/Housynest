@@ -293,7 +293,6 @@ const OwnerRentTracking = () => {
 
       {/* Main Content Area */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col overflow-hidden min-h-0">
-
         {/* Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50/30 relative z-20">
           <div className="relative w-full xl:w-96 group shrink-0">
@@ -307,32 +306,32 @@ const OwnerRentTracking = () => {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-            <div className="w-[180px]">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full xl:w-auto shrink-0">
+            <div className="w-full sm:w-[180px] shrink-0">
               {/* Property Filter */}
               <CustomDropdown
                 icon="lucide:building"
                 value={filterProperty === 'All' ? 'All Properties' : filterProperty}
                 options={[{ label: 'All Properties', value: 'All' }, ...uniqueProperties.map(p => ({ label: p, value: p }))]}
                 onChange={setFilterProperty}
-                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px]"
-                containerClassName=""
+                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px] w-full"
+                containerClassName="w-full"
               />
             </div>
 
-            <div className="w-[160px]">
+            <div className="w-full sm:w-[160px] shrink-0">
               {/* Month Filter */}
               <CustomDropdown
                 icon="lucide:calendar"
                 value={filterMonth === 'All' ? 'All Months' : filterMonth}
                 options={[{ label: 'All Months', value: 'All' }, ...uniqueMonths.map(m => ({ label: m, value: m }))]}
                 onChange={setFilterMonth}
-                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px]"
-                containerClassName=""
+                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px] w-full"
+                containerClassName="w-full"
               />
             </div>
 
-            <div className="w-[160px]">
+            <div className="w-full sm:w-[160px] shrink-0">
               {/* Status Filter */}
               <CustomDropdown
                 icon="lucide:activity"
@@ -344,15 +343,15 @@ const OwnerRentTracking = () => {
                   { label: 'Overdue', value: 'Overdue' }
                 ]}
                 onChange={setFilterStatus}
-                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px]"
-                containerClassName=""
+                buttonClassName="shadow-sm border-slate-200 !py-2.5 h-[42px] w-full"
+                containerClassName="w-full"
               />
             </div>
           </div>
         </div>
 
         {/* Responsive Content Container */}
-        <div className="flex-1 overflow-y-visible md:overflow-y-auto custom-scrollbar bg-white min-h-0 relative">
+        <div className="flex-1 overflow-y-visible md:overflow-y-auto custom-scrollbar bg-white min-h-0 relative flex flex-col md:block rounded-xl">
 
           {/* Mobile View (Cards) */}
           <div className="md:hidden flex flex-col p-4 gap-4 bg-slate-50/30">
@@ -556,10 +555,10 @@ const OwnerRentTracking = () => {
 
       {/* History Modal */}
       {historyModalOpen && selectedTenantHistory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90dvh] animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center font-bold text-sm">
                   {selectedTenantHistory.tenant?.tenantId?.fullName?.charAt(0).toUpperCase() || 'U'}
@@ -573,14 +572,14 @@ const OwnerRentTracking = () => {
               </div>
               <button
                 onClick={() => setHistoryModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 transition-colors shrink-0"
               >
                 <Icon icon="lucide:x" className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/20">
+            <div className="flex-1 min-h-0 overflow-y-auto p-6 bg-slate-50/20 custom-scrollbar">
               {selectedTenantHistory.invoices.length > 0 ? (
                 <div className="space-y-4">
                   {selectedTenantHistory.invoices.map((inv, idx) => (
@@ -618,10 +617,10 @@ const OwnerRentTracking = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end shrink-0">
               <button
                 onClick={() => setHistoryModalOpen(false)}
-                className="px-5 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+                className="w-full sm:w-auto px-5 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
               >
                 Close
               </button>

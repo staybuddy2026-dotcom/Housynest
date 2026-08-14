@@ -144,19 +144,15 @@ const ListProperty = () => {
   // Scroll to top when step changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      const formContainer = document.getElementById('form-container');
-      if (formContainer) {
-        formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
     return () => clearTimeout(timer);
   }, [activeStep]);
 
-  // Redirect after successful submission
+  // Redirect after successful submission and scroll to top
   useEffect(() => {
     if (isSubmitted) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       const timer = setTimeout(() => {
         navigate('/');
       }, 5000);

@@ -143,7 +143,11 @@ const AdminPropertyRequests = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        const properties = await res.json();
+        let properties = await res.json();
+        
+        // Sort by newest first
+        properties = properties.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
         setRawProperties(properties);
         const mappedData = properties.map((p, index) => ({
           _id: p._id,

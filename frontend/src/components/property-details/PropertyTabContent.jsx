@@ -52,7 +52,7 @@ const PropertyTabContent = ({
   };
 
   return (
-    <div className="flex-1 bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-4 sm:p-6 lg:p-8 min-h-100">
+    <div className="w-full flex-1 bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.02)] border border-slate-50 p-4 sm:p-6 lg:p-8 min-h-100">
 
       {activeTab === 'Overview' && (
         <div className="animate-in fade-in duration-300">
@@ -267,9 +267,9 @@ const PropertyTabContent = ({
                         <div key={floorIdx} className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                           <div
                             onClick={() => setExpandedFloors(prev => ({ ...prev, [floorIdx]: !isExpanded }))}
-                            className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-slate-50 transition-colors"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-slate-50 transition-colors gap-4 sm:gap-0"
                           >
-                            <div className="flex items-center gap-5 sm:gap-8">
+                            <div className="flex items-center justify-between w-full sm:w-auto">
                               <div className="flex items-center gap-3.5">
                                 <div className="w-10 h-10 rounded-xl bg-[#EAF5F2] flex items-center justify-center text-brand-teal shrink-0">
                                   <Icon icon="lucide:building-2" className="w-5 h-5" />
@@ -279,10 +279,13 @@ const PropertyTabContent = ({
                                   <p className="text-xs font-bold text-slate-500 leading-none">{floorRooms.length} Rooms</p>
                                 </div>
                               </div>
+                              <Icon icon="lucide:chevron-down" className={`sm:hidden w-5 h-5 text-[#062F26] transition-transform duration-300 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                            </div>
 
+                            <div className="flex items-center gap-5 sm:gap-8 justify-between sm:justify-start w-full sm:w-auto">
                               <div className="hidden sm:block h-8 w-px bg-slate-200"></div>
 
-                              <div className="hidden sm:flex items-center gap-6">
+                              <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2.5">
                                   <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
                                     <Icon icon="lucide:bed-double" className="w-4 h-4" />
@@ -305,8 +308,8 @@ const PropertyTabContent = ({
                                   </div>
                                 </div>
                               </div>
+                              <Icon icon="lucide:chevron-down" className={`hidden sm:block w-5 h-5 text-[#062F26] transition-transform duration-300 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
                             </div>
-                            <Icon icon="lucide:chevron-down" className={`w-5 h-5 text-[#062F26] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                           </div>
 
                           <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
@@ -465,7 +468,7 @@ const PropertyTabContent = ({
             ].filter(detail => detail.value)).map((detail, idx) => (
               <div key={idx} className="group flex items-start gap-3 p-2 -ml-2 border-b border-slate-200 hover:bg-slate-50 transition-colors">
                 <div className="shrink-0 mt-0.5 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300"><Icon icon={detail.icon} className="w-4.5 h-4.5 text-brand-teal stroke-2" /></div>
-                <div className="flex-1 grid grid-cols-[140px_1fr] items-start">
+                <div className="flex-1 flex flex-col sm:grid sm:grid-cols-[140px_1fr] items-start">
                   <p className="text-sm font-medium text-slate-500">{detail.label}</p>
                   <p className="text-sm font-bold text-[#062F26] leading-snug">{detail.value}</p>
                 </div>

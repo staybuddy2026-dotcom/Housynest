@@ -110,21 +110,21 @@ const Contact = () => {
           />
         </div>
 
-        <div className="relative z-10 max-w-340 3xl:max-w-420 mx-auto flex flex-col lg:flex-row gap-8 items-center justify-between">
+        <div className="relative z-10 max-w-340 3xl:max-w-420 mx-auto flex flex-col lg:flex-row gap-4 sm:gap-8 items-center justify-between">
 
           {/* Left Content Area */}
           <div className={`w-full px-4 sm:px-8 lg:px-0 lg:pl-12 xl:pl-24 flex flex-col items-center lg:items-start text-center lg:text-left transform transition-all duration-1000 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <h4 className="text-brand-teal font-bold uppercase tracking-wider text-xs sm:text-sm mb-3">Contact Us</h4>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-slate-900 leading-[1.15] mb-3 sm:mb-4">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold text-slate-900 leading-[1.15] mb-3 sm:mb-4">
               We're Here to <br className="hidden sm:block" />
               <span className="text-[#062F26]"> Help You!</span>
             </h1>
-            <p className="text-slate-700 text-sm sm:text-base font-medium leading-relaxed mb-8 sm:mb-10 max-w-md">
+            <p className="text-slate-700 text-sm sm:text-base font-medium leading-relaxed mb-4 sm:mb-10 max-w-md">
               Have questions or need assistance? Reach out to us and our team will get back to you as soon as possible.
             </p>
 
             {/* Features list */}
-            <div className="space-y-4 sm:space-y-5 bg-white/80 p-4 rounded-xl border border-slate-200 w-full max-w-70 sm:max-w-xs text-left mx-auto lg:mx-0">
+            <div className="space-y-4 sm:space-y-5 bg-white/80 p-4 rounded-xl border border-slate-200 w-full max-w-full sm:max-w-xs text-left mx-auto lg:mx-0">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
                   <Icon icon="lucide:clock" className="text-brand-teal w-5 h-5" />

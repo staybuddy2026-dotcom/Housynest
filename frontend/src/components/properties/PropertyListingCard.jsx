@@ -203,43 +203,50 @@ const PropertyListingCard = ({ property }) => {
 
         <div className="mt-auto flex items-center border-t border-slate-200 pt-3 h-auto min-h-[54px] w-full">
           {property.type === 'PG' ? (
-            <div className="flex items-center gap-1.5 sm:gap-2 w-full">
+            <div className="flex items-center w-full">
               {(() => {
                 let pgPrices = [];
                 if (property.pgPricing && Object.keys(property.pgPricing).length > 0) {
-                  const pricingMap = {};
-                  Object.keys(property.pgPricing).forEach(key => {
-                    const priceObj = property.pgPricing[key];
+                  Object.values(property.pgPricing).forEach(priceObj => {
                     if (priceObj && priceObj.rentPerBed && Number(priceObj.rentPerBed) > 0) {
-                      const type = key.split('_')[0]; // Single, Double, Triple
-                      const currentRent = Number(priceObj.rentPerBed);
-                      if (!pricingMap[type] || currentRent < pricingMap[type]) {
-                        pricingMap[type] = currentRent;
-                      }
+                      pgPrices.push(Number(priceObj.rentPerBed));
                     }
                   });
-                  pgPrices = Object.keys(pricingMap).map(type => ({
-                    sharingType: type,
-                    rentPerBed: pricingMap[type]
-                  }));
                 }
 
                 if (pgPrices.length === 0) {
-                  pgPrices = property.rooms && property.rooms.length > 0 ? property.rooms : [
-                    { sharingType: 'Single', rentPerBed: property.price || 0 },
-                    { sharingType: 'Double', rentPerBed: parseInt(String(property.price || 0).replace(/,/g, '') || 0) * 0.6 }
-                  ];
+                  if (property.rooms && property.rooms.length > 0) {
+                    property.rooms.forEach(room => {
+                      if (room.rentPerBed) pgPrices.push(Number(String(room.rentPerBed).replace(/,/g, '')));
+                    });
+                  } else if (property.price) {
+                    pgPrices.push(Number(String(property.price).replace(/,/g, '')));
+                  }
                 }
 
-                return pgPrices.slice(0, 3).map((room, idx) => (
-                  <div key={idx} className="flex-1 flex items-center justify-center gap-1 sm:gap-1.5 bg-[#EAF5F2] rounded-lg px-1 sm:px-2 py-1.5 transition-colors group-hover:bg-[#d8efe8] overflow-hidden">
-                    <Icon icon={room.sharingType?.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3.5 h-3.5 text-brand-teal stroke-[2.5] shrink-0" />
-                    <div className="flex flex-col gap-0 text-left min-w-0">
-                      <span className="text-[9px] sm:text-[10px] font-bold text-brand-teal leading-tight truncate">{room.sharingType?.split(' ')[0]}</span>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-[#062F26] leading-tight truncate">₹{Number(room.rentPerBed || 0).toLocaleString('en-IN')}</span>
+                if (pgPrices.length === 0) return null;
+
+                const minPrice = Math.min(...pgPrices);
+                const maxPrice = Math.max(...pgPrices);
+
+                if (minPrice === maxPrice || pgPrices.length === 1) {
+                  return (
+                    <div className="flex items-center gap-1">
+                      <span className="text-[#062F26] font-bold text-base leading-none">₹{minPrice.toLocaleString('en-IN')}</span>
+                      <span className="text-slate-400 text-xs font-semibold">/month</span>
                     </div>
+                  );
+                }
+
+                return (
+                  <div className="flex items-center bg-[#F4F9F8] rounded-lg px-2.5 py-1.5 border border-brand-teal/20 group-hover:bg-[#EAF5F2] group-hover:border-brand-teal/40 transition-colors w-max">
+                    <span className="text-[9px] font-bold text-brand-teal uppercase tracking-widest mr-1.5 mt-0.5">From</span>
+                    <span className="text-[#062F26] font-bold text-[15px] leading-none">₹{minPrice.toLocaleString('en-IN')}</span>
+                    <span className="text-slate-400 font-medium text-xs mx-1">-</span>
+                    <span className="text-[#062F26] font-bold text-[15px] leading-none">₹{maxPrice.toLocaleString('en-IN')}</span>
+                    <span className="text-slate-500 font-semibold text-[10px] ml-1.5 mt-0.5">/mo</span>
                   </div>
-                ));
+                );
               })()}
             </div>
           ) : (

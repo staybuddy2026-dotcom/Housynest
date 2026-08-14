@@ -37,13 +37,12 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-hidden flex flex-col border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
-        
+
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-              isPg ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-            }`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isPg ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+              }`}>
               {property.propertyType}
             </span>
             <div>
@@ -93,11 +92,10 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 py-2 px-4 text-xs font-bold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer border ${
-                  activeTab === tab.id
-                    ? 'bg-emerald-50 border-emerald-200 text-[#062F26] shadow-sm ring-1 ring-emerald-500/10'
-                    : 'bg-white border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 hover:border-slate-300'
-                }`}
+                className={`flex items-center gap-2 py-2 px-4 text-xs font-bold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer border ${activeTab === tab.id
+                  ? 'bg-emerald-50 border-emerald-200 text-[#062F26] shadow-sm ring-1 ring-emerald-500/10'
+                  : 'bg-white border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 hover:border-slate-300'
+                  }`}
               >
                 <Icon icon={tab.icon} className={`w-4 h-4 transition-colors ${activeTab === tab.id ? 'text-[#0AA87D]' : 'text-slate-400'}`} />
                 {tab.label}
@@ -120,19 +118,19 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                   <div>
-                    <span className="text-slate-400 font-medium block text-[11px]">Full Name</span>
+                    <span className="text-slate-400 font-medium block text-xs">Full Name</span>
                     <span className="font-bold text-slate-800 text-sm">{property.owner?.fullName || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 font-medium block text-[11px]">Phone Number</span>
+                    <span className="text-slate-400 font-medium block text-xs">Phone Number</span>
                     <a href={`tel:${property.owner?.phone}`} className="font-bold text-brand-teal text-sm hover:underline flex items-center gap-1">
                       <Icon icon="lucide:phone" className="w-3.5 h-3.5" />
                       {property.owner?.phone || 'N/A'}
                     </a>
                   </div>
                   <div>
-                    <span className="text-slate-400 font-medium block text-[11px]">Email Address</span>
-                    <a href={`mailto:${property.owner?.email}`} className="font-semibold text-slate-700 text-xs hover:underline flex items-center gap-1">
+                    <span className="text-slate-400 font-medium block text-xs">Email Address</span>
+                    <a href={`mailto:${property.owner?.email}`} className="font-semibold text-slate-700 text-sm hover:underline flex items-center gap-1">
                       <Icon icon="lucide:mail" className="w-3.5 h-3.5 text-slate-400" />
                       {property.owner?.email || 'N/A'}
                     </a>
@@ -146,30 +144,30 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                   <Icon icon="lucide:home" className="w-4 h-4 text-brand-teal" />
                   General Listing Info
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Property Type</span>
-                    <span className="font-bold text-slate-800 text-sm">{property.propertyType}</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">Property Type</span>
+                    <span className="font-semibold text-slate-800 text-sm">{property.propertyType}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
-                    <span className="font-bold text-slate-800 text-sm">{property.propertyCategory || 'N/A'}</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">Category</span>
+                    <span className="font-semibold text-slate-800 text-sm">{property.propertyCategory || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Posting As</span>
-                    <span className="font-bold text-slate-800 text-sm">{property.postingAs || 'Owner'}</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">Posting As</span>
+                    <span className="font-semibold text-slate-800 text-sm">{property.postingAs || 'Owner'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Current Status</span>
-                    <span className="font-bold text-brand-teal text-sm">{property.status}</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">Current Status</span>
+                    <span className="font-semibold text-brand-teal text-sm">{property.status}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Views</span>
-                    <span className="font-bold text-slate-800">{property.views || 0} views</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">Total Views</span>
+                    <span className="font-semibold text-slate-800">{property.views || 0} views</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Leads</span>
-                    <span className="font-bold text-slate-800">{property.leads || 0} leads</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">Total Leads</span>
+                    <span className="font-semibold text-slate-800">{property.leads || 0} leads</span>
                   </div>
                 </div>
               </div>
@@ -180,26 +178,26 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                   <Icon icon="lucide:map-pin" className="w-4 h-4 text-brand-teal" />
                   Address & Nearby Places
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">City</span>
-                    <span className="font-bold text-slate-800">{property.city || 'N/A'}</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">City</span>
+                    <span className="font-semibold text-slate-800">{property.city || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Locality</span>
-                    <span className="font-bold text-slate-800">{property.locality || 'N/A'}</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">Locality</span>
+                    <span className="font-semibold text-slate-800">{property.locality || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">State & Pincode</span>
-                    <span className="font-bold text-slate-800">{property.state || ''} {property.pincode ? `(${property.pincode})` : ''}</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">State & Pincode</span>
+                    <span className="font-semibold text-slate-800">{property.state || ''} {property.pincode ? `(${property.pincode})` : ''}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Full Address</span>
-                    <span className="font-bold text-slate-800">{property.address || 'N/A'}</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-semibold">Full Address</span>
+                    <span className="font-semibold text-slate-800">{property.address || 'N/A'}</span>
                   </div>
                   {property.landmark && (
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Landmark</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-semibold">Landmark</span>
                       <span className="font-semibold text-slate-700">{property.landmark}</span>
                     </div>
                   )}
@@ -208,7 +206,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                 {/* NEARBY PLACES SECTION */}
                 {validNearbyPlaces.length > 0 && (
                   <div className="pt-3 border-t border-slate-100 space-y-2">
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold flex items-center gap-1.5">
+                    <span className="text-slate-400 block text-xs uppercase font-bold flex items-center gap-1.5">
                       <Icon icon="lucide:navigation" className="w-3.5 h-3.5 text-blue-500" />
                       Nearby Landmarks & Transit
                     </span>
@@ -217,10 +215,10 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                         const placeName = typeof np === 'string' ? np : (np.place || np.name || 'Nearby Place');
                         const distance = typeof np === 'object' && np.distance ? np.distance : '';
                         return (
-                          <div key={idx} className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs">
-                            <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 text-brand-teal shrink-0" />
-                            <span className="font-bold text-slate-700 truncate">{placeName}</span>
-                            {distance && <span className="text-[10px] font-semibold text-slate-400 ml-auto whitespace-nowrap">{distance}</span>}
+                          <div key={idx} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-100 text-sm">
+                            <Icon icon="lucide:map-pin" className="w-4 h-4 text-brand-teal shrink-0" />
+                            <span className="font-semibold text-slate-700 truncate">{placeName}</span>
+                            {distance && <span className="text-[11px] font-semibold text-slate-400 ml-auto whitespace-nowrap">{distance}</span>}
                           </div>
                         );
                       })}
@@ -234,7 +232,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                       href={property.mapLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors shadow-xs"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors shadow-xs"
                     >
                       <Icon icon="lucide:map" className="w-4 h-4" />
                       Open Google Maps Location
@@ -245,9 +243,9 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
 
               {/* Description */}
               {property.description && (
-                <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-2">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Property Description</h3>
-                  <p className="text-xs font-medium text-slate-700 leading-relaxed whitespace-pre-line">{property.description}</p>
+                <div className="bg-white text-sm rounded-xl p-5 border border-slate-100 shadow-xs space-y-2">
+                  <h3 className="font-semibold text-slate-400 uppercase tracking-wider">Property Description</h3>
+                  <p className="font-medium text-slate-700 leading-relaxed whitespace-pre-line">{property.description}</p>
                 </div>
               )}
             </div>
@@ -255,26 +253,26 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
 
           {/* TAB 2: PG PRICING & ROOMS / TENANT DETAILS */}
           {activeTab === 'details' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {isPg ? (
                 <>
                   {/* PG Basic Info */}
                   <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">PG Name</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">PG Name</span>
                       <span className="font-bold text-[#062F26] text-sm">{property.pgName || 'N/A'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">PG Present In</span>
-                      <span className="font-bold text-slate-800">{property.pgPresentIn || 'N/A'}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">PG Present In</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.pgPresentIn || 'N/A'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Operational Since</span>
-                      <span className="font-bold text-slate-800">{property.operationalSince || 'N/A'}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Operational Since</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.operationalSince || 'N/A'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Floors</span>
-                      <span className="font-bold text-slate-800">{property.totalFloorsCount || property.floors?.length || 'N/A'}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Total Floors</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.totalFloorsCount || property.floors?.length || 'N/A'}</span>
                     </div>
                   </div>
 
@@ -288,20 +286,20 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                         {property.paymentModel && (
                           <div>
-                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Payment Model</span>
-                            <span className="font-bold text-slate-800">{property.paymentModel}</span>
+                            <span className="text-slate-400 block text-[11px] uppercase font-bold">Payment Model</span>
+                            <span className="font-bold text-slate-800 text-sm">{property.paymentModel}</span>
                           </div>
                         )}
                         {property.rentalPeriod && (
                           <div>
-                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Rental Period</span>
-                            <span className="font-bold text-slate-800">{property.rentalPeriod}</span>
+                            <span className="text-slate-400 block text-[11px] uppercase font-bold">Rental Period</span>
+                            <span className="font-bold text-slate-800 text-sm">{property.rentalPeriod}</span>
                           </div>
                         )}
                         {property.bookingType && (
                           <div>
-                            <span className="text-slate-400 block text-[10px] uppercase font-bold">Booking Type</span>
-                            <span className="font-bold text-slate-800">{property.bookingType}</span>
+                            <span className="text-slate-400 block text-[11px] uppercase font-bold">Booking Type</span>
+                            <span className="font-bold text-slate-800 text-sm">{property.bookingType}</span>
                           </div>
                         )}
                       </div>
@@ -321,11 +319,11 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                           const label = type.replace('_AC', ' (AC)').replace('_NonAC', ' (Non-AC)').replace('_', ' ');
                           return (
                             <div key={type} className="bg-purple-50/40 p-4 rounded-xl border border-purple-100 flex flex-col justify-between">
-                              <span className="text-xs font-bold text-purple-900">{label}</span>
+                              <span className="text-sm font-bold text-purple-900">{label}</span>
                               <div className="mt-2 space-y-1">
                                 <div className="flex items-baseline justify-between">
                                   <span className="text-xs text-slate-500 font-medium">Rent:</span>
-                                  <span className="text-base font-extrabold text-brand-teal">{formatCurrency(pricing.rentPerBed)}<span className="text-[10px] text-slate-400">/mo</span></span>
+                                  <span className="text-base font-semibold text-brand-teal">{formatCurrency(pricing.rentPerBed)}<span className="text-[10px] text-slate-400">/mo</span></span>
                                 </div>
                                 {pricing.depositPerBed && (
                                   <div className="flex items-baseline justify-between text-xs">
@@ -361,10 +359,10 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               {floor.rooms?.map((room, rIdx) => (
-                                <div key={rIdx} className="bg-white p-3 rounded-lg border border-slate-200 text-xs space-y-2">
+                                <div key={rIdx} className="bg-white p-3 rounded-lg border border-slate-200 text-sm space-y-2">
                                   <div className="flex items-center justify-between font-bold text-slate-800">
                                     <span>{room.roomName || `Room ${rIdx + 1}`} ({room.sharingType})</span>
-                                    <span className={`px-2 py-0.5 rounded text-[10px] ${room.isAC ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                                    <span className={`px-2 py-0.5 rounded text-[11px] ${room.isAC ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                                       {room.isAC ? 'AC' : 'Non-AC'}
                                     </span>
                                   </div>
@@ -374,13 +372,12 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                                       {room.beds.map((bed, bIdx) => (
                                         <span
                                           key={bIdx}
-                                          className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                                            bed.status === 'Occupied'
-                                              ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                              : bed.status === 'Reserved'
+                                          className={`px-2 py-0.5 rounded text-[11px] font-bold border ${bed.status === 'Occupied'
+                                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                            : bed.status === 'Reserved'
                                               ? 'bg-amber-50 text-amber-700 border-amber-200'
                                               : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                          }`}
+                                            }`}
                                         >
                                           {bed.bedName}: {bed.status}
                                         </span>
@@ -525,20 +522,20 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Food Provided</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Food Provided</span>
                       <span className="font-bold text-slate-800 text-sm">{property.foodProvided ? 'Yes' : 'No'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Category</span>
                       <span className="font-bold text-slate-800 text-sm">{property.vegNonVeg || 'N/A'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Food Charges</span>
-                      <span className="font-bold text-slate-800">{property.foodCharges || 'Included in Rent'}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Food Charges</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.foodCharges || 'Included in Rent'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Meals Served</span>
-                      <span className="font-bold text-slate-800">{property.meals?.length > 0 ? property.meals.join(', ') : 'N/A'}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Meals Served</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.meals?.length > 0 ? property.meals.join(', ') : 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -573,7 +570,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                 <div className="space-y-4 text-xs">
                   {allCommonAmenities.length > 0 && (
                     <div>
-                      <span className="text-slate-400 font-bold block text-[10px] uppercase mb-2">Common / Room Amenities</span>
+                      <span className="text-slate-400 font-bold block text-[11px] uppercase mb-2">Common / Room Amenities</span>
                       <div className="flex flex-wrap gap-2">
                         {allCommonAmenities.map((am, idx) => (
                           <span key={idx} className="px-3 py-1.5 bg-slate-100 text-slate-700 font-semibold rounded-lg border border-slate-200">
@@ -586,7 +583,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
 
                   {property.societyAmenities && property.societyAmenities.length > 0 && (
                     <div>
-                      <span className="text-slate-400 font-bold block text-[10px] uppercase mb-2">Society Amenities</span>
+                      <span className="text-slate-400 font-bold block text-[11px] uppercase mb-2">Society Amenities</span>
                       <div className="flex flex-wrap gap-2">
                         {property.societyAmenities.map((am, idx) => (
                           <span key={idx} className="px-3 py-1.5 bg-blue-50 text-blue-700 font-semibold rounded-lg border border-blue-100">
@@ -599,7 +596,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
 
                   {property.parking && property.parking.length > 0 && (
                     <div>
-                      <span className="text-slate-400 font-bold block text-[10px] uppercase mb-2">Parking Facilities</span>
+                      <span className="text-slate-400 font-bold block text-[11px] uppercase mb-2">Parking Facilities</span>
                       <div className="flex flex-wrap gap-2">
                         {property.parking.map((p, idx) => (
                           <span key={idx} className="px-3 py-1.5 bg-purple-50 text-purple-700 font-semibold rounded-lg border border-purple-100">
@@ -622,36 +619,36 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs mb-3">
                   {property.preferredGender && (
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Preferred Gender</span>
-                      <span className="font-bold text-slate-800">{property.preferredGender}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Preferred Gender</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.preferredGender}</span>
                     </div>
                   )}
                   {property.tenantPreference && (
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Tenant Preference</span>
-                      <span className="font-bold text-slate-800">{property.tenantPreference}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Tenant Preference</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.tenantPreference}</span>
                     </div>
                   )}
                   {property.noticePeriod && (
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Notice Period</span>
-                      <span className="font-bold text-slate-800">{property.noticePeriod}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Notice Period</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.noticePeriod}</span>
                     </div>
                   )}
                   {property.preferredTenants && property.preferredTenants.length > 0 && (
                     <div className="col-span-2">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Preferred Tenants</span>
-                      <span className="font-bold text-slate-800">{property.preferredTenants.join(', ')}</span>
+                      <span className="text-slate-400 block text-[11px] uppercase font-bold">Preferred Tenants</span>
+                      <span className="font-bold text-slate-800 text-sm">{property.preferredTenants.join(', ')}</span>
                     </div>
                   )}
                 </div>
 
                 {allRules.length > 0 && (
                   <div>
-                    <span className="text-slate-400 font-bold block text-[10px] uppercase mb-2">Rules & Policies</span>
+                    <span className="text-slate-400 font-bold block text-[11px] uppercase mb-2">Rules & Policies</span>
                     <div className="flex flex-wrap gap-2">
                       {allRules.map((rule, idx) => (
-                        <span key={idx} className="px-3 py-1.5 bg-rose-50 text-rose-800 font-semibold rounded-lg border border-rose-200 inline-flex items-center gap-1.5">
+                        <span key={idx} className="px-3 py-1.5 bg-rose-50 text-rose-800 text-sm font-semibold rounded-lg border border-rose-200 inline-flex items-center gap-1.5">
                           <Icon icon="lucide:alert-circle" className="w-3.5 h-3.5 text-rose-500" />
                           {rule}
                         </span>

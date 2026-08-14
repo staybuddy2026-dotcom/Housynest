@@ -304,7 +304,7 @@ const OwnerBookings = () => {
       <div className="bg-white rounded-xl border border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-1 flex flex-col relative z-10">
 
         {/* Toolbar */}
-        <div className="p-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50/30 rounded-t-2xl relative z-20">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50/30 rounded-t-2xl relative z-20">
           {/* Search */}
           <div className="relative w-full xl:w-96 group shrink-0">
             <Icon icon="lucide:search" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
@@ -317,9 +317,9 @@ const OwnerBookings = () => {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center flex-wrap gap-3 w-full xl:w-auto">
             {/* Status Dropdown */}
-            <div className="w-[180px]">
+            <div className="w-full sm:w-[180px] shrink-0">
               <CustomDropdown
                 value={
                   <span className="flex items-center gap-1.5">
@@ -337,13 +337,13 @@ const OwnerBookings = () => {
                   { label: 'Confirmed', value: 'CONFIRMED' }
                 ]}
                 onChange={(val) => setStatusFilter(val)}
-                buttonClassName="shadow-sm !py-2.5 border-slate-200"
-                containerClassName=""
+                buttonClassName="shadow-sm !py-2.5 border-slate-200 w-full"
+                containerClassName="w-full"
               />
             </div>
 
             {/* Property Dropdown */}
-            <div className="w-[220px]">
+            <div className="w-full sm:w-[220px] shrink-0">
               <CustomDropdown
                 value={
                   <span className="flex items-center gap-1.5 truncate">
@@ -353,33 +353,47 @@ const OwnerBookings = () => {
                 }
                 options={uniqueProperties.map(prop => ({ label: prop, value: prop }))}
                 onChange={(val) => setPropertyFilter(val)}
-                buttonClassName="shadow-sm !py-2.5 border-slate-200"
-                containerClassName=""
+                buttonClassName="shadow-sm !py-2.5 border-slate-200 w-full"
+                containerClassName="w-full"
               />
             </div>
 
             {/* Date Filter */}
-            <div className="relative flex items-center bg-white border border-slate-200 rounded-lg px-4 py-2 hover:border-brand-teal focus-within:border-brand-teal focus-within:ring-4 focus-within:ring-brand-teal/10 transition-all shadow-sm">
-              <span className="flex items-center gap-2">
-                <span className="text-slate-400 font-medium shrink-0">Move-in:</span>
+            <div className="w-full sm:w-[200px] relative shrink-0">
+              <div className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-sm font-medium text-slate-700 hover:border-brand-teal transition-all cursor-pointer relative overflow-hidden shadow-sm">
+                <div className="flex items-center gap-2 flex-1 truncate">
+                  <span className="text-slate-400 shrink-0">Move-in:</span>
+                  <span className="truncate">
+                    {dateFilter ? new Date(dateFilter).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Any Date'}
+                  </span>
+                </div>
+                <Icon icon="lucide:calendar" className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
+                
+                {/* Transparent Date Input Overlay */}
                 <input
                   type="date"
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
-                  className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none w-[115px] cursor-pointer"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  style={{ WebkitAppearance: 'none' }}
                 />
-              </span>
-              {dateFilter && (
-                <button onClick={() => setDateFilter('')} className="ml-2 text-slate-400 hover:text-rose-500 transition-colors">
-                  <Icon icon="lucide:x" className="w-4 h-4" />
-                </button>
-              )}
+
+                {/* Clear button (sits above the transparent input) */}
+                {dateFilter && (
+                  <button 
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDateFilter(''); }} 
+                    className="absolute right-10 z-10 p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-md transition-colors"
+                  >
+                    <Icon icon="lucide:x" className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-auto custom-scrollbar bg-white rounded-b-2xl relative z-10">
+        <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar bg-white rounded-b-2xl relative z-10">
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead className="bg-slate-50/80 sticky top-0 z-10 backdrop-blur-sm">
               <tr>
@@ -493,7 +507,7 @@ const OwnerBookings = () => {
 
       {/* Side Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-[480px] bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${selectedBooking ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed top-0 right-0 h-full w-full sm:w-[480px] max-w-full bg-white z-50 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${selectedBooking ? 'translate-x-0' : 'translate-x-full'
           }`}
       >
         {selectedBooking && (
@@ -546,18 +560,18 @@ const OwnerBookings = () => {
                       {/* Reject Section */}
                       <div className="bg-white/60 p-3 rounded-xl border border-amber-100">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Reject Request</p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="text"
                             placeholder="Reason for rejection (e.g. Unpaid dues)"
                             value={rejectionReason}
                             onChange={(e) => setRejectionReason(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                            className="flex-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                           />
                           <button
                             onClick={() => handleRejectMoveOut(selectedBooking._id)}
                             disabled={processingMoveOutId === selectedBooking._id}
-                            className="px-4 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold text-sm rounded-lg shadow-sm transition-colors disabled:opacity-50"
+                            className="w-full sm:w-auto px-4 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold text-sm rounded-lg shadow-sm transition-colors disabled:opacity-50"
                           >
                             Reject
                           </button>
@@ -567,8 +581,8 @@ const OwnerBookings = () => {
                       {/* Checkout Section */}
                       <div className="bg-white/60 p-3 rounded-xl border border-amber-100">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Process Checkout</p>
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="relative flex-1 w-full">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
                             <input
                               type="number"
@@ -581,7 +595,7 @@ const OwnerBookings = () => {
                           <button
                             onClick={() => handleProcessCheckout(selectedBooking._id)}
                             disabled={processingMoveOutId === selectedBooking._id}
-                            className="px-4 py-2 bg-[#062F26] text-white hover:bg-brand-teal font-bold text-sm rounded-lg shadow-sm transition-colors disabled:opacity-50 whitespace-nowrap"
+                            className="w-full sm:w-auto px-4 py-2 bg-[#062F26] text-white hover:bg-brand-teal font-bold text-sm rounded-lg shadow-sm transition-colors disabled:opacity-50 whitespace-nowrap"
                           >
                             Checkout & Complete
                           </button>

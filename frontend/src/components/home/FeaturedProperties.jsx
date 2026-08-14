@@ -73,7 +73,7 @@ const FeaturedProperties = () => {
   };
 
   return (
-    <section className="max-w-340 3xl:max-w-420 mx-auto w-full pt-12 sm:pt-16 px-4 sm:px-6 xl:px-0">
+    <section className="max-w-340 3xl:max-w-420 mx-auto w-full pt-8 px-4 sm:px-6 xl:px-0">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div className="flex flex-col">
@@ -136,7 +136,7 @@ const FeaturedProperties = () => {
             </div>
           ) : properties.length > 0 ? (
             properties.map(property => (
-              <div key={property._id || property.id} className="snap-start shrink-0 w-[270px] sm:w-[260px] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-13.33px)] xl:w-[calc(25%-15px)]">
+              <div key={property._id || property.id} className="snap-start shrink-0 w-[300px] sm:w-[260px] md:w-[calc(50%-10px)] lg:w-[calc(33.333%-13.33px)] xl:w-[calc(25%-15px)]">
                 <PropertyListingCard property={property} />
               </div>
             ))

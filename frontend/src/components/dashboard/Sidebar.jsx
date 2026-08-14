@@ -10,6 +10,7 @@ const Sidebar = ({ onClose, isMobile }) => {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const profileRef = useRef(null);
   const moreMenuRef = useRef(null);
+  const moreBtnRef = useRef(null);
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
   });
@@ -30,12 +31,20 @@ const Sidebar = ({ onClose, isMobile }) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileOpen(false);
       }
-      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target)) {
+      if (
+        moreMenuRef.current &&
+        !moreMenuRef.current.contains(event.target) &&
+        !(moreBtnRef.current && moreBtnRef.current.contains(event.target))
+      ) {
         setShowMoreMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -316,18 +325,20 @@ const Sidebar = ({ onClose, isMobile }) => {
                   {isActive && (
                     <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-8 h-8 bg-[#25D366]/30 blur-[6px] rounded-full pointer-events-none" />
                   )}
-                  <Icon
-                    icon={item.icon}
-                    className={`w-5 h-5 mb-1.5 transition-all duration-300 relative z-10 ${isActive ? 'text-[#062F26] transform -translate-y-0.5' : ''}`}
-                  />
+                  <div className="relative mb-1.5">
+                    <Icon
+                      icon={item.icon}
+                      className={`w-5 h-5 transition-all duration-300 relative z-10 ${isActive ? 'text-[#062F26] transform -translate-y-0.5' : ''}`}
+                    />
+                    {item.badge && (
+                      <span className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] flex items-center justify-center px-0.5 bg-[#062F26] rounded-full border-[1.5px] border-white text-[8px] font-bold text-white shadow-sm">
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    )}
+                  </div>
                   <span className={`text-[9px] font-bold text-center leading-none ${isActive ? 'text-[#062F26]' : ''} truncate w-full px-0.5`}>
                     {item.name.replace('My ', '')}
                   </span>
-                  {item.badge && (
-                    <span className="absolute top-1 right-0.5 min-w-[14px] h-[14px] flex items-center justify-center px-0.5 bg-[#062F26] rounded-full border border-white text-[8px] font-bold text-white shadow-sm">
-                      {item.badge > 9 ? '9+' : item.badge}
-                    </span>
-                  )}
                 </>
               )}
             </NavLink>
@@ -335,6 +346,7 @@ const Sidebar = ({ onClose, isMobile }) => {
 
           {/* More Button */}
           <button
+            ref={moreBtnRef}
             onClick={() => setShowMoreMenu(!showMoreMenu)}
             className={`relative flex flex-col items-center justify-center w-1/5 h-full transition-all duration-300 ${showMoreMenu ? 'text-[#062F26]' : 'text-slate-400'}`}
           >
@@ -344,16 +356,18 @@ const Sidebar = ({ onClose, isMobile }) => {
             {showMoreMenu && (
               <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-8 h-8 bg-slate-300/30 blur-[6px] rounded-full pointer-events-none" />
             )}
-            <Icon
-              icon="lucide:menu"
-              className={`w-5 h-5 mb-1.5 transition-all duration-300 relative z-10 ${showMoreMenu ? 'text-[#062F26] transform -translate-y-0.5' : ''}`}
-            />
+            <div className="relative mb-1.5">
+              <Icon
+                icon="lucide:menu"
+                className={`w-5 h-5 transition-all duration-300 relative z-10 ${showMoreMenu ? 'text-[#062F26] transform -translate-y-0.5' : ''}`}
+              />
+              {moreItems.some(i => i.badge) && !showMoreMenu && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-[1.5px] border-white z-10" />
+              )}
+            </div>
             <span className={`text-[9px] font-bold text-center leading-none ${showMoreMenu ? 'text-[#062F26]' : ''}`}>
               More
             </span>
-            {moreItems.some(i => i.badge) && !showMoreMenu && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full border border-white" />
-            )}
           </button>
         </div>
       </>

@@ -391,12 +391,22 @@ const OwnerVisits = () => {
 
           {/* Date Filter */}
           <div className="col-span-1 w-full lg:w-40 relative shrink-0">
-            <input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:border-brand-teal transition-all text-center lg:text-left"
-            />
+            <div className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 transition-all cursor-pointer relative overflow-hidden">
+              <div className="flex items-center gap-2 truncate">
+                <Icon icon="lucide:calendar" className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="truncate">
+                  {filterDate ? new Date(filterDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'All Dates'}
+                </span>
+              </div>
+              {/* Transparent Date Input Overlay */}
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                style={{ WebkitAppearance: 'none' }}
+              />
+            </div>
           </div>
 
           {/* Time Filter */}

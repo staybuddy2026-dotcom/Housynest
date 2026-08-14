@@ -115,27 +115,27 @@ const MaintenanceFormModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 backdrop-blur-sm animate-fadeIn">
       <div 
-        className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col animate-slideUp"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90dvh] flex flex-col animate-slideUp"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 shrink-0">
           <h2 className="text-xl font-bold text-[#062F26] flex items-center gap-2">
             <Icon icon="lucide:wrench" className="text-brand-teal" />
             Raise Maintenance Ticket
           </h2>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0"
           >
             <Icon icon="lucide:x" className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
-        <div className="overflow-y-auto p-5">
+        <div className="flex-1 min-h-0 overflow-y-auto p-5 custom-scrollbar">
           <form id="maintenanceForm" onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div>
+            <div className="shrink-0">
             <CustomDropdown
               label="Select Property"
               options={properties.length === 0 ? [{label: 'No active properties found', value: ''}] : properties.map(p => {
@@ -145,11 +145,13 @@ const MaintenanceFormModal = ({ isOpen, onClose, onSuccess }) => {
               value={formData.propertyId}
               onChange={val => setFormData({...formData, propertyId: val})}
               placeholder="Select a property"
+              containerClassName="w-full"
+              buttonClassName="w-full"
               required
             />
             </div>
 
-            <div>
+            <div className="shrink-0">
               <label className="block text-sm font-bold text-slate-700 mb-1.5">Category</label>
               <div className="flex flex-wrap gap-2">
                 {categories.map(cat => (
@@ -169,7 +171,7 @@ const MaintenanceFormModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             </div>
 
-            <div>
+            <div className="shrink-0">
               <label className="block text-sm font-bold text-slate-700 mb-1.5">Issue Title</label>
               <input 
                 type="text"
@@ -181,19 +183,19 @@ const MaintenanceFormModal = ({ isOpen, onClose, onSuccess }) => {
               />
             </div>
 
-            <div>
+            <div className="shrink-0">
               <label className="block text-sm font-bold text-slate-700 mb-1.5">Detailed Description</label>
               <textarea 
                 value={formData.description}
                 onChange={e => setFormData({...formData, description: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 outline-none text-sm font-medium resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 outline-none text-sm font-medium resize-none custom-scrollbar"
                 placeholder="Describe the issue in detail..."
                 rows="4"
                 required
               ></textarea>
             </div>
 
-            <div>
+            <div className="shrink-0">
               <label className="block text-sm font-bold text-slate-700 mb-1.5">Photos (Optional, max 5)</label>
               <div className="flex flex-wrap gap-3">
                 {formData.photos.map((photo, i) => (
@@ -227,11 +229,11 @@ const MaintenanceFormModal = ({ isOpen, onClose, onSuccess }) => {
           </form>
         </div>
 
-        <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl">
+        <div className="p-4 sm:p-5 border-t border-slate-100 flex flex-col sm:flex-row justify-end gap-3 bg-slate-50 rounded-b-2xl shrink-0">
           <button 
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-200 transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-200 transition-colors"
           >
             Cancel
           </button>
@@ -239,7 +241,7 @@ const MaintenanceFormModal = ({ isOpen, onClose, onSuccess }) => {
             type="submit"
             form="maintenanceForm"
             disabled={loading}
-            className="px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-brand-teal hover:bg-[#062F26] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-brand-teal hover:bg-[#062F26] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" /> : <Icon icon="lucide:send" className="w-4 h-4" />}
             {loading ? 'Submitting...' : 'Submit Ticket'}
