@@ -26,7 +26,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
   });
-  const [counts, setCounts] = useState({ unreadMessages: 0, newRequests: 0, newTenantContracts: 0 });
+  const [counts, setCounts] = useState({ unreadMessages: 0, newRequests: 0, newTenantContracts: 0, newMaintenanceUpdates: 0 });
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -40,7 +40,8 @@ const TenantSidebar = ({ onClose, isMobile }) => {
           setCounts({
             unreadMessages: data.unreadMessages || 0,
             newRequests: data.newRequests || 0,
-            newTenantContracts: data.newTenantContracts || 0
+            newTenantContracts: data.newTenantContracts || 0,
+            newMaintenanceUpdates: data.newMaintenanceUpdates || 0
           });
         }
       } catch (err) {
@@ -65,15 +66,21 @@ const TenantSidebar = ({ onClose, isMobile }) => {
       setCounts(prev => ({ ...prev, newTenantContracts: 0 }));
     };
 
+    const handleMaintenanceTicketsRead = () => {
+      setCounts(prev => ({ ...prev, newMaintenanceUpdates: 0 }));
+    };
+
     window.addEventListener('messagesRead', handleMessagesRead);
     window.addEventListener('profilePicUpdated', handleProfileUpdate);
     window.addEventListener('newTenantContract', handleNewTenantContract);
     window.addEventListener('tenantContractsRead', handleTenantContractsRead);
+    window.addEventListener('maintenanceTicketsRead', handleMaintenanceTicketsRead);
     return () => {
       window.removeEventListener('messagesRead', handleMessagesRead);
       window.removeEventListener('profilePicUpdated', handleProfileUpdate);
       window.removeEventListener('newTenantContract', handleNewTenantContract);
       window.removeEventListener('tenantContractsRead', handleTenantContractsRead);
+      window.removeEventListener('maintenanceTicketsRead', handleMaintenanceTicketsRead);
     };
   }, []);
 
@@ -87,13 +94,27 @@ const TenantSidebar = ({ onClose, isMobile }) => {
 
     const onNewNotification = () => setCounts(prev => ({ ...prev, unreadMessages: prev.unreadMessages + 1 }));
     const onNewTenantContract = () => setCounts(prev => ({ ...prev, newTenantContracts: prev.newTenantContracts + 1 }));
+    const onMaintenanceTicketUpdated = () => {
+      setCounts(prev => ({ ...prev, newMaintenanceUpdates: prev.newMaintenanceUpdates + 1 }));
+      toast.success('Maintenance ticket updated by owner!', {
+        id: 'maintenance-ticket-updated',
+        icon: '🔧',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+    };
 
     socket.on('newNotification', onNewNotification);
     socket.on('newTenantContract', onNewTenantContract);
+    socket.on('maintenanceTicketUpdated', onMaintenanceTicketUpdated);
 
     return () => {
       socket.off('newNotification', onNewNotification);
       socket.off('newTenantContract', onNewTenantContract);
+      socket.off('maintenanceTicketUpdated', onMaintenanceTicketUpdated);
     };
   }, [user]);
 
@@ -117,6 +138,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
     { name: 'My Bookings', icon: 'lucide:bookmark', path: '/tenant/bookings' },
     { name: 'My Requests', icon: 'lucide:message-circle', path: '/tenant/requests', badge: counts.newRequests > 0 ? counts.newRequests : null },
     { name: 'Messages', icon: 'lucide:message-square', path: '/tenant/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
+    { name: 'Maintenance', icon: 'lucide:wrench', path: '/tenant/maintenance', badge: counts.newMaintenanceUpdates > 0 ? counts.newMaintenanceUpdates : null },
     // { name: 'Contracts', icon: 'lucide:file-text', path: '/tenant/contracts', badge: counts.newTenantContracts > 0 ? counts.newTenantContracts : null },
     { name: 'Transactions', icon: 'lucide:credit-card', path: '/tenant/transactions' },
   ];
@@ -130,7 +152,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
         {showMoreMenu && (
           <div className="fixed inset-0 bg-black/20 z-40 backdrop-blur-sm transition-opacity" onClick={() => setShowMoreMenu(false)} />
         )}
-        
+
         <div ref={moreMenuRef} className={`fixed bottom-18.75 right-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 transition-all duration-300 origin-bottom-right ${showMoreMenu ? 'scale-100 opacity-100 visible' : 'scale-95 opacity-0 invisible'}`}>
           {moreItems.map((item) => (
             <NavLink
@@ -185,7 +207,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
               )}
             </NavLink>
           ))}
-          
+
           {/* More Button */}
           <button
             onClick={() => setShowMoreMenu(!showMoreMenu)}
@@ -283,22 +305,21 @@ const TenantSidebar = ({ onClose, isMobile }) => {
       <div className="p-4 shrink-0 mt-auto border-t border-slate-100 relative" ref={profileRef}>
         {/* Floating Options Menu */}
         <div
-          className={`absolute bottom-[80px] left-4 right-4 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 p-2 origin-bottom transition-all duration-300 ${
-            isProfileOpen ? 'opacity-100 translate-y-0 visible scale-100' : 'opacity-0 translate-y-4 invisible scale-95'
-          }`}
+          className={`absolute bottom-[80px] left-4 right-4 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 p-2 origin-bottom transition-all duration-300 ${isProfileOpen ? 'opacity-100 translate-y-0 visible scale-100' : 'opacity-0 translate-y-4 invisible scale-95'
+            }`}
         >
           <Link to="/tenant/profile" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-[#F8F9FA] hover:text-[#062F26] transition-colors w-full group">
             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
-               <Icon icon="lucide:user" className="w-4 h-4 text-slate-500 group-hover:text-[#062F26]" />
+              <Icon icon="lucide:user" className="w-4 h-4 text-slate-500 group-hover:text-[#062F26]" />
             </div>
             My Profile
           </Link>
-          
+
           <div className="h-px bg-slate-100 my-1 mx-2"></div>
-          
+
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left group">
             <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
-               <Icon icon="lucide:log-out" className="w-4 h-4 text-red-500" />
+              <Icon icon="lucide:log-out" className="w-4 h-4 text-red-500" />
             </div>
             Sign Out
           </button>
@@ -307,11 +328,10 @@ const TenantSidebar = ({ onClose, isMobile }) => {
         {/* Profile Trigger */}
         <button
           onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className={`w-full flex items-center justify-between p-2 rounded-2xl transition-all duration-300 border ${
-            isProfileOpen 
-              ? 'bg-slate-50 border-slate-200 shadow-inner' 
+          className={`w-full flex items-center justify-between p-2 rounded-2xl transition-all duration-300 border ${isProfileOpen
+              ? 'bg-slate-50 border-slate-200 shadow-inner'
               : 'bg-white border-transparent hover:border-slate-100 hover:bg-slate-50 hover:shadow-sm'
-          }`}
+            }`}
         >
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-10 h-10 rounded-full bg-[#062F26] text-white flex shrink-0 items-center justify-center font-bold text-[15px] overflow-hidden shadow-sm">

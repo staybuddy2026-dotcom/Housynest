@@ -7,6 +7,7 @@ import Visit from '../models/Visit.js';
 import Booking from '../models/Booking.js';
 import Property from '../models/Property.js';
 import RentInvoice from '../models/RentInvoice.js';
+import MaintenanceTicket from '../models/MaintenanceTicket.js';
 import { sendBlockEmail, sendUnblockEmail } from './authController.js';
 
 export const getUserProfile = async (req, res) => {
@@ -155,6 +156,8 @@ export const getNotificationCounts = async (req, res) => {
     let newVisitsCount = 0;
     let newBookingRequestsCount = 0;
     let newBookingsCount = 0;
+    let newMaintenanceTicketsCount = 0;
+    let newMaintenanceUpdatesCount = 0;
     
     if (req.user.role === 'owner') {
       newLawyerRequestsCount = await LawyerRequest.countDocuments({
@@ -179,6 +182,16 @@ export const getNotificationCounts = async (req, res) => {
         propertyId: { $in: propertyIds },
         status: { $in: ['Confirmed', 'Active'] }
       });
+
+      newMaintenanceTicketsCount = await MaintenanceTicket.countDocuments({
+        ownerId: userId,
+        status: 'Pending'
+      });
+    } else if (req.user.role === 'tenant') {
+      newMaintenanceUpdatesCount = await MaintenanceTicket.countDocuments({
+        tenantId: userId,
+        isReadByTenant: false
+      });
     }
 
     res.json({
@@ -187,7 +200,9 @@ export const getNotificationCounts = async (req, res) => {
       newLawyerRequests: newLawyerRequestsCount,
       newVisits: newVisitsCount,
       newBookingRequests: newBookingRequestsCount,
-      newBookings: newBookingsCount
+      newBookings: newBookingsCount,
+      newMaintenanceTickets: newMaintenanceTicketsCount,
+      newMaintenanceUpdates: newMaintenanceUpdatesCount
     });
   } catch (error) {
     console.error('Error in getNotificationCounts:', error);

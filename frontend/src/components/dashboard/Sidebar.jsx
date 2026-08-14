@@ -20,7 +20,9 @@ const Sidebar = ({ onClose, isMobile }) => {
     newOwnerContracts: 0,
     newTenantContracts: 0,
     newVisits: 0,
-    newBookingRequests: 0
+    newBookingRequests: 0,
+    newMaintenanceTickets: 0,
+    newMaintenanceUpdates: 0
   });
 
   useEffect(() => {
@@ -53,7 +55,9 @@ const Sidebar = ({ onClose, isMobile }) => {
             newOwnerContracts: data.newOwnerContracts || 0,
             newTenantContracts: data.newTenantContracts || 0,
             newVisits: data.newVisits || 0,
-            newBookingRequests: data.newBookingRequests || 0
+            newBookingRequests: data.newBookingRequests || 0,
+            newMaintenanceTickets: data.newMaintenanceTickets || 0,
+            newMaintenanceUpdates: data.newMaintenanceUpdates || 0
           });
         }
       } catch (err) {
@@ -98,6 +102,10 @@ const Sidebar = ({ onClose, isMobile }) => {
       setCounts(prev => ({ ...prev, newBookingRequests: 0 }));
     };
 
+    const handleMaintenanceTicketsRead = () => {
+      setCounts(prev => ({ ...prev, newMaintenanceTickets: 0, newMaintenanceUpdates: 0 }));
+    };
+
     const handleRefreshCounts = () => {
       fetchCounts();
     };
@@ -112,6 +120,7 @@ const Sidebar = ({ onClose, isMobile }) => {
     window.addEventListener('newTenantContract', handleNewTenantContract);
     window.addEventListener('tenantContractsRead', handleTenantContractsRead);
     window.addEventListener('bookingRequestsRead', handleBookingRequestsRead);
+    window.addEventListener('maintenanceTicketsRead', handleMaintenanceTicketsRead);
     return () => {
       window.removeEventListener('messagesRead', handleMessagesRead);
       window.removeEventListener('profilePicUpdated', handleProfileUpdate);
@@ -122,6 +131,7 @@ const Sidebar = ({ onClose, isMobile }) => {
       window.removeEventListener('newTenantContract', handleNewTenantContract);
       window.removeEventListener('tenantContractsRead', handleTenantContractsRead);
       window.removeEventListener('bookingRequestsRead', handleBookingRequestsRead);
+      window.removeEventListener('maintenanceTicketsRead', handleMaintenanceTicketsRead);
       window.removeEventListener('refreshCounts', handleRefreshCounts);
     };
   }, []);
@@ -164,16 +174,48 @@ const Sidebar = ({ onClose, isMobile }) => {
       });
     };
 
+    const onNewMaintenanceTicket = () => {
+      setCounts(prev => ({ ...prev, newMaintenanceTickets: prev.newMaintenanceTickets + 1 }));
+      toast.success('New maintenance ticket raised by tenant!', {
+        id: 'new-maintenance-ticket',
+        icon: '🔧',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+    };
+
+    const onMaintenanceTicketUpdated = () => {
+      if (user?.role === 'tenant') {
+        setCounts(prev => ({ ...prev, newMaintenanceUpdates: prev.newMaintenanceUpdates + 1 }));
+        toast.success('Maintenance ticket updated by owner!', {
+          id: 'maintenance-ticket-updated',
+          icon: '🔧',
+          style: {
+            borderRadius: '10px',
+            background: '#333',
+            color: '#fff',
+          },
+        });
+      }
+    };
+
     socket.on('newNotification', onNewNotification);
     socket.on('newLead', onNewLead);
     socket.on('visit_update', onVisitUpdate);
     socket.on('newBookingRequest', onNewBookingRequest);
+    socket.on('newMaintenanceTicket', onNewMaintenanceTicket);
+    socket.on('maintenanceTicketUpdated', onMaintenanceTicketUpdated);
 
     return () => {
       socket.off('newNotification', onNewNotification);
       socket.off('newLead', onNewLead);
       socket.off('visit_update', onVisitUpdate);
       socket.off('newBookingRequest', onNewBookingRequest);
+      socket.off('newMaintenanceTicket', onNewMaintenanceTicket);
+      socket.off('maintenanceTicketUpdated', onMaintenanceTicketUpdated);
     };
   }, [user]);
 
@@ -209,11 +251,21 @@ const Sidebar = ({ onClose, isMobile }) => {
     { name: 'Booking Requests', icon: 'lucide:calendar-search', path: '/owner/booking-requests', badge: counts.newBookingRequests > 0 ? counts.newBookingRequests : null },
     { name: 'Bookings', icon: 'lucide:book-open-check', path: '/owner/bookings', badge: counts.newBookings > 0 ? counts.newBookings : null },
     { name: 'Tenants', icon: 'lucide:users-2', path: '/owner/tenants' },
+    { name: 'Maintenance', icon: 'lucide:wrench', path: '/owner/maintenance', badge: counts.newMaintenanceTickets > 0 ? counts.newMaintenanceTickets : null },
     { name: 'Payouts', icon: 'lucide:wallet', path: '/owner/rent-collection' },
     { name: 'Messages', icon: 'lucide:message-square', path: '/owner/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
     // { name: 'Lawyer Requests', icon: 'lucide:users', path: '/owner/lawyer-requests', badge: counts.newLawyerRequests > 0 ? counts.newLawyerRequests : null },
     // { name: 'Contracts', icon: 'lucide:file-text', path: '/owner/contracts', badge: counts.newOwnerContracts > 0 ? counts.newOwnerContracts : null },
     { name: 'Reports', icon: 'lucide:bar-chart-3', path: '/owner/reports' },
+  ];
+
+  const tenantNavItems = [
+    { name: 'Dashboard', icon: 'lucide:layout-dashboard', path: '/tenant/dashboard' },
+    { name: 'My Bookings', icon: 'lucide:book-open-check', path: '/tenant/bookings' },
+    { name: 'Contracts', icon: 'lucide:file-text', path: '/tenant/contracts', badge: counts.newTenantContracts > 0 ? counts.newTenantContracts : null },
+    { name: 'Rent Payments', icon: 'lucide:credit-card', path: '/tenant/rent-payments' },
+    { name: 'Maintenance', icon: 'lucide:wrench', path: '/tenant/maintenance', badge: counts.newMaintenanceUpdates > 0 ? counts.newMaintenanceUpdates : null },
+    { name: 'Messages', icon: 'lucide:message-square', path: '/tenant/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
   ];
 
   if (isMobile) {

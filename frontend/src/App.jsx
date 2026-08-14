@@ -30,6 +30,7 @@ import OwnerRentTracking from './pages/dashboard/OwnerRentTracking';
 import OwnerBookings from './pages/dashboard/OwnerBookings';
 import OwnerBookingRequests from './pages/dashboard/OwnerBookingRequests';
 import OwnerTenants from './pages/dashboard/OwnerTenants';
+import OwnerMaintenance from './pages/dashboard/OwnerMaintenance';
 import TenantDashboardLayout from './layouts/TenantDashboardLayout';
 import TenantSavedProperties from './pages/dashboard/TenantSavedProperties';
 import TenantRequests from './pages/dashboard/TenantRequests';
@@ -40,6 +41,7 @@ import TenantTransactions from './pages/dashboard/TenantTransactions';
 import TenantRentPayment from './pages/dashboard/TenantRentPayment';
 import TenantProfile from './pages/dashboard/TenantProfile';
 import TenantBookings from './pages/dashboard/TenantBookings';
+import TenantMaintenance from './pages/dashboard/TenantMaintenance';
 import LawyerDashboardLayout from './layouts/LawyerDashboardLayout';
 import LawyerOverview from './pages/dashboard/LawyerOverview';
 import LawyerOwners from './pages/dashboard/LawyerOwners';
@@ -248,6 +250,7 @@ const router = createBrowserRouter(
             <Route path="bookings" element={<OwnerBookings />} />
             <Route path="booking-requests" element={<OwnerBookingRequests />} />
             <Route path="tenants" element={<OwnerTenants />} />
+            <Route path="maintenance" element={<OwnerMaintenance />} />
             <Route path="profile" element={<OwnerProfile />} />
             <Route path="reports" element={<OwnerReports />} />
             <Route path="payments" element={<OwnerPayments />} />
@@ -264,6 +267,7 @@ const router = createBrowserRouter(
             <Route path="dashboard" element={<TenantSavedProperties />} />
             <Route path="visits" element={<TenantVisits />} />
             <Route path="requests" element={<TenantRequests />} />
+            <Route path="maintenance" element={<TenantMaintenance />} />
             <Route path="messages" element={<TenantMessages />} />
             <Route path="contracts" element={<TenantContracts />} />
             <Route path="transactions" element={<TenantTransactions />} />

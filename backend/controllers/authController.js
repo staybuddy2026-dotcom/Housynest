@@ -129,6 +129,33 @@ export const sendPropertyDeletionEmail = async (email, propertyName, reason) => 
   }
 };
 
+export const sendMaintenanceUpdateEmail = async (email, ticketId, status) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.SMTP_USER,
+      to: email,
+      subject: `HousyNest - Maintenance Ticket Update (${ticketId})`,
+      text: `Your maintenance ticket ${ticketId} has been updated.\n\nCurrent Status: ${status}\n\nPlease check your HousyNest dashboard for more details.`,
+    };
+
+    if(process.env.SMTP_USER && process.env.SMTP_PASS) {
+      await transporter.sendMail(mailOptions);
+    } else {
+      console.log(`[MOCK EMAIL] Maintenance update for ${email}. Ticket: ${ticketId}. Status: ${status}`);
+    }
+  } catch (error) {
+    console.error("Error sending maintenance update email", error);
+  }
+};
+
 export const sendOtp = async (req, res) => {
   try {
     const validatedData = registerSchema.parse(req.body);

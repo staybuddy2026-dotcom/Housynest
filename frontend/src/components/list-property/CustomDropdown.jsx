@@ -40,9 +40,12 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
   }, [isOpen]);
 
   const selectedLabel = useMemo(() => {
-    if (!value) return null;
-    const selected = options?.find(opt => (opt?.value || opt) === value);
-    return selected ? (selected?.label || selected) : value;
+    if (value === undefined || value === null || value === '') return null;
+    const selected = options?.find(opt => {
+      const optVal = opt?.value !== undefined ? opt.value : opt;
+      return optVal === value;
+    });
+    return selected ? (selected?.label !== undefined ? selected.label : selected) : value;
   }, [value, options]);
 
   return (
@@ -71,8 +74,9 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
           <div className="max-h-60 overflow-y-auto py-1" ref={wrapperRef} data-lenis-prevent>
             <div ref={contentRef}>
               {options.map((opt, i) => {
-                const optValue = opt?.value || opt;
-                const optLabel = opt?.label || opt;
+                const isObject = typeof opt === 'object' && opt !== null;
+                const optValue = isObject ? (opt.value !== undefined ? opt.value : opt) : opt;
+                const optLabel = isObject ? (opt.label !== undefined ? opt.label : 'Unknown') : opt;
                 return (
                   <button
                     key={i}
