@@ -3,34 +3,40 @@ import { Icon } from '@iconify/react';
 
 const BookingsSummaryWidget = () => {
   const [bookings, setBookings] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchBookings = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('accessToken');
         if (!token) return;
-        const res = await fetch('/api/bookings/owner', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setBookings(data);
+        
+        const [bookingsRes, propertiesRes] = await Promise.all([
+          fetch('/api/bookings/owner', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/properties/owner', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        if (bookingsRes.ok) {
+          setBookings(await bookingsRes.json());
+        }
+        if (propertiesRes.ok) {
+          setProperties(await propertiesRes.json());
         }
       } catch (error) {
-        console.error('Error fetching bookings:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchBookings();
+    fetchData();
   }, []);
 
   const completed = bookings.filter(b => ['Completed', 'Confirmed', 'Active'].includes(b.status)).length;
   const upcoming = bookings.filter(b => ['Reserved', 'Pending Payment', 'Pending Request'].includes(b.status)).length;
   const cancelled = bookings.filter(b => b.status === 'Cancelled' || b.status === 'Rejected').length;
 
-  const { tomorrowDue, totalRent } = (() => {
+  const { tomorrowDue, totalRentPotential } = (() => {
     let tDue = 0;
     let tRent = 0;
     const today = new Date();
@@ -66,8 +72,6 @@ const BookingsSummaryWidget = () => {
         rent = Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0);
       }
 
-      tRent += rent;
-
       const moveInDate = b.moveInDate ? new Date(b.moveInDate) : new Date(b.createdAt);
       let nextDueDate = new Date(today.getFullYear(), today.getMonth(), moveInDate.getDate());
 
@@ -78,13 +82,36 @@ const BookingsSummaryWidget = () => {
       // Check if due tomorrow
       if (nextDueDate.getTime() === tomorrow.getTime()) {
         tDue += rent;
-      } else if (nextDueDate <= today) {
-        // Already due, count it as well if needed? The prompt says "Tomorrow due rent". 
-        // We'll count what is due exactly tomorrow.
       }
     });
 
-    return { tomorrowDue: tDue, totalRent: tRent };
+    // Calculate True Rent Potential from properties
+    properties.forEach(p => {
+      // Exclude inactive or deleted properties from potential
+      if (!['Active', 'Approved', 'Pending'].includes(p.status)) return;
+
+      if (p.propertyType === 'PG') {
+        p.floors?.forEach(floor => {
+          floor.rooms?.forEach(room => {
+            const numBeds = room.beds?.length || 0;
+            if (numBeds > 0) {
+              const baseType = room.sharingType || 'Single';
+              const isAC = room.isAC;
+              const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
+              const pricing = p.pgPricing?.[typeStr];
+              if (pricing) {
+                const rentPerBed = Number(pricing.rentPerBed?.replace(/\D/g, '') || 0);
+                tRent += (rentPerBed * numBeds);
+              }
+            }
+          });
+        });
+      } else {
+        tRent += Number(p.monthlyRent?.replace(/\D/g, '') || 0);
+      }
+    });
+
+    return { tomorrowDue: tDue, totalRentPotential: tRent };
   })();
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 relative group cursor-default hover:border-brand-teal/20 hover:shadow-[0_8px_30px_rgba(10,168,125,0.06)] transition-all duration-300">
@@ -123,7 +150,7 @@ const BookingsSummaryWidget = () => {
 
         <div className="flex items-center gap-1 text-brand-teal text-[13px] font-bold">
           <Icon icon="lucide:arrow-up" className="w-3.5 h-3.5 stroke-[3]" />
-          {totalRent.toLocaleString()} (Total Rent Potential)
+          {loading ? '-' : `₹ ${totalRentPotential.toLocaleString()}`} (Total Rent Potential)
         </div>
       </div>
     </div>

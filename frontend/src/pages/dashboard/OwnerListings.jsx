@@ -79,7 +79,7 @@ const OwnerListings = () => {
     const status = listing.status || 'Pending';
 
     const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       title.toLowerCase().includes(searchLower) ||
       location.toLowerCase().includes(searchLower) ||
       type.toLowerCase().includes(searchLower) ||
@@ -125,10 +125,15 @@ const OwnerListings = () => {
   return (
     <div className="animate-fadeIn">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 sm:mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#062F26] tracking-tight mb-1 sm:mb-2">My Listings</h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">Manage and monitor all your listed properties in one place.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-sm">
+            <Icon icon="lucide:building-2" className="w-5 h-5 text-indigo-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#062F26] mb-0.5 tracking-tight">My Listings</h1>
+            <p className="text-sm text-slate-500 font-medium">Manage and monitor all your listed properties in one place</p>
+          </div>
         </div>
 
         <Link
@@ -208,8 +213,8 @@ const OwnerListings = () => {
                 rentPerBed: pricingMap[type]
               }));
             }
-            
-            const price = rawListing.propertyType === 'PG' 
+
+            const price = rawListing.propertyType === 'PG'
               ? (pgPrices.length > 0 ? `₹${Math.min(...pgPrices.map(p => p.rentPerBed))} / month` : 'N/A')
               : (rawListing.monthlyRent ? `₹${rawListing.monthlyRent}` : 'N/A');
             const image = (rawListing.images && rawListing.images.length > 0) ? rawListing.images[0].url : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800';
@@ -280,8 +285,8 @@ const OwnerListings = () => {
                           <div className="flex flex-wrap items-center gap-1.5 mt-1">
                             {pgPrices.slice(0, 2).map((pgPrice, idx) => (
                               <span key={idx} className="flex items-center gap-1 bg-[#EAF5F2] text-[#062F26] px-1.5 py-0.5 rounded text-[10px] font-bold border border-brand-teal/20">
-                                 <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
-                                 ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
+                                <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
+                                ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
                               </span>
                             ))}
                             {pgPrices.length > 2 && (
@@ -399,8 +404,8 @@ const OwnerListings = () => {
                       <div className="flex flex-col gap-1 mt-1">
                         {pgPrices.slice(0, 2).map((pgPrice, idx) => (
                           <span key={idx} className="flex items-center gap-1 bg-[#EAF5F2] text-[#062F26] px-1.5 py-0.5 rounded text-[10px] font-bold border border-brand-teal/20 w-fit">
-                             <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
-                             ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
+                            <Icon icon={pgPrice.sharingType.toLowerCase().includes('single') ? "lucide:user" : "lucide:users"} className="w-3 h-3 text-brand-teal" />
+                            ₹{pgPrice.rentPerBed.toLocaleString('en-IN')} <span className="font-semibold text-brand-teal opacity-80 ml-0.5">{pgPrice.sharingType}</span>
                           </span>
                         ))}
                         {pgPrices.length > 2 && (
@@ -413,7 +418,7 @@ const OwnerListings = () => {
                       <p className="text-sm font-bold text-[#062F26]">{price}</p>
                     )}
                   </div>
-                  
+
                   {/* Date */}
                   <div className="w-24 shrink-0">
                     <p className="text-[10px] font-semibold text-slate-400 mb-0.5">Added On</p>
@@ -484,13 +489,13 @@ const OwnerListings = () => {
               Are you sure you want to delete this property? This action cannot be undone and will permanently remove the listing and all its data.
             </p>
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setPropertyToDelete(null)}
                 className="flex-1 px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={confirmDelete}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 shadow-lg shadow-red-500/25 transition-all active:scale-95"
               >

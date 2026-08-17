@@ -71,6 +71,10 @@ const bookingSchema = new mongoose.Schema({
   // Payment details (Initial payment for booking)
   paymentDetails: {
     amount: Number,
+    rentAmount: { type: Number, default: 0 },
+    securityDeposit: { type: Number, default: 0 },
+    extraCharges: { type: Number, default: 0 },
+    housynestFee: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ['Pending', 'Paid', 'Failed', 'Refunded'],

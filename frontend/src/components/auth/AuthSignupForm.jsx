@@ -33,7 +33,7 @@ const signupSchema = z.object({
   }
 });
 
-const AuthSignupForm = ({ onOtpSent }) => {
+const AuthSignupForm = ({ onOtpSent, onSuccess }) => {
   const [role, setRole] = useState('tenant');
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -41,6 +41,9 @@ const AuthSignupForm = ({ onOtpSent }) => {
 
   const [step, setStep] = useState(1);
   const [certificate, setCertificate] = useState(null);
+  const [ownerAadhar, setOwnerAadhar] = useState('');
+  const [aadharOtp, setAadharOtp] = useState('');
+  const [regData, setRegData] = useState(null);
 
   const roles = [
     { id: 'owner', title: 'Owner', subtitle: 'List & Manage', icon: 'lucide:home' },
@@ -62,6 +65,12 @@ const AuthSignupForm = ({ onOtpSent }) => {
   }, [role, setValue]);
 
   const onSubmit = async (data) => {
+    if (role === 'owner') {
+      setRegData(data);
+      setStep(10);
+      return;
+    }
+
     console.log("Submitting form data:", data);
     setIsLoading(true);
     try {
@@ -90,6 +99,71 @@ const AuthSignupForm = ({ onOtpSent }) => {
     } catch (error) {
       console.error("Signup fetch error:", error);
       toast.error('An error occurred during registration', { duration: 3000 });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendAadharOtp = async () => {
+    if (!/^\d{12}$/.test(ownerAadhar)) {
+      toast.error('Please enter a valid 12-digit Aadhaar number.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/send-aadhar-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aadharNumber: ownerAadhar })
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.message || 'Failed to send OTP');
+        return;
+      }
+      toast.success(result.message || 'OTP sent successfully!');
+      setStep(11);
+    } catch (error) {
+      toast.error('Server error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyAadharOtp = async () => {
+    if (aadharOtp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const payload = {
+        ...regData,
+        aadharNumber: ownerAadhar,
+        otp: aadharOtp
+      };
+      const response = await fetch('/api/auth/verify-aadhar-otp-and-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(result.message || 'Verification failed');
+        return;
+      }
+      toast.success('Registration successful!');
+      if (result.accessToken) {
+        localStorage.setItem('accessToken', result.accessToken);
+        if (result.user) {
+          localStorage.setItem('user', JSON.stringify(result.user));
+        }
+      }
+      if (onSuccess) {
+        onSuccess(result.user);
+      }
+    } catch (error) {
+      toast.error('Server error');
     } finally {
       setIsLoading(false);
     }
@@ -190,6 +264,13 @@ const AuthSignupForm = ({ onOtpSent }) => {
             }} className="w-full bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-2.5 lg:py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] transition-all flex items-center justify-center text-sm cursor-pointer mt-2">
               Next: Professional Details
             </button>
+          ) : role === 'owner' ? (
+            <button type="button" onClick={async () => {
+              const isValid = await trigger(['fullName', 'email', 'phone', 'password', 'confirmPassword', 'terms']);
+              if (isValid) handleSubmit(onSubmit)();
+            }} disabled={isLoading} className="w-full bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-2.5 lg:py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] transition-all flex items-center justify-center text-sm cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-not-allowed">
+              Continue
+            </button>
           ) : (
             <button type="submit" disabled={isLoading} className="w-full bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-2.5 lg:py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] transition-all flex items-center justify-center text-sm cursor-pointer mt-2 disabled:opacity-70 disabled:cursor-not-allowed">
               {isLoading ? <Icon icon="eos-icons:loading" className="w-5 h-5 mr-2" /> : null}
@@ -270,6 +351,78 @@ const AuthSignupForm = ({ onOtpSent }) => {
             </button>
           </div>
         </form>
+      )}
+
+      {step === 10 && (
+        <div className="space-y-4">
+          <div className="bg-indigo-50 rounded-lg p-3 sm:p-4 border border-indigo-200">
+            <div className="flex items-start gap-2.5">
+              <Icon icon="lucide:shield-check" className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
+              <div>
+                <h4 className="text-sm sm:text-sm font-bold text-indigo-900">Aadhaar Verification Required</h4>
+                <p className="text-xs text-indigo-700 mt-0.5 leading-snug">To securely register as an owner, please verify your identity using Aadhaar.</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Aadhaar Number <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <Icon icon="lucide:credit-card" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input 
+                type="text" 
+                value={ownerAadhar} 
+                onChange={(e) => setOwnerAadhar(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                placeholder="12-digit Aadhaar number" 
+                className="w-full bg-white border rounded-md py-2.5 pr-4 pl-9 text-sm outline-none transition-all shadow-sm border-slate-200 focus:border-[#062F26] focus:ring-2 focus:ring-[#062F26]/10" 
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 mt-6">
+            <button type="button" onClick={() => setStep(1)} className="px-4 py-2.5 lg:py-3 border border-slate-200 rounded-md text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
+              <Icon icon="lucide:arrow-left" className="w-4 h-4" />
+              Back
+            </button>
+            <button type="button" onClick={handleSendAadharOtp} disabled={isLoading || ownerAadhar.length !== 12} className="flex-1 bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-2.5 lg:py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
+              {isLoading ? <Icon icon="eos-icons:loading" className="w-5 h-5" /> : null}
+              {isLoading ? 'Sending...' : 'Send OTP'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === 11 && (
+        <div className="space-y-4">
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-bold text-[#062F26] mb-2">Enter Verification Code</h3>
+            <p className="text-sm text-slate-500">We've sent an OTP to the mobile number linked with Aadhaar XXXX-XXXX-{ownerAadhar.slice(-4)}</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-center">6-Digit OTP <span className="text-red-500">*</span></label>
+            <div className="relative max-w-[200px] mx-auto">
+              <input 
+                type="text" 
+                value={aadharOtp} 
+                onChange={(e) => setAadharOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000" 
+                className="w-full bg-white border rounded-md py-3 px-4 text-lg text-center tracking-[0.5em] font-bold outline-none transition-all shadow-sm border-slate-200 focus:border-[#062F26] focus:ring-2 focus:ring-[#062F26]/10" 
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 mt-6">
+            <button type="button" onClick={() => setStep(10)} className="px-4 py-2.5 lg:py-3 border border-slate-200 rounded-md text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
+              <Icon icon="lucide:arrow-left" className="w-4 h-4" />
+              Back
+            </button>
+            <button type="button" onClick={handleVerifyAadharOtp} disabled={isLoading || aadharOtp.length !== 6} className="flex-1 bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-2.5 lg:py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
+              {isLoading ? <Icon icon="eos-icons:loading" className="w-5 h-5" /> : <Icon icon="lucide:check-circle" className="w-4 h-4" />}
+              {isLoading ? 'Verifying...' : 'Verify & Register'}
+            </button>
+          </div>
+        </div>
       )}
     </>
   );

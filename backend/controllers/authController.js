@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { OAuth2Client } from 'google-auth-library';
 import nodemailer from 'nodemailer';
+import bcrypt from 'bcryptjs';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -466,5 +467,89 @@ export const googleLogin = async (req, res) => {
   } catch (error) {
     console.error('Google Login Error:', error);
     res.status(500).json({ message: 'Server Error during Google Login', error: error.message });
+  }
+};
+
+export const sendAadharOtp = async (req, res) => {
+  try {
+    const { aadharNumber } = req.body;
+    if (!aadharNumber || !/^\d{12}$/.test(aadharNumber)) {
+      return res.status(400).json({ message: 'Valid 12-digit Aadhaar number is required.' });
+    }
+
+    // MOCK OTP generation and sending
+    const otpCode = '123456'; 
+    console.log(`[MOCK AADHAAR OTP] OTP for Aadhaar ${aadharNumber} is ${otpCode}`);
+
+    // In a real scenario, you'd integrate with an Aadhaar API provider (like SurePass, Zoop, etc.)
+    // to generate an OTP to the linked mobile number. We would store this OTP or a transactionId.
+    
+    // For now, we simulate success
+    res.status(200).json({ message: 'OTP sent successfully to the Aadhaar-linked mobile number.' });
+  } catch (error) {
+    console.error('Error in sendAadharOtp:', error);
+    res.status(500).json({ message: 'Server error while sending Aadhaar OTP.', error: error.message });
+  }
+};
+
+export const verifyAadharOtpAndRegister = async (req, res) => {
+  try {
+    const { otp, aadharNumber, fullName, email, phone, password, role } = req.body;
+
+    if (!otp || !aadharNumber || !fullName || !email || !phone || !password || !role) {
+      return res.status(400).json({ message: 'All fields are required.' });
+    }
+
+    if (otp !== '123456') {
+      return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    }
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists with this email.' });
+    }
+
+    // Hash the Aadhaar number for security
+    const salt = await bcrypt.genSalt(10);
+    const hashedAadhar = await bcrypt.hash(aadharNumber, salt);
+    const last4Aadhar = aadharNumber.slice(-4);
+
+    const user = await User.create({
+      fullName,
+      email,
+      phone,
+      password, // Mongoose schema/pre-save handles password hashing
+      role,
+      hashedAadhar,
+      last4Aadhar,
+      isAadharVerified: true
+    });
+
+    const { accessToken, refreshToken } = generateTokens(user._id);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.status(201).json({
+      message: 'Registration and Aadhaar Verification complete.',
+      accessToken,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isAadharVerified: user.isAadharVerified,
+        profilePic: user.profilePic || ''
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in verifyAadharOtpAndRegister:', error);
+    res.status(500).json({ message: 'Server error during Aadhaar verification.', error: error.message });
   }
 };

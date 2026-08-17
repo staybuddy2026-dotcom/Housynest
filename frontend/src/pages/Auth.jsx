@@ -144,7 +144,7 @@ const Auth = () => {
                 </Link>
               </div>
               {evenFace === 'login' && <AuthLoginForm />}
-              {evenFace === 'signup' && <AuthSignupForm onOtpSent={handleOtpSent} />}
+              {evenFace === 'signup' && <AuthSignupForm onOtpSent={handleOtpSent} onSuccess={handleOtpSuccess} />}
               {evenFace === 'otp' && <AuthOtpForm registrationData={registrationData} onSuccess={handleOtpSuccess} onCancel={handleOtpCancel} />}
             </div>
 
@@ -156,7 +156,7 @@ const Auth = () => {
                 </Link>
               </div>
               {oddFace === 'login' && <AuthLoginForm />}
-              {oddFace === 'signup' && <AuthSignupForm onOtpSent={handleOtpSent} />}
+              {oddFace === 'signup' && <AuthSignupForm onOtpSent={handleOtpSent} onSuccess={handleOtpSuccess} />}
               {oddFace === 'otp' && <AuthOtpForm registrationData={registrationData} onSuccess={handleOtpSuccess} onCancel={handleOtpCancel} />}
             </div>
 

@@ -25,6 +25,17 @@ const userSchema = new mongoose.Schema({
     enum: ['owner', 'tenant', 'lawyer', 'admin'],
     default: 'tenant',
   },
+  hashedAadhar: {
+    type: String,
+    select: false,
+  },
+  last4Aadhar: {
+    type: String,
+  },
+  isAadharVerified: {
+    type: Boolean,
+    default: false,
+  },
   lawyerStatus: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
@@ -33,7 +44,6 @@ const userSchema = new mongoose.Schema({
   lawyerDetails: {
     barCouncilNumber: String,
     experience: Number,
-    aadharNumber: String,
     certificate: String,
   },
   dob: {
@@ -64,6 +74,15 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property'
   }],
+  bankDetails: {
+    accountHolderName: String,
+    accountNumberEncrypted: String,
+    accountNumberIv: String,
+    last4AccountNumber: String,
+    ifscCode: String,
+    bankName: String,
+    razorpayLinkedAccountId: String
+  },
   isBlocked: {
     type: Boolean,
     default: false

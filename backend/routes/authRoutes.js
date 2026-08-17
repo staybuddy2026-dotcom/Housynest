@@ -1,5 +1,5 @@
 import express from 'express';
-import { sendOtp, registerUser, loginUser, logoutUser, refresh, googleLogin, adminRegister } from '../controllers/authController.js';
+import { sendOtp, registerUser, loginUser, logoutUser, refresh, googleLogin, adminRegister, sendAadharOtp, verifyAadharOtpAndRegister } from '../controllers/authController.js';
 import { upload } from '../config/cloudinary.js';
 import rateLimit from 'express-rate-limit';
 
@@ -14,6 +14,8 @@ const authLimiter = rateLimit({
 });
 
 router.post('/send-otp', authLimiter, sendOtp);
+router.post('/send-aadhar-otp', authLimiter, sendAadharOtp);
+router.post('/verify-aadhar-otp-and-register', authLimiter, verifyAadharOtpAndRegister);
 router.post('/register', upload.single('certificate'), registerUser);
 router.post('/login', authLimiter, loginUser);
 router.post('/logout', logoutUser);

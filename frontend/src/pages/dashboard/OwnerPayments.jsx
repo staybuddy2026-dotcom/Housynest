@@ -43,19 +43,20 @@ const OwnerPayments = () => {
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-340 3xl:max-w-420 mx-auto w-full relative pb-24">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-[#062F26] mb-1">Rent Collection</h1>
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase">
-            <span>{today}</span>
-            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-            <span>{currentMonthYear}</span>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 shadow-sm">
+            <Icon icon="lucide:indian-rupee" className="w-5 h-5 text-teal-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#062F26] mb-0.5 tracking-tight">Rent Collection</h1>
+            <p className="text-sm text-slate-500 font-medium">Track and manage your incoming rent payments</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
-            className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal hover:shadow-sm transition-all"
+            className="w-10 h-10 rounded-md bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal transition-all shadow-sm"
           >
             <Icon icon="lucide:refresh-cw" className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-brand-teal' : ''}`} />
           </button>

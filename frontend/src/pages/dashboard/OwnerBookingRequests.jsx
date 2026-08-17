@@ -210,9 +210,16 @@ const OwnerBookingRequests = () => {
   return (
     <div className="flex flex-col h-auto md:h-[calc(100vh-100px)] min-h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative pb-24 md:pb-0">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Booking Requests</h1>
-        <p className="text-sm text-slate-500 font-medium">Manage pre-booking applications. Approve requests to notify customers for full payment.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 shadow-sm">
+            <Icon icon="lucide:clipboard-list" className="w-5 h-5 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#062F26] mb-0.5 tracking-tight">Booking Requests</h1>
+            <p className="text-sm text-slate-500 font-medium">Manage pre-booking applications. Approve requests to notify customers for full payment</p>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}

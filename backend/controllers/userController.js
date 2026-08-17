@@ -9,6 +9,7 @@ import Property from '../models/Property.js';
 import RentInvoice from '../models/RentInvoice.js';
 import MaintenanceTicket from '../models/MaintenanceTicket.js';
 import { sendBlockEmail, sendUnblockEmail } from './authController.js';
+import { encryptSymmetric } from '../utils/encryption.js';
 
 export const getUserProfile = async (req, res) => {
   try {
@@ -26,12 +27,67 @@ export const getUserProfile = async (req, res) => {
         dob: user.dob || null,
         gender: user.gender || '',
         emergencyContact: user.emergencyContact || { name: '', relationship: '', phone: '' },
+        bankDetails: user.bankDetails ? {
+          accountHolderName: user.bankDetails.accountHolderName || '',
+          last4AccountNumber: user.bankDetails.last4AccountNumber || '',
+          ifscCode: user.bankDetails.ifscCode || '',
+          bankName: user.bankDetails.bankName || ''
+        } : { accountHolderName: '', last4AccountNumber: '', ifscCode: '', bankName: '' },
       });
     } else {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const updateBankDetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { accountHolderName, accountNumber, ifscCode, bankName } = req.body;
+
+    let encryptedData = user.bankDetails?.accountNumberEncrypted;
+    let ivData = user.bankDetails?.accountNumberIv;
+    let last4 = user.bankDetails?.last4AccountNumber;
+
+    if (accountNumber && accountNumber.trim() !== '') {
+        const encryptionResult = encryptSymmetric(accountNumber.trim());
+        if (encryptionResult) {
+            encryptedData = encryptionResult.encryptedData;
+            ivData = encryptionResult.iv;
+            last4 = accountNumber.trim().slice(-4);
+        }
+    }
+
+    user.bankDetails = {
+      accountHolderName: accountHolderName || user.bankDetails?.accountHolderName,
+      accountNumberEncrypted: encryptedData,
+      accountNumberIv: ivData,
+      last4AccountNumber: last4,
+      ifscCode: ifscCode || user.bankDetails?.ifscCode,
+      bankName: bankName || user.bankDetails?.bankName,
+      razorpayLinkedAccountId: user.bankDetails?.razorpayLinkedAccountId // Keep existing ID if present
+    };
+
+    const updatedUser = await user.save();
+
+    res.json({
+      message: 'Bank details updated successfully',
+      bankDetails: {
+        accountHolderName: updatedUser.bankDetails.accountHolderName,
+        last4AccountNumber: updatedUser.bankDetails.last4AccountNumber,
+        ifscCode: updatedUser.bankDetails.ifscCode,
+        bankName: updatedUser.bankDetails.bankName
+      }
+    });
+  } catch (error) {
+    console.error('Error updating bank details:', error);
+    res.status(500).json({ message: 'Server error while updating bank details' });
   }
 };
 

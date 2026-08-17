@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserProfile, updateUserProfile, toggleSavedProperty, getAllUsers, getNotificationCounts, uploadProfilePic, changePassword, toggleBlockUser, getLawyerRequests, updateLawyerStatus, getLawyerOwners, getOwnerPerformanceAnalytics } from '../controllers/userController.js';
+import { getUserProfile, updateUserProfile, toggleSavedProperty, getAllUsers, getNotificationCounts, uploadProfilePic, changePassword, toggleBlockUser, getLawyerRequests, updateLawyerStatus, getLawyerOwners, getOwnerPerformanceAnalytics, updateBankDetails } from '../controllers/userController.js';
 import { protect } from '../middlewares/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
+router.post('/bank-details', protect, updateBankDetails);
 router.post('/favorites', protect, toggleSavedProperty);
 router.get('/notification-counts', protect, getNotificationCounts);
 router.post('/upload-profile-pic', protect, upload.single('profilePic'), uploadProfilePic);

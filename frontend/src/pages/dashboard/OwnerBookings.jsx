@@ -245,10 +245,15 @@ const OwnerBookings = () => {
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mx-auto w-full relative pb-24 lg:pb-8">
       {/* Header */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold text-[#062F26] mb-1 tracking-tight">Bookings</h1>
-          <p className="text-sm text-slate-500 font-medium">Active bookings created after approval of booking requests or via direct booking.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0 shadow-sm">
+            <Icon icon="lucide:calendar-check-2" className="w-5 h-5 text-sky-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#062F26] mb-0.5 tracking-tight">Bookings</h1>
+            <p className="text-sm text-slate-500 font-medium">Manage all your property bookings and reservations</p>
+          </div>
         </div>
         <button className="flex items-center gap-2 bg-[#062F26] hover:bg-brand-teal text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all shadow-sm shrink-0">
           <Icon icon="lucide:plus" className="w-4 h-4" />
