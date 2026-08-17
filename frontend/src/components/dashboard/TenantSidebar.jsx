@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import toast from 'react-hot-toast';
 import logo from '../../assets/logo.png';
 import socket, { joinUserRoom, disconnectSocket } from '../../lib/socket';
 
@@ -9,6 +10,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const profileRef = useRef(null);
   const moreMenuRef = useRef(null);
+  const moreBtnRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,7 +18,11 @@ const TenantSidebar = ({ onClose, isMobile }) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileOpen(false);
       }
-      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target)) {
+      if (
+        moreMenuRef.current &&
+        !moreMenuRef.current.contains(event.target) &&
+        !(moreBtnRef.current && moreBtnRef.current.contains(event.target))
+      ) {
         setShowMoreMenu(false);
       }
     };
@@ -88,6 +94,29 @@ const TenantSidebar = ({ onClose, isMobile }) => {
   // Wait, I will add socket.io here if needed, but since it's inside DashboardLayout we can just rely on the `OwnerMessages/TenantMessages` socket for now, or connect it here too.
   // For safety, let's just connect it.
   useEffect(() => {
+    if (user?.id || user?._id) {
+      joinUserRoom(user.id || user._id);
+    }
+
+    const onNewNotification = () => setCounts(prev => ({ ...prev, unreadMessages: prev.unreadMessages + 1 }));
+    const onNewLead = () => setCounts(prev => ({ ...prev, newRequests: prev.newRequests + 1 }));
+    const onVisitUpdate = () => {
+      const fetchCounts = async () => {
+        try {
+          const token = localStorage.getItem('accessToken');
+          if (!token) return;
+          const res = await fetch('/api/users/notification-counts', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setCounts(prev => ({ ...prev, newVisits: data.newVisits || 0 }));
+          }
+        } catch { /* ignore */ }
+      };
+      fetchCounts();
+    };
+
     const onNewBookingRequest = () => {
       setCounts(prev => ({ ...prev, newBookingRequests: prev.newBookingRequests + 1 }));
       toast.success('You have a new booking request!', {
@@ -159,7 +188,7 @@ const TenantSidebar = ({ onClose, isMobile }) => {
     { name: 'Dashboard', icon: 'lucide:layout-dashboard', path: '/tenant/dashboard' },
     { name: 'My Bookings', icon: 'lucide:book-open-check', path: '/tenant/bookings' },
     { name: 'Contracts', icon: 'lucide:file-text', path: '/tenant/contracts', badge: counts.newTenantContracts > 0 ? counts.newTenantContracts : null },
-    { name: 'Rent Payments', icon: 'lucide:credit-card', path: '/tenant/rent-payments' },
+    { name: 'Rent Payments', icon: 'lucide:credit-card', path: '/tenant/transactions' },
     { name: 'Maintenance', icon: 'lucide:wrench', path: '/tenant/maintenance', badge: counts.newMaintenanceUpdates > 0 ? counts.newMaintenanceUpdates : null },
     { name: 'Messages', icon: 'lucide:message-square', path: '/tenant/messages', badge: counts.unreadMessages > 0 ? counts.unreadMessages : null },
   ];

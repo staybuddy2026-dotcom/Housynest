@@ -291,7 +291,15 @@ const OwnerBookingRequests = () => {
 
             {/* Date Filter */}
             <div className="w-full sm:w-[200px] relative shrink-0">
-              <div className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-sm font-medium text-slate-700 hover:border-brand-teal transition-all cursor-pointer relative overflow-hidden shadow-sm">
+              <div 
+                onClick={(e) => {
+                  const input = e.currentTarget.querySelector('input[type="date"]');
+                  if (input) {
+                    try { input.showPicker(); } catch (err) { input.focus(); }
+                  }
+                }}
+                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-sm font-medium text-slate-700 hover:border-brand-teal transition-all cursor-pointer relative overflow-hidden shadow-sm"
+              >
                 <div className="flex items-center gap-2 flex-1 truncate">
                   <span className="text-slate-400 shrink-0">Move-in:</span>
                   <span className="truncate">
@@ -305,11 +313,11 @@ const OwnerBookingRequests = () => {
                   type="date"
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none"
                   style={{ WebkitAppearance: 'none' }}
                 />
 
-                {/* Clear button (sits above the transparent input) */}
+                {/* Clear button */}
                 {dateFilter && (
                   <button 
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDateFilter(''); }} 

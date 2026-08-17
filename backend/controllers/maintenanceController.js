@@ -86,6 +86,7 @@ export const getOwnerTickets = async (req, res) => {
       .populate('propertyId', 'pgName societyName bhkType propertyCategory address images')
       .populate('tenantId', 'fullName phone email profilePic')
       .sort({ createdAt: -1 });
+
     res.json(tickets);
   } catch (error) {
     res.status(500).json({ message: error.message });

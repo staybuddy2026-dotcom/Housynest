@@ -53,6 +53,10 @@ const maintenanceTicketSchema = new mongoose.Schema({
   isReadByTenant: {
     type: Boolean,
     default: true
+  },
+  isReadByOwner: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

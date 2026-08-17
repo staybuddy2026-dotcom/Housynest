@@ -21,6 +21,7 @@ const AdminOverview = () => {
 
   const [activities, setActivities] = useState([]);
   const [recentPropertyRequests, setRecentPropertyRequests] = useState([]);
+  const [recentUsers, setRecentUsers] = useState([]);
 
   const [allProperties, setAllProperties] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
@@ -102,7 +103,7 @@ const AdminOverview = () => {
 
         setAdminStats([
           { title: 'Total Property Listed', value: properties.length.toString(), subtitle: `${verifiedProps} verified properties`, icon: 'lucide:home', color: 'bg-emerald-50', iconColor: 'text-emerald-600' },
-          { title: 'Total Users', value: users.length.toString(), subtitle: `${landlords} Landlords • ${renters} Renters`, icon: 'lucide:users', color: 'bg-blue-50', iconColor: 'text-blue-600' },
+          { title: 'Total Users', value: users.length.toString(), subtitle: `${landlords} Owners • ${renters} Tenants`, icon: 'lucide:users', color: 'bg-blue-50', iconColor: 'text-blue-600' },
           { title: 'Pending Reports', value: '0', subtitle: 'No action required', icon: 'lucide:clipboard-list', color: 'bg-amber-50', iconColor: 'text-amber-500' },
           { title: 'Rent Collected', value: `₹${totalRent.toLocaleString()}`, subtitle: 'This month', icon: 'lucide:indian-rupee', color: 'bg-purple-50', iconColor: 'text-purple-600' }
         ]);
@@ -138,9 +139,7 @@ const AdminOverview = () => {
         });
 
         users.forEach(u => {
-          let roleDisplay = 'Renter';
-          if (u.role === 'owner') roleDisplay = 'Landlord';
-          if (u.role === 'lawyer') roleDisplay = 'Lawyer';
+          let roleDisplay = u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Unknown';
 
           allActivities.push({
             id: `user-${u._id}`,
@@ -173,6 +172,19 @@ const AdminOverview = () => {
           statusColor: 'bg-amber-50 text-amber-600'
         }));
         setRecentPropertyRequests(mappedRequests);
+
+        // Compute Recent Users Table
+        const sortedUsers = [...users].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+        const mappedUsers = sortedUsers.map(u => ({
+          id: u._id,
+          name: u.fullName,
+          email: u.email,
+          phone: u.phone,
+          role: u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Unknown',
+          roleColor: u.role === 'owner' ? 'bg-blue-50 text-blue-600' : u.role === 'tenant' ? 'bg-emerald-50 text-emerald-600' : 'bg-purple-50 text-purple-600',
+          date: new Date(u.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        }));
+        setRecentUsers(mappedUsers);
 
       }
     } catch (error) {
@@ -469,6 +481,70 @@ const AdminOverview = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* Users Row */}
+      <div className="grid grid-cols-1 gap-4">
+        {/* Recently Registered Users Table */}
+        <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-base font-bold text-slate-800">Recently Registered Users</h3>
+            <button className="flex items-center justify-center px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-emerald-600 hover:bg-emerald-50">
+              View All
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-slate-50/80">
+                <tr>
+                  <th className="py-3.5 px-4 text-xs font-bold text-slate-500 rounded-tl-xl">Name</th>
+                  <th className="py-3.5 px-4 text-xs font-bold text-slate-500">Email</th>
+                  <th className="py-3.5 px-4 text-xs font-bold text-slate-500">Phone</th>
+                  <th className="py-3.5 px-4 text-xs font-bold text-slate-500">Role</th>
+                  <th className="py-3.5 px-4 text-xs font-bold text-slate-500">Date Registered</th>
+                  <th className="py-3.5 px-4 rounded-tr-xl"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {recentUsers.length > 0 ? recentUsers.map((user) => (
+                  <tr key={user.id} className="group hover:bg-slate-50/50 transition-colors">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center font-bold text-slate-500">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-sm font-bold text-slate-800">{user.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-sm font-medium text-slate-600">{user.email}</td>
+                    <td className="py-4 px-4 text-sm font-medium text-slate-600">{user.phone || 'N/A'}</td>
+                    <td className="py-4 px-4">
+                      <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${user.roleColor}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-xs font-medium text-slate-500">{user.date}</td>
+                    <td className="py-4 px-4 text-right">
+                      <button className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors">
+                        <Icon icon="lucide:more-vertical" className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan="6" className="py-12 text-center text-slate-500 text-sm font-medium">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Icon icon="lucide:users" className="w-8 h-8 text-slate-300" />
+                        <p>No recently registered users found</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
     </div>

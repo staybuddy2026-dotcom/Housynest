@@ -32,6 +32,7 @@ const OwnerMaintenance = () => {
       if (res.ok) {
         const data = await res.json();
         setTickets(data);
+        window.dispatchEvent(new Event('refreshCounts'));
       } else {
         toast.error('Failed to fetch maintenance tickets');
       }
@@ -46,8 +47,8 @@ const OwnerMaintenance = () => {
   useEffect(() => {
     fetchTickets();
     
-    // Clear notification badge
-    window.dispatchEvent(new Event('maintenanceTicketsRead'));
+    // Keep notification badge in sync (refreshing the pending count)
+    window.dispatchEvent(new Event('refreshCounts'));
 
     const handleNewTicket = (newTicket) => {
       fetchTickets(); // Refresh the list to get populated fields

@@ -158,11 +158,27 @@ export const remindInvoice = async (req, res) => {
     }
 
     if (invoice.tenantId && invoice.tenantId.email) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dueDate = new Date(invoice.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      const diffTime = today - dueDate;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      let statusText = '';
+      if (diffDays > 0) {
+        statusText = `is OVERDUE by ${diffDays} days (was due on ${dueDate.toLocaleDateString()})`;
+      } else if (diffDays === 0) {
+        statusText = `is due TODAY (${dueDate.toLocaleDateString()})`;
+      } else {
+        statusText = `is due in ${Math.abs(diffDays)} days (on ${dueDate.toLocaleDateString()})`;
+      }
+
       const subject = `Rent Reminder - ${invoice.propertyId.pgName || invoice.propertyId.societyName || 'Property'}`;
       const content = `
         Hello ${invoice.tenantId.fullName},
         
-        This is a friendly reminder that your rent of Rs. ${invoice.amount} is due on ${new Date(invoice.dueDate).toLocaleDateString()}.
+        This is a friendly reminder that your rent of Rs. ${invoice.amount} ${statusText}.
         Please login to your dashboard to complete the payment.
         
         Thank you!
@@ -189,12 +205,20 @@ export const adminRemindAll = async (req, res) => {
     let count = 0;
     for (const invoice of overdueInvoices) {
       if (invoice.tenantId && invoice.tenantId.email) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dueDate = new Date(invoice.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        const diffTime = today - dueDate;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const overdueText = diffDays > 0 ? `${diffDays} days` : 'several days';
+
         const propertyName = invoice.propertyId?.pgName || invoice.propertyId?.societyName || 'Property';
         const subject = `URGENT: Rent Overdue Reminder - ${propertyName}`;
         const content = `
           Hello ${invoice.tenantId.fullName},
           
-          This is an urgent reminder that your rent of Rs. ${invoice.amount} for ${propertyName} is OVERDUE (was due on ${new Date(invoice.dueDate).toLocaleDateString()}).
+          This is an urgent reminder that your rent of Rs. ${invoice.amount} for ${propertyName} is OVERDUE by ${overdueText} (was due on ${new Date(invoice.dueDate).toLocaleDateString()}).
           
           Please log in to your Housynest dashboard immediately to complete the payment and avoid further penalties.
           

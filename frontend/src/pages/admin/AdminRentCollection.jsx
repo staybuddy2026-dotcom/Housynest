@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import ReactApexChart from 'react-apexcharts';
+import toast from 'react-hot-toast';
 import CustomDropdown from '../../components/list-property/CustomDropdown';
 import AdminPagination from '../../components/admin/AdminPagination';
 
@@ -18,35 +19,51 @@ const AdminRentCollection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  const [remindingInvoices, setRemindingInvoices] = useState({});
   const [remindedInvoices, setRemindedInvoices] = useState({});
   const [sendingAllReminders, setSendingAllReminders] = useState(false);
 
   const handleRemind = async (id) => {
+    setRemindingInvoices(prev => ({ ...prev, [id]: true }));
     try {
       const token = localStorage.getItem('accessToken');
-      await fetch(`/api/invoices/${id}/remind`, {
+      const res = await fetch(`/api/invoices/${id}/remind`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.ok) {
+        toast.success('Reminder sent successfully!');
+        setRemindedInvoices(prev => ({ ...prev, [id]: true }));
+        setTimeout(() => {
+          setRemindedInvoices(prev => ({ ...prev, [id]: false }));
+        }, 2000);
+      } else {
+        toast.error('Failed to send reminder.');
+      }
     } catch (error) {
       console.error('Error sending reminder:', error);
+      toast.error('Error connecting to server.');
+    } finally {
+      setRemindingInvoices(prev => ({ ...prev, [id]: false }));
     }
-    setRemindedInvoices(prev => ({ ...prev, [id]: true }));
-    setTimeout(() => {
-      setRemindedInvoices(prev => ({ ...prev, [id]: false }));
-    }, 2000);
   };
 
   const handleSendAll = async () => {
     setSendingAllReminders(true);
     try {
       const token = localStorage.getItem('accessToken');
-      await fetch(`/api/invoices/admin/remind-all`, {
+      const res = await fetch(`/api/invoices/admin/remind-all`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.ok) {
+        toast.success('Reminders sent successfully!');
+      } else {
+        toast.error('Failed to send reminders.');
+      }
     } catch (error) {
       console.error('Error sending all reminders:', error);
+      toast.error('Error connecting to server.');
     }
     setTimeout(() => {
       setSendingAllReminders(false);
@@ -420,11 +437,25 @@ const AdminRentCollection = () => {
     </div>
   );
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, dueDate) => {
     switch (status) {
       case 'Paid': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-xs">Paid</span>;
       case 'Pending': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-xs">Pending</span>;
-      case 'Overdue': return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-xs">Overdue</span>;
+      case 'Overdue': {
+        let diffDays = 0;
+        if (dueDate) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const due = new Date(dueDate);
+          due.setHours(0, 0, 0, 0);
+          diffDays = Math.ceil((today - due) / (1000 * 60 * 60 * 24));
+        }
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-xs">
+            {diffDays > 0 ? `Overdue (${diffDays} days)` : 'Overdue'}
+          </span>
+        );
+      }
       default: return <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-xs">{status}</span>;
     }
   };
@@ -666,20 +697,21 @@ const AdminRentCollection = () => {
                     </td>
                     <td className="py-4 px-6 text-sm font-medium text-slate-600">{new Date(item.dueDate).toLocaleDateString()}</td>
                     <td className="py-4 px-6 text-sm font-bold text-slate-800">{formatCurrency(item.amount)}</td>
-                    <td className="py-4 px-6">{getStatusBadge(item.status)}</td>
+                    <td className="py-4 px-6">{getStatusBadge(item.status, item.dueDate)}</td>
                     <td className="py-4 px-6 text-center">
                       <button
+                        disabled={remindingInvoices[item._id || idx]}
                         onClick={() => {
                           if (item.status === 'Pending' || item.status === 'Overdue') {
                             handleRemind(item._id || idx);
                           }
                         }}
-                        className={`text-xs font-bold px-3 py-1.5 rounded transition-all duration-300 ${(item.status === 'Pending' || item.status === 'Overdue')
+                        className={`flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded transition-all duration-300 ${(item.status === 'Pending' || item.status === 'Overdue')
                           ? (remindedInvoices[item._id || idx] ? 'text-white bg-blue-500' : 'text-blue-600 bg-blue-50 hover:bg-blue-100')
                           : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                          }`}>
+                          } disabled:opacity-70 disabled:cursor-wait`}>
                         {item.status === 'Pending' || item.status === 'Overdue'
-                          ? (remindedInvoices[item._id || idx] ? 'Reminded!' : 'Remind')
+                          ? (remindingInvoices[item._id || idx] ? <Icon icon="lucide:loader-2" className="w-3.5 h-3.5 animate-spin" /> : (remindedInvoices[item._id || idx] ? 'Reminded!' : 'Remind'))
                           : 'Receipt'}
                       </button>
                     </td>
