@@ -3,14 +3,15 @@ import { Icon } from '@iconify/react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const PropertyListingCard = ({ property }) => {
+const PropertyListingCard = ({ property, forceLiked = null }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(() => {
+    if (forceLiked !== null) return forceLiked;
     try {
       const userStr = localStorage.getItem('user');
       if (userStr) {
         const user = JSON.parse(userStr);
-        return (user.savedProperties || []).includes(String(property.id));
+        return (user.savedProperties || []).includes(String(property.id || property._id));
       }
     } catch (e) { }
     return false;
@@ -18,18 +19,19 @@ const PropertyListingCard = ({ property }) => {
 
   useEffect(() => {
     const handleUserUpdate = () => {
+      if (forceLiked !== null) return;
       try {
         const userStr = localStorage.getItem('user');
         if (userStr) {
           const user = JSON.parse(userStr);
-          setIsLiked((user.savedProperties || []).includes(String(property.id)));
+          setIsLiked((user.savedProperties || []).includes(String(property.id || property._id)));
         }
       } catch (e) { }
     };
 
     window.addEventListener('user-updated', handleUserUpdate);
     return () => window.removeEventListener('user-updated', handleUserUpdate);
-  }, [property.id]);
+  }, [property.id, property._id, forceLiked]);
 
   let userRole = null;
   try {
@@ -74,7 +76,7 @@ const PropertyListingCard = ({ property }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ propertyId: String(property.id) })
+        body: JSON.stringify({ propertyId: String(property.id || property._id) })
       });
 
       if (!response.ok) {
@@ -113,7 +115,7 @@ const PropertyListingCard = ({ property }) => {
   };
 
   return (
-    <Link to={`/properties/${property.id}`} onClick={handleCardClick} className="bg-white rounded-lg overflow-hidden border border-slate-100 shadow-sm hover:shadow-[0_15px_40px_rgba(4,71,58,0.08)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer flex flex-col group h-full">
+    <Link to={`/properties/${property.id || property._id}`} onClick={handleCardClick} className="bg-white rounded-lg overflow-hidden border border-slate-100 shadow-sm hover:shadow-[0_15px_40px_rgba(4,71,58,0.08)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer flex flex-col group h-full">
       {/* Image */}
       <div className="relative h-[200px] overflow-hidden bg-slate-200">
         <div

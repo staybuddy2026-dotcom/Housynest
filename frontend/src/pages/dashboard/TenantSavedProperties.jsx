@@ -183,7 +183,7 @@ const TenantSavedProperties = () => {
         ) : displayedProperties.length > 0 ? (
           displayedProperties.map((property) => (
             <div key={property.id} className="transition-transform duration-300 hover:-translate-y-1">
-              <PropertyListingCard property={property} />
+              <PropertyListingCard property={property} forceLiked={true} />
             </div>
           ))
         ) : (

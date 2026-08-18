@@ -87,6 +87,24 @@ function App() {
 
     const user = JSON.parse(userStr);
 
+    // Sync localStorage with DB on app load
+    const syncUser = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+          const res = await fetch('/api/users/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem('user', JSON.stringify({ ...user, savedProperties: data.savedProperties || [] }));
+            window.dispatchEvent(new Event('user-updated'));
+          }
+        }
+      } catch (err) { }
+    };
+    syncUser();
+
     joinUserRoom(user.id || user._id);
 
     socket.on('newNotification', (data) => {

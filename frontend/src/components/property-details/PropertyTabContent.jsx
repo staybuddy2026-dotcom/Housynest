@@ -18,6 +18,10 @@ const PropertyTabContent = ({
   const [isFloorDropdownOpen, setIsFloorDropdownOpen] = useState(false);
   const [waitlistAlerts, setWaitlistAlerts] = useState({});
 
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const showNotify = !user || user.role === 'tenant';
+
   const handleSubscribeWaitlist = async (roomId, sharingType, bedKey) => {
     try {
       const token = localStorage.getItem('token');
@@ -618,7 +622,7 @@ const PropertyTabContent = ({
                 <p className="text-sm font-medium text-slate-500">{selectedRoomModal.floorName} • {selectedRoomModal.sharingTypeDisplay} {selectedRoomModal.isSingle ? 'Room' : 'Sharing'}</p>
               </div>
               <div className="flex items-center gap-3">
-                {selectedRoomModal.room.beds && selectedRoomModal.room.beds.length > 0 && !selectedRoomModal.room.beds.some(b => b.status === 'Vacant') && (
+                {showNotify && selectedRoomModal.room.beds && selectedRoomModal.room.beds.length > 0 && !selectedRoomModal.room.beds.some(b => b.status === 'Vacant') && (
                   <button
                     type="button"
                     onClick={() => handleSubscribeWaitlist(selectedRoomModal.room.roomName, selectedRoomModal.sharingTypeDisplay, 'room_' + selectedRoomModal.room.roomName)}
@@ -718,7 +722,7 @@ const PropertyTabContent = ({
               )}
             </div>
             <div className="p-4 border-t border-slate-100 bg-slate-50/90 flex flex-col sm:flex-row items-center justify-between gap-3">
-              {selectedRoomModal.room.beds && selectedRoomModal.room.beds.length > 0 && !selectedRoomModal.room.beds.some(b => b.status === 'Vacant') ? (
+              {showNotify && selectedRoomModal.room.beds && selectedRoomModal.room.beds.length > 0 && !selectedRoomModal.room.beds.some(b => b.status === 'Vacant') ? (
                 <div className="flex items-center gap-2 text-xs text-amber-800 font-semibold bg-amber-50 border border-amber-200/80 px-3.5 py-2 rounded-xl w-full sm:w-auto">
                   <Icon icon="lucide:bell-ring" className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>This room is currently full. Click <strong>Notify Me</strong> to get instant email alerts when available.</span>
