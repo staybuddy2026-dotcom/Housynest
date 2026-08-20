@@ -133,22 +133,14 @@ const BookingStepPayment = ({
   const [stampGenerated, setStampGenerated] = useState(false);
   const [isGeneratingStamp, setIsGeneratingStamp] = useState(false);
 
-  // Sync agreedTerms with both checkboxes, esign presence, and stamp generation
+  // Sync agreedTerms with both checkboxes
   useEffect(() => {
-    if (paymentType === 'token') {
-      if (agreeDigitalSign && confirmAccurate) {
-        setAgreedTerms(true);
-      } else {
-        setAgreedTerms(false);
-      }
+    if (agreeDigitalSign && confirmAccurate) {
+      setAgreedTerms(true);
     } else {
-      if (agreeDigitalSign && confirmAccurate && isEsignVerified && stampGenerated) {
-        setAgreedTerms(true);
-      } else {
-        setAgreedTerms(false);
-      }
+      setAgreedTerms(false);
     }
-  }, [paymentType, agreeDigitalSign, confirmAccurate, isEsignVerified, stampGenerated, setAgreedTerms]);
+  }, [agreeDigitalSign, confirmAccurate, setAgreedTerms]);
 
   // Handle Gujarati Translation using Free Google Translate API
   const handleSelectLanguage = async (targetLang) => {
@@ -160,33 +152,6 @@ const BookingStepPayment = ({
       setTranslatedGujaratiText(translated);
       setIsTranslatingText(false);
     }
-  };
-
-  const handleSendEsignOtp = () => {
-    setShowEsignOtp(true);
-    toast.success('OTP sent for Aadhaar eSign');
-  };
-
-  const handleVerifyEsign = () => {
-    if (esignOtp.length < 6) {
-      toast.error('Please enter a valid 6-digit OTP');
-      return;
-    }
-    setIsVerifyingEsign(true);
-    setTimeout(() => {
-      setIsVerifyingEsign(false);
-      setIsEsignVerified(true);
-      toast.success('Document eSigned Successfully!');
-    }, 2500);
-  };
-
-  const handleGenerateStamp = () => {
-    setIsGeneratingStamp(true);
-    setTimeout(() => {
-      setIsGeneratingStamp(false);
-      setStampGenerated(true);
-      toast.success('e-Stamp Paper generated successfully!');
-    }, 2000);
   };
 
   const todayDateStr = new Date().toLocaleDateString('en-GB', {
@@ -376,170 +341,6 @@ const BookingStepPayment = ({
             )}
 
           </div>
-
-          {/* DIGITAL SIGNATURE SECTION */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-[#062F26] flex items-center gap-2">
-                  <Icon icon="lucide:pen-tool" className="w-4 h-4 text-[#0AA87D]" />
-                  Digital eSign <span className="text-red-500">*</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Please eSign below using your Aadhaar OTP to acknowledge and agree to the rental agreement terms.
-                </p>
-              </div>
-              {isEsignVerified && (
-                <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
-                  <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
-                  Document eSigned
-                </span>
-              )}
-            </div>
-
-            {!isEsignVerified ? (
-              <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col gap-4 mt-2">
-                {!showEsignOtp ? (
-                  <button
-                    type="button"
-                    onClick={handleSendEsignOtp}
-                    className="w-fit px-6 py-3 rounded-xl font-bold text-xs bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition-all flex items-center gap-2"
-                  >
-                    <Icon icon="lucide:file-signature" className="w-4 h-4" />
-                    Send OTP for eSign
-                  </button>
-                ) : (
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="text"
-                      placeholder="Enter 6-digit eSign OTP"
-                      value={esignOtp}
-                      onChange={(e) => setEsignOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleVerifyEsign}
-                      disabled={isVerifyingEsign || esignOtp.length < 6}
-                      className={`px-6 py-3 rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 ${isVerifyingEsign || esignOtp.length < 6
-                          ? 'bg-indigo-400 text-white cursor-not-allowed'
-                          : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                        }`}
-                    >
-                      {isVerifyingEsign ? (
-                        <>
-                          <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
-                          Affixing Signature...
-                        </>
-                      ) : (
-                        <>
-                          <Icon icon="lucide:file-signature" className="w-4 h-4" />
-                          Verify & eSign
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="mt-2 p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 shadow-sm flex items-center justify-between animate-fadeIn">
-                <div className="flex items-center gap-3">
-                  <Icon icon="lucide:shield-check" className="w-6 h-6" />
-                  <div>
-                    <h4 className="font-bold text-sm">Successfully eSigned</h4>
-                    <p className="text-xs opacity-90 mt-0.5">Your booking agreement has been digitally signed using Aadhaar eSign.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <style>{`
-        @keyframes stamp-press {
-          0% { transform: scale(1.8) rotate(-15deg); opacity: 0; }
-          100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-        .animate-stamp-press {
-          animation: stamp-press 1.5s ease-out forwards;
-        }
-      `}</style>
-
-          {/* E-STAMP GENERATION SECTION */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-[#062F26] flex items-center gap-2">
-                  <Icon icon="lucide:stamp" className="w-4 h-4 text-[#0AA87D]" />
-                  Agreement e-Stamp <span className="text-red-500">*</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Generate a legally binding e-Stamp paper for your rental agreement (₹300 stamp duty included in payment).
-                </p>
-              </div>
-              {stampGenerated && (
-                <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#EAF5F2] text-[#0AA87D] border border-[#0AA87D]/30 flex items-center gap-1">
-                  <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-[#0AA87D]" />
-                  e-Stamp Ready
-                </span>
-              )}
-            </div>
-
-            {!stampGenerated ? (
-              <div className={`border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 mt-2 transition-all min-h-[104px] ${isGeneratingStamp ? 'bg-emerald-50/50 justify-center' : 'bg-slate-50/50 justify-between'}`}>
-                {isGeneratingStamp ? (
-                  <div className="flex items-center gap-4 animate-in fade-in duration-300">
-                    <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center animate-stamp-press border-2 border-emerald-500 text-emerald-600 shadow-sm shadow-emerald-200 shrink-0">
-                      <Icon icon="lucide:stamp" className="w-7 h-7" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-base text-emerald-800">Affixing e-Stamp...</h4>
-                      <p className="text-xs text-emerald-600 mt-0.5 animate-pulse">Please wait while the document is stamped</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
-                        <Icon icon="lucide:file-badge-2" className="w-6 h-6 text-slate-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-[#062F26]">Generate ₹300 e-Stamp</h4>
-                        <p className="text-xs text-slate-500 mt-0.5">Required before final confirmation</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleGenerateStamp}
-                      disabled={!isEsignVerified}
-                      className={`px-6 py-3 rounded-xl font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 ${!isEsignVerified
-                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-70'
-                          : 'bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer'
-                        }`}
-                    >
-                      <Icon icon="lucide:stamp" className="w-4 h-4" />
-                      Generate e-Stamp
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="mt-2 p-4 bg-[#FFFDF0] text-[#B45309] rounded-xl border border-[#FCD34D] shadow-sm flex items-center justify-between animate-fadeIn">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm border border-[#FCD34D]">
-                    <Icon icon="lucide:stamp" className="w-5 h-5 text-[#D97706]" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">e-Stamp Paper Attached</h4>
-                    <p className="text-xs opacity-90 mt-0.5">A legal ₹300 e-Stamp has been affixed to your signed agreement.</p>
-                  </div>
-                </div>
-                <button type="button" className="text-xs font-bold text-[#D97706] hover:underline flex items-center gap-1 cursor-pointer">
-                  <Icon icon="lucide:eye" className="w-3.5 h-3.5" />
-                  Preview
-                </button>
-              </div>
-            )}
-          </div>
         </>
       )}
 
@@ -553,9 +354,7 @@ const BookingStepPayment = ({
             className="mt-0.5 w-4 h-4 text-[#0AA87D] rounded border-slate-300 focus:ring-[#0AA87D]"
           />
           <span className="text-xs text-slate-700 font-semibold leading-relaxed">
-            {paymentType === 'token'
-              ? 'I agree to the Terms and Conditions and Privacy Policy'
-              : 'I agree to sign the rental agreement digitally and accept the Terms and Conditions'} <span className="text-red-500">*</span>
+            I provide my digital consent to generate an e-Stamp and eSign the rental agreement post-payment. <span className="text-red-500">*</span>
           </span>
         </label>
 
@@ -604,16 +403,6 @@ const BookingStepPayment = ({
         <button
           type="button"
           onClick={() => {
-            if (paymentType === 'full') {
-              if (!isEsignVerified) {
-                toast.error('Please eSign the agreement using Aadhaar OTP before confirming');
-                return;
-              }
-              if (!stampGenerated) {
-                toast.error('Please generate the e-Stamp paper before confirming your booking');
-                return;
-              }
-            }
             if (!agreeDigitalSign || !confirmAccurate) {
               toast.error('Please accept both agreement checkboxes to confirm your booking');
               return;

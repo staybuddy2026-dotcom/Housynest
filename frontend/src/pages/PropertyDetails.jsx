@@ -56,6 +56,34 @@ const PropertyDetails = () => {
   const [reviews, setReviews] = useState([]);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
+  const [userBooking, setUserBooking] = useState(null);
+
+  useEffect(() => {
+    const fetchUserBooking = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (currentUser && currentUser.role === 'tenant' && token && id && id.length === 24) {
+          const res = await fetch('/api/bookings/tenant', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const activeBooking = data.find(b => {
+              const propIdStr = (b.propertyId?._id || b.propertyId || '').toString();
+              return propIdStr === id && 
+              ['Pending Request', 'Pending Payment', 'Reserved'].includes(b.status);
+            });
+            if (activeBooking) {
+              setUserBooking(activeBooking);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch user booking', err);
+      }
+    };
+    fetchUserBooking();
+  }, [id, currentUser]);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -455,6 +483,7 @@ const PropertyDetails = () => {
             setIsReportModalOpen={setIsReportModalOpen}
             setIsLeadModalOpen={setIsLeadModalOpen}
             setIsBookNowModalOpen={setIsBookNowModalOpen}
+            userBooking={userBooking}
             toast={toast}
           />
         </div>

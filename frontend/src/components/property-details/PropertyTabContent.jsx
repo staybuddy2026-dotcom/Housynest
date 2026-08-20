@@ -22,6 +22,35 @@ const PropertyTabContent = ({
   const user = userStr ? JSON.parse(userStr) : null;
   const showNotify = !user || user.role === 'tenant';
 
+  // Dynamically compute available sharing types
+  const sharingTypesSet = new Set();
+  if (property?.floors && property.floors.length > 0) {
+    property.floors.forEach(f => {
+      f.rooms?.forEach(r => {
+        if (r.sharingType) sharingTypesSet.add(r.sharingType);
+      });
+    });
+  } else if (pgRooms && pgRooms.length > 0) {
+    pgRooms.forEach(r => {
+      if (r.sharingType) {
+        sharingTypesSet.add(r.sharingType);
+      } else if (r.title) {
+        const firstWord = r.title.split(' ')[0];
+        sharingTypesSet.add(firstWord);
+      }
+    });
+  }
+
+  // Sort them so that '1 Sharing', '2 Sharing' etc appear in order
+  const sortedSharingTypes = Array.from(sharingTypesSet).sort((a, b) => {
+    const numA = parseInt(a);
+    const numB = parseInt(b);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return a.localeCompare(b);
+  });
+  
+  const filterTabs = ['All Rooms', ...sortedSharingTypes];
+
   const handleSubscribeWaitlist = async (roomId, sharingType, bedKey) => {
     try {
       const token = localStorage.getItem('token');
@@ -188,18 +217,18 @@ const PropertyTabContent = ({
               {/* Filter Tabs & Floor Dropdown */}
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 mb-6">
                 <div className="flex items-center gap-6 sm:gap-8 overflow-x-auto hide-scrollbar w-full sm:w-auto">
-                  {['All Rooms', 'Single', 'Double', 'Triple', 'Four Sharing'].map(tab => {
+                  {filterTabs.map(tab => {
                     let count = 0;
                     if (property.floors && property.floors.length > 0) {
                       property.floors.forEach(f => {
                         f.rooms?.forEach(r => {
-                          if (tab === 'All Rooms' || r.sharingType?.includes(tab.split(' ')[0])) {
+                          if (tab === 'All Rooms' || r.sharingType === tab || r.sharingType?.includes(tab.split(' ')[0])) {
                             count++;
                           }
                         });
                       });
                     } else {
-                      count = pgRooms.filter(r => tab === 'All Rooms' || r.title?.includes(tab.split(' ')[0])).length;
+                      count = pgRooms.filter(r => tab === 'All Rooms' || r.sharingType === tab || r.title?.includes(tab.split(' ')[0])).length;
                     }
 
                     return (
@@ -259,7 +288,7 @@ const PropertyTabContent = ({
                 <div className="flex flex-col gap-4">
                   {property.floors && property.floors.length > 0 ? (
                     property.floors.filter(f => selectedFloorFilter === 'All Floors' || f.floorName === selectedFloorFilter).map((floor, floorIdx) => {
-                      const floorRooms = (floor.rooms || []).filter(r => selectedFilterTab === 'All Rooms' || r.sharingType?.includes(selectedFilterTab.split(' ')[0]));
+                      const floorRooms = (floor.rooms || []).filter(r => selectedFilterTab === 'All Rooms' || r.sharingType === selectedFilterTab || r.sharingType?.includes(selectedFilterTab.split(' ')[0]));
 
                       if (floorRooms.length === 0) return null;
 

@@ -11,7 +11,7 @@ const systemInstruction = `You are the HousyNest AI Assistant. Your goal is to h
 You must ONLY answer questions related to HousyNest services. 
 If a user asks about outside topics (like 'Who is Narendra Modi?', 'Write Python code', etc.), politely decline and say: "I can only assist with HousyNest services, properties, bookings, and platform-related questions."
 Use function calling for:
-- Search Property: Use the 'searchProperties' function to query the database. This platform is for both PG and Tenant Rent (Flats/Apartments). Only show max 3 results with key details. If it's a PG, specify the PG Name and Rent. If it is a Tenant rent (Flat), specify the Society/Property name, BHK Type, and Monthly Rent.
+- Search Property: Use the 'searchProperties' function to query the database. This platform is for both PG and Tenant Rent (Flats/Apartments). Only show max 5 results with key details. If it's a PG, specify the PG Name, Rent (can be a range), and locality. If it is a Tenant rent (Flat), specify the Society/Property name, BHK Type, Monthly Rent, and locality. Highlight key amenities if they are relevant to the user's query.
 - Booking Lookup: Inform user to check dashboard or use user context.
 
 Be polite, helpful, and format responses nicely using Markdown (bullet points, bold text). Keep responses concise unless asked for details.
@@ -25,10 +25,11 @@ const searchPropertiesTool = {
   parameters: {
     type: Type.OBJECT,
     properties: {
-      city: { type: Type.STRING, description: 'The city to search in, e.g. Ahmedabad, Surat' },
+      propertyName: { type: Type.STRING, description: 'Specific name of the PG, hostel, or society to search for (if user mentions one).' },
+      city: { type: Type.STRING, description: 'The city or locality to search in, e.g. Ahmedabad, Surat' },
       maxRent: { type: Type.NUMBER, description: 'Maximum monthly rent in INR' },
       gender: { type: Type.STRING, description: 'Target gender: Boys, Girls, or Any' },
-      type: { type: Type.STRING, description: 'Property type: PG, Hostel, Co-living' }
+      type: { type: Type.STRING, description: 'Property type: PG, Hostel, Co-living, Flat, Apartment' }
     },
   },
 };
@@ -62,11 +63,11 @@ export const handleChat = async (req, res) => {
       }
     }
 
-    let languageContext = "You must respond in English.";
+    let languageContext = "CRITICAL INSTRUCTION: You MUST respond entirely in English.";
     if (language === 'Hindi') {
-      languageContext = "You must respond fluently in Hindi (Devanagari script).";
+      languageContext = "CRITICAL INSTRUCTION: You MUST respond fluently and entirely in Hindi (Devanagari script). Do not answer in English.";
     } else if (language === 'Gujarati') {
-      languageContext = "You must respond fluently in Gujarati script.";
+      languageContext = "CRITICAL INSTRUCTION: You MUST respond fluently and entirely in Gujarati script. Do not answer in English.";
     }
 
     let pastSearchesContext = "";
@@ -121,13 +122,29 @@ export const handleChat = async (req, res) => {
       if (call.name === 'searchProperties') {
         const args = call.args;
         const query = { status: { $in: ['Active', 'Approved'] } };
+        const andConditions = [];
+        
         if (args.city) {
-          query.$or = [
-            { city: new RegExp(args.city, 'i') },
-            { locality: new RegExp(args.city, 'i') },
-            { address: new RegExp(args.city, 'i') }
-          ];
+          andConditions.push({
+            $or: [
+              { city: new RegExp(args.city, 'i') },
+              { locality: new RegExp(args.city, 'i') },
+              { address: new RegExp(args.city, 'i') }
+            ]
+          });
         }
+        if (args.propertyName) {
+          andConditions.push({
+            $or: [
+              { pgName: new RegExp(args.propertyName, 'i') },
+              { societyName: new RegExp(args.propertyName, 'i') }
+            ]
+          });
+        }
+        if (andConditions.length > 0) {
+          query.$and = andConditions;
+        }
+
         if (args.gender) {
           if (args.gender.toLowerCase() === 'boys' || args.gender.toLowerCase() === 'male') {
             query.preferredGender = { $regex: new RegExp('^(boys|male|anyone|any|both)$', 'i') };
@@ -135,6 +152,7 @@ export const handleChat = async (req, res) => {
             query.preferredGender = { $regex: new RegExp('^(girls|female|anyone|any|both)$', 'i') };
           }
         }
+        
         if (args.type) {
            if (args.type.toLowerCase().includes('pg') || args.type.toLowerCase().includes('hostel')) {
                query.propertyType = 'PG';
@@ -144,10 +162,57 @@ export const handleChat = async (req, res) => {
         }
         
         // Query DB
-        const properties = await Property.find(query).limit(15).select('pgName societyName propertyType city locality monthlyRent preferredGender status bhkType rooms tenantPreference preferredTenants');
+        const rawProperties = await Property.find(query)
+          .limit(30)
+          .select('pgName societyName propertyType city locality address monthlyRent preferredGender status bhkType rooms pgPricing societyAmenities commonAmenities');
         
-        let toolResponseText = properties.length > 0 
-          ? JSON.stringify(properties) 
+        let filteredProps = rawProperties.map(p => {
+            let pgPrices = [];
+            if (p.pgPricing) {
+              Object.values(p.pgPricing).forEach(priceObj => {
+                if (priceObj && priceObj.rentPerBed && Number(priceObj.rentPerBed) > 0) {
+                  pgPrices.push(Number(priceObj.rentPerBed));
+                }
+              });
+            }
+            if (pgPrices.length === 0 && p.rooms && p.rooms.length > 0) {
+              p.rooms.forEach(room => {
+                if (room.rentPerBed) pgPrices.push(Number(String(room.rentPerBed).replace(/,/g, '')));
+              });
+            }
+            
+            let minPrice = 0;
+            let maxPrice = 0;
+            if (pgPrices.length > 0) {
+              minPrice = Math.min(...pgPrices);
+              maxPrice = Math.max(...pgPrices);
+            } else {
+              minPrice = Number((p.monthlyRent || '0').toString().replace(/,/g, ''));
+              maxPrice = minPrice;
+            }
+
+            return {
+              name: p.pgName || p.societyName || 'Property',
+              type: p.propertyType,
+              bhk: p.bhkType,
+              city: p.city,
+              locality: p.locality,
+              gender: p.preferredGender,
+              minPrice,
+              maxPrice,
+              amenities: p.societyAmenities?.length > 0 ? p.societyAmenities : (p.commonAmenities || []),
+            };
+        });
+
+        if (args.maxRent) {
+            filteredProps = filteredProps.filter(p => p.minPrice <= args.maxRent);
+        }
+        
+        // Take top 5 to avoid overloading the prompt context
+        filteredProps = filteredProps.slice(0, 5);
+
+        let toolResponseText = filteredProps.length > 0 
+          ? JSON.stringify(filteredProps) 
           : "No properties found matching criteria.";
 
         // Send function response back to the model

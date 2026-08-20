@@ -25,8 +25,8 @@ import invoiceRoutes from './routes/invoiceRoutes.js';
 import seoRoutes from './routes/seoRoutes.js';
 import waitlistRoutes from './routes/waitlistRoutes.js';
 import maintenanceRoutes from './routes/maintenanceRoutes.js';
-import expenseRoutes from './routes/expenseRoutes.js';
 import conditionReportRoutes from './routes/conditionReportRoutes.js';
+import aadharRoutes from './routes/aadharRoutes.js';
 import cron from 'node-cron';
 import { sendVisitReminders } from './controllers/visitController.js';
 import { generateMonthlyInvoices, sendAutoRentReminders } from './controllers/invoiceController.js';
@@ -80,8 +80,8 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/seo', seoRoutes);
 app.use('/api/waitlist', waitlistRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
-app.use('/api/expenses', expenseRoutes);
 app.use('/api/condition-reports', conditionReportRoutes);
+app.use('/api/aadhar', aadharRoutes);
 
 // Cron Job for Visit Reminders
 cron.schedule('0 8 * * *', () => {

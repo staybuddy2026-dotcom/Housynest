@@ -15,6 +15,7 @@ const PropertySidebarCard = ({
   setIsReportModalOpen,
   setIsLeadModalOpen,
   setIsBookNowModalOpen,
+  userBooking,
   toast
 }) => {
   const userStr = localStorage.getItem('user');
@@ -227,23 +228,43 @@ const PropertySidebarCard = ({
           <>
             <div className="flex flex-col gap-2.5">
               {/* PRIMARY BOOK NOW BUTTON */}
-              <button
-                onClick={() => {
-                  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-                  if (!isAuthenticated) {
-                    toast.error('Login is required to book a property');
-                    navigate('/login');
-                    return;
-                  }
-                  if (setIsBookNowModalOpen) {
-                    setIsBookNowModalOpen(true);
-                  }
-                }}
-                className="w-full cursor-pointer bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] hover:from-[#08483B] hover:to-[#098b68] text-white py-3.5 px-4 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 flex justify-center items-center gap-2.5 shadow-[0_8px_25px_rgba(10,168,125,0.25)] hover:shadow-[0_12px_30px_rgba(10,168,125,0.35)] transform hover:-translate-y-0.5 active:scale-[0.98]"
-              >
-                <Icon icon="lucide:zap" className="w-4.5 h-4.5 text-emerald-300" />
-                Book Now {propertyType === 'PG' ? '• Reserve Bed' : '• Reserve Property'}
-              </button>
+              {userBooking ? (
+                userBooking.status === 'Pending Payment' ? (
+                  <button
+                    onClick={() => navigate(`/properties/${property.id}/book`, { state: { bookingId: userBooking._id, property: property } })}
+                    className="w-full cursor-pointer bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] hover:from-[#08483B] hover:to-[#098b68] text-white py-3.5 px-4 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 flex justify-center items-center gap-2.5 shadow-[0_8px_25px_rgba(10,168,125,0.25)] hover:shadow-[0_12px_30px_rgba(10,168,125,0.35)] transform hover:-translate-y-0.5 active:scale-[0.98]"
+                  >
+                    <Icon icon="lucide:zap" className="w-4.5 h-4.5 text-emerald-300" />
+                    Complete Payment • Book Now
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate('/tenant/bookings')}
+                    className="w-full cursor-pointer bg-amber-500 hover:bg-amber-600 text-white py-3.5 px-4 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 flex justify-center items-center gap-2.5 shadow-md transform hover:-translate-y-0.5 active:scale-[0.98]"
+                  >
+                    <Icon icon="lucide:clock" className="w-4.5 h-4.5" />
+                    Booking {userBooking.status} • Track Status
+                  </button>
+                )
+              ) : (
+                <button
+                  onClick={() => {
+                    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+                    if (!isAuthenticated) {
+                      toast.error('Login is required to book a property');
+                      navigate('/login');
+                      return;
+                    }
+                    if (setIsBookNowModalOpen) {
+                      setIsBookNowModalOpen(true);
+                    }
+                  }}
+                  className="w-full cursor-pointer bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] hover:from-[#08483B] hover:to-[#098b68] text-white py-3.5 px-4 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 flex justify-center items-center gap-2.5 shadow-[0_8px_25px_rgba(10,168,125,0.25)] hover:shadow-[0_12px_30px_rgba(10,168,125,0.35)] transform hover:-translate-y-0.5 active:scale-[0.98]"
+                >
+                  <Icon icon="lucide:zap" className="w-4.5 h-4.5 text-emerald-300" />
+                  Send Booking Request {propertyType === 'PG' ? '• Reserve Bed' : '• Reserve Property'}
+                </button>
+              )}
 
               <button
                 onClick={() => setIsScheduleModalOpen(true)}

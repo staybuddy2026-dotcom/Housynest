@@ -13,7 +13,13 @@ import {
   requestMoveOut,
   rejectMoveOut,
   processCheckout,
-  emailAgreement
+  emailAgreement,
+  updateBookingConsent,
+  triggerEStampAndSign,
+  requestBooking,
+  acceptBookingRequest,
+  rejectBookingRequest,
+  completeBookingDetails
 } from '../controllers/bookingController.js';
 
 const router = express.Router();
@@ -56,5 +62,23 @@ router.route('/:id/process-checkout')
 
 router.route('/:id/email-agreement')
   .post(protect, emailAgreement);
+
+router.route('/:id/consent')
+  .put(protect, updateBookingConsent);
+
+router.route('/:id/trigger-estamp')
+  .put(protect, triggerEStampAndSign);
+
+
+router.route('/request')
+  .post(protect, requestBooking);
+
+router.route('/:id/accept-request')
+  .put(protect, acceptBookingRequest);
+
+router.route('/:id/reject-request')
+  .put(protect, rejectBookingRequest);
+router.route('/:id/complete')
+  .put(protect, completeBookingDetails);
 
 export default router;

@@ -126,3 +126,12 @@
 .animate-slow-bounce {
   animation: slowBounce 3s ease-in-out infinite;
 }
+@keyframes periodic-vibrate {
+  0%, 85% { transform: translateX(0); }
+  87%, 91%, 95%, 99% { transform: translateX(-3px) rotate(-1deg); }
+  89%, 93%, 97% { transform: translateX(3px) rotate(1deg); }
+}
+.animate-periodic-vibrate {
+  animation: periodic-vibrate 3s ease-in-out infinite;
+}
+

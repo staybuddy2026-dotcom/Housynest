@@ -374,31 +374,11 @@ const OwnerBookingRequests = () => {
                   {getStatusBadge(req.status)}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="mb-4">
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Property</p>
                     <p className="text-sm font-bold text-slate-700 truncate">{req.property}</p>
                     <p className="text-xs font-medium text-slate-500 mt-0.5 truncate">{req.bed}</p>
-                  </div>
-                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Payment</p>
-                    {req.isFullPaid ? (
-                      <>
-                        <p className="text-xs font-bold text-slate-700">Full Paid: ₹{req.paid.toLocaleString()}</p>
-                        <div className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-wider bg-emerald-100/50 px-1.5 py-0.5 rounded-sm inline-block">Paid</div>
-                      </>
-                    ) : req.isTokenPaid ? (
-                      <>
-                        <p className="text-xs font-bold text-slate-700">Token Paid: ₹{req.paid.toLocaleString()}</p>
-                        <p className="text-[10px] font-bold text-rose-600 mt-0.5 mb-1">Due: ₹{req.due.toLocaleString()}</p>
-                        <div className="text-[9px] font-bold text-amber-600 uppercase tracking-wider bg-amber-100/50 px-1.5 py-0.5 rounded-sm inline-block">Pending Full Payment</div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xs font-bold text-slate-700">Rent: ₹{req.rentRaw.toLocaleString()}</p>
-                        <div className="text-[9px] font-bold text-rose-600 mt-1 uppercase tracking-wider bg-rose-100/50 px-1.5 py-0.5 rounded-sm inline-block">Unpaid</div>
-                      </>
-                    )}
                   </div>
                 </div>
 
@@ -452,7 +432,6 @@ const OwnerBookingRequests = () => {
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Customer</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Property / Bed</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move - In Date</th>
-                  <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
                   <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
                 </tr>
@@ -486,25 +465,6 @@ const OwnerBookingRequests = () => {
                     </td>
                     <td className="py-4 px-5 align-middle">
                       <div className="text-sm font-bold text-slate-700">{req.moveIn}</div>
-                    </td>
-                    <td className="py-4 px-5 align-middle">
-                      {req.isFullPaid ? (
-                        <>
-                          <div className="font-bold text-slate-800 text-sm">Full Paid: ₹{req.paid.toLocaleString()}</div>
-                          <div className="text-[10px] font-bold text-emerald-600 mt-1 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-sm inline-block">Paid</div>
-                        </>
-                      ) : req.isTokenPaid ? (
-                        <>
-                          <div className="font-bold text-slate-800 text-sm">Token Paid: ₹{req.paid.toLocaleString()}</div>
-                          <div className="text-xs font-bold text-rose-600 mt-1 mb-1">Due: ₹{req.due.toLocaleString()}</div>
-                          <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider bg-amber-50 px-2 py-0.5 rounded-sm inline-block">Pending Full Payment</div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="font-bold text-slate-800 text-sm">Rent: ₹{req.rentRaw.toLocaleString()}</div>
-                          <div className="text-[10px] font-bold text-rose-600 mt-1 uppercase tracking-wider bg-rose-50 px-2 py-0.5 rounded-sm inline-block">Unpaid</div>
-                        </>
-                      )}
                     </td>
                     <td className="py-4 px-5 align-middle">
                       {getStatusBadge(req.status)}

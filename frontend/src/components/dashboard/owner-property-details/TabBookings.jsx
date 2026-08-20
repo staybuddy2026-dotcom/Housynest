@@ -5,6 +5,41 @@ import { ReactLenis } from 'lenis/react';
 
 const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
   const [selectedBooking, setSelectedBooking] = useState(null);
+    const handleAcceptRequest = async (bookingId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/accept-request`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status: 'Pending Payment' } : b));
+        toast.success('Booking request accepted! Tenant notified.');
+      } else {
+        toast.error('Failed to accept request');
+      }
+    } catch (err) {
+      toast.error('Error accepting request');
+    }
+  };
+
+  const handleRejectRequest = async (bookingId) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/reject-request`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status: 'Rejected' } : b));
+        toast.success('Booking request rejected.');
+      } else {
+        toast.error('Failed to reject request');
+      }
+    } catch (err) {
+      toast.error('Error rejecting request');
+    }
+  };
   const updateBookingStatus = async (bookingId, newStatus) => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -63,7 +98,7 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Room / Bed</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move-in Date</th>
-                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
+                {activeTab !== 'requests' && <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>}
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
               </tr>
@@ -183,8 +218,8 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                     <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                       {booking.status === 'Pending Request' && (
                         <>
-                          <button onClick={() => updateBookingStatus(booking._id, 'Confirmed')} className="px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold rounded-lg hover:bg-emerald-100 transition-colors">Approve</button>
-                          <button onClick={() => updateBookingStatus(booking._id, 'Rejected')} className="px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold rounded-lg hover:bg-rose-100 transition-colors">Reject</button>
+                          <button onClick={() => handleAcceptRequest(booking._id)} className="px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold rounded-lg hover:bg-emerald-100 transition-colors">Approve</button>
+                          <button onClick={() => handleRejectRequest(booking._id)} className="px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold rounded-lg hover:bg-rose-100 transition-colors">Reject</button>
                         </>
                       )}
                       <button
@@ -299,6 +334,7 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                   </div>
                 </div>
 
+                {activeTab !== 'requests' && (
                 <div className="mb-4">
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 w-full flex items-center justify-between">
                     <div>
@@ -315,11 +351,12 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                     )}
                   </div>
                 </div>
+                )}
 
                 {booking.status === 'Pending Request' && (
                   <div className="flex gap-2 mt-2 border-t border-slate-100 pt-3" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => updateBookingStatus(booking._id, 'Confirmed')} className="flex-1 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold rounded-lg hover:bg-emerald-100 transition-colors">Approve</button>
-                    <button onClick={() => updateBookingStatus(booking._id, 'Rejected')} className="flex-1 py-2 bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold rounded-lg hover:bg-rose-100 transition-colors">Reject</button>
+                    <button onClick={() => handleAcceptRequest(booking._id)} className="flex-1 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold rounded-lg hover:bg-emerald-100 transition-colors">Approve</button>
+                    <button onClick={() => handleRejectRequest(booking._id)} className="flex-1 py-2 bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold rounded-lg hover:bg-rose-100 transition-colors">Reject</button>
                   </div>
                 )}
               </div>

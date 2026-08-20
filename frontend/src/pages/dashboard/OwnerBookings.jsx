@@ -16,6 +16,10 @@ const OwnerBookings = () => {
   const [deductions, setDeductions] = useState('');
   const [processingMoveOutId, setProcessingMoveOutId] = useState(null);
 
+  const [showEsignOtp, setShowEsignOtp] = useState(false);
+  const [esignOtp, setEsignOtp] = useState('');
+  const [isVerifyingEsign, setIsVerifyingEsign] = useState(false);
+
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -119,10 +123,17 @@ const OwnerBookings = () => {
   ];
 
   const getBookingStatusBadge = (status) => {
-    if (['CONFIRMED', 'RESERVED', 'ACTIVE'].includes(status)) {
+    if (['CONFIRMED', 'ACTIVE'].includes(status)) {
       return (
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors">
           <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
+        </div>
+      );
+    } else if (['RESERVED'].includes(status)) {
+      return (
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full shadow-sm hover:bg-blue-100 transition-colors">
+          <Icon icon="lucide:shield-check" className="w-3.5 h-3.5 text-blue-500" />
           <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
         </div>
       );
@@ -201,7 +212,7 @@ const OwnerBookings = () => {
       });
       if (res.ok) {
         const updatedBooking = await res.json();
-        toast.success('Checkout completed successfully.');
+        toast.success('Checkout processed successfully.');
         setBookings(bookings.map(b => b._id === bookingId ? updatedBooking : b));
         setDeductions('');
         setSelectedBooking(null); // close drawer
@@ -211,9 +222,48 @@ const OwnerBookings = () => {
       }
     } catch (error) {
       console.error('Error processing checkout:', error);
-      toast.error('An error occurred while processing checkout.');
+      toast.error('An error occurred during checkout processing.');
     } finally {
       setProcessingMoveOutId(null);
+    }
+  };
+
+  const handleSendEsignOtp = () => {
+    setShowEsignOtp(true);
+    toast.success('OTP sent to your Aadhaar linked mobile number for eSign');
+  };
+
+  const handleVerifyEsign = async (bookingId) => {
+    if (esignOtp.length < 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+    setIsVerifyingEsign(true);
+    try {
+      // Simulate backend delay for eSign verification
+      await new Promise(r => setTimeout(r, 2000));
+      
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/consent`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        toast.success('Agreement E-Signed Successfully!');
+        
+        // Update local state
+        setBookings(bookings.map(b => b._id === bookingId ? { ...b, ownerConsentStatus: 'Consented' } : b));
+        if (selectedBooking && selectedBooking._id === bookingId) {
+          setSelectedBooking({ ...selectedBooking, ownerConsentStatus: 'Consented', raw: { ...selectedBooking.raw, ownerConsentStatus: 'Consented' } });
+        }
+        setShowEsignOtp(false);
+        setEsignOtp('');
+      }
+    } catch (error) {
+      toast.error('Failed to verify eSign OTP');
+    } finally {
+      setIsVerifyingEsign(false);
     }
   };
 
@@ -609,6 +659,59 @@ const OwnerBookings = () => {
                     </div>
                   </div>
                 )}
+
+                {/* E-Stamp / E-Sign Banner */}
+                {selectedBooking.raw.status === 'Confirmed' && selectedBooking.raw.ownerConsentStatus !== 'Consented' && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-bold text-[#062F26] mb-4">Agreement Signature</h3>
+                    
+                    {selectedBooking.raw.eStampStatus === 'Completed' && (
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5">
+                        <div className="flex gap-4">
+                          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                            <Icon icon="lucide:pen-tool" className="w-6 h-6 text-indigo-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-indigo-900">E-Sign Your Agreement</p>
+                            <p className="text-xs text-indigo-700/80 leading-relaxed mt-0.5 mb-4">The e-Stamp has been generated for this booking. As the owner, please eSign the agreement using your Aadhaar OTP.</p>
+                            
+                            {!showEsignOtp ? (
+                              <button
+                                onClick={handleSendEsignOtp}
+                                className="px-6 py-2.5 bg-indigo-600 text-white font-bold text-sm rounded-lg shadow-sm hover:bg-indigo-700 transition-colors shrink-0 whitespace-nowrap flex items-center gap-2"
+                              >
+                                <Icon icon="lucide:file-signature" className="w-4 h-4" />
+                                Send OTP for eSign
+                              </button>
+                            ) : (
+                              <div className="flex flex-col sm:flex-row gap-3">
+                                <input
+                                  type="text"
+                                  placeholder="Enter 6-digit eSign OTP"
+                                  value={esignOtp}
+                                  onChange={(e) => setEsignOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                  className="flex-1 bg-white border border-indigo-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 max-w-xs"
+                                />
+                                <button
+                                  onClick={() => handleVerifyEsign(selectedBooking._id)}
+                                  disabled={isVerifyingEsign || esignOtp.length < 6}
+                                  className="px-6 py-2.5 bg-indigo-600 text-white font-bold text-sm rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-70 transition-colors shrink-0 flex items-center justify-center min-w-[120px]"
+                                >
+                                  {isVerifyingEsign ? (
+                                    <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    'Verify & eSign'
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Personal Information */}
                 <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                   <h4 className="text-sm font-bold text-[#062F26] mb-4">Personal Information</h4>

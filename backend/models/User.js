@@ -32,6 +32,9 @@ const userSchema = new mongoose.Schema({
   last4Aadhar: {
     type: String,
   },
+  aadharName: {
+    type: String,
+  },
   isAadharVerified: {
     type: Boolean,
     default: false,

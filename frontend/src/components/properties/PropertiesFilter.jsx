@@ -1,6 +1,7 @@
 import { Icon } from '@iconify/react';
 
 const PropertiesFilter = ({
+  availableRoomTypes = ['Single Room', 'Sharing Room', 'Entire Place'],
   propertyFor, setPropertyFor,
   propertyType, setPropertyType,
   roomType, setRoomType,
@@ -104,9 +105,9 @@ const PropertiesFilter = ({
                   onChange={(e) => setRoomType(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-lg py-3 pl-3 pr-8 text-xs font-medium text-slate-500 outline-none focus:border-brand-teal appearance-none cursor-pointer">
                   <option value="">Select Room Type</option>
-                  <option value="Single Room">Single Room</option>
-                  <option value="Sharing Room">Sharing Room</option>
-                  <option value="Entire Place">Entire Place</option>
+                  {availableRoomTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
                 </select>
                 <Icon icon="lucide:chevron-down" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
               </div>

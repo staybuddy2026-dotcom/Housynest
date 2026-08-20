@@ -370,6 +370,38 @@ export const getPropertyById = async (req, res) => {
   try {
     const propertyDoc = await Property.findById(req.params.id).populate('owner', 'fullName email phone profilePic');
     if (propertyDoc) {
+      // Auto-heal PG bed statuses from Bookings
+      if (propertyDoc.propertyType === 'PG' && propertyDoc.floors?.length > 0) {
+        const activeBookings = await Booking.find({
+          propertyId: propertyDoc._id,
+          status: { $in: ['Reserved', 'Confirmed', 'Active'] }
+        });
+        
+        for (const floor of propertyDoc.floors) {
+          for (const room of floor.rooms) {
+            for (const bed of room.beds) {
+              if (bed.status === 'Maintenance') continue;
+              
+              const bedBookings = activeBookings.filter(b => 
+                b.roomDetails?.roomName === room.roomName && 
+                b.roomDetails?.bedName === bed.bedName
+              );
+              
+              const hasOccupied = bedBookings.some(b => ['Confirmed', 'Active'].includes(b.status));
+              const hasReserved = bedBookings.some(b => ['Reserved'].includes(b.status));
+              
+              let correctStatus = 'Vacant';
+              if (hasOccupied) correctStatus = 'Occupied';
+              else if (hasReserved) correctStatus = 'Reserved';
+              
+              if (bed.status !== correctStatus) {
+                bed.status = correctStatus;
+              }
+            }
+          }
+        }
+      }
+
       // Increment views
       propertyDoc.views = (propertyDoc.views || 0) + 1;
       await propertyDoc.save();

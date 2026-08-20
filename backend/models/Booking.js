@@ -106,12 +106,85 @@ const bookingSchema = new mongoose.Schema({
     rejectionReason: String,
     deductions: { type: Number, default: 0 },
     reason: String
-  }
+  },
+
+  // E-Sign and E-Stamp Tracking (Aadhaar Flow)
+  tenantConsentStatus: {
+    type: String,
+    enum: ['Pending', 'Consented'],
+    default: 'Pending'
+  },
+  ownerConsentStatus: {
+    type: String,
+    enum: ['Pending', 'Consented'],
+    default: 'Pending'
+  },
+  eStampStatus: {
+    type: String,
+    enum: ['Pending', 'Processing', 'Completed', 'Failed'],
+    default: 'Pending'
+  },
+  eStampId: String,
+  eSignStatus: {
+    type: String,
+    enum: ['Pending', 'Processing', 'Completed', 'Failed'],
+    default: 'Pending'
+  },
+  finalDocumentUrl: String
+
 }, { timestamps: true });
 
 bookingSchema.pre('save', function() {
   if (!this.bookingId) {
     this.bookingId = 'BKG-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+  }
+});
+
+bookingSchema.post('findOneAndDelete', async function(doc) {
+  if (doc && doc.propertyId && doc.roomDetails && doc.roomDetails.roomName && doc.roomDetails.bedName) {
+    try {
+      const Property = mongoose.model('Property');
+      const property = await Property.findById(doc.propertyId);
+      if (!property || property.propertyType !== 'PG') return;
+
+      const activeBookings = await mongoose.model('Booking').find({
+        propertyId: doc.propertyId,
+        'roomDetails.roomName': doc.roomDetails.roomName,
+        'roomDetails.bedName': doc.roomDetails.bedName,
+        status: { $in: ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active'] }
+      });
+
+      let bedStatus = 'Vacant';
+      const hasOccupied = activeBookings.some(b => ['Confirmed', 'Active'].includes(b.status));
+      const hasReserved = activeBookings.some(b => ['Pending Request', 'Pending Payment', 'Reserved'].includes(b.status));
+
+      if (hasOccupied) {
+        bedStatus = 'Occupied';
+      } else if (hasReserved) {
+        bedStatus = 'Reserved';
+      }
+
+      let bedFound = false;
+      for (const floor of property.floors) {
+        if (bedFound) break;
+        const room = floor.rooms.find(r => r.roomName === doc.roomDetails.roomName);
+        if (room) {
+          const bed = room.beds.find(b => b.bedName === doc.roomDetails.bedName);
+          if (bed) {
+            if (bed.status !== 'Maintenance') {
+              bed.status = bedStatus;
+            }
+            bedFound = true;
+          }
+        }
+      }
+
+      if (bedFound) {
+        await property.save();
+      }
+    } catch (err) {
+      console.error('Error updating bed status after booking deletion:', err);
+    }
   }
 });
 

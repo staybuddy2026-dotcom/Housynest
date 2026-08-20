@@ -54,28 +54,56 @@ const Properties = () => {
           const data = await res.json();
           // Filter to approved ones? The backend endpoint '/api/properties' might return all. 
           // If you only want approved ones, maybe check `p.isApproved === 'approved'`
-          const mappedProperties = data.map(p => ({
-            id: p._id,
-            title: p.pgName || p.societyName || (p.bhkType ? `${p.bhkType} ${p.propertyCategory}` : p.propertyCategory) || 'Property',
-            type: p.propertyType,
-            bhkType: p.bhkType,
-            societyName: p.societyName,
-            location: [p.address, p.locality, p.city].filter(Boolean).join(', '),
-            price: (p.monthlyRent || '0').toString(),
-            gender: p.preferredGender || 'Anyone',
-            roomType: p.rooms && p.rooms.length > 0 ? p.rooms[0].sharingType : '',
-            rating: p.rating || '0',
-            reviews: p.reviewCount || 0,
-            image: p.images && p.images.length > 0 ? p.images[0].url : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800',
-            images: p.images && p.images.length > 0 ? p.images.map(img => img.url) : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800'],
-            amenities: p.societyAmenities?.length > 0 ? p.societyAmenities : (p.commonAmenities?.length > 0 ? p.commonAmenities : []),
-            isVerified: p.isVerified || false,
-            category: p.propertyCategory || '',
-            rooms: p.rooms || [],
-            pgPricing: p.pgPricing || {},
-            floors: p.floors || [],
-            vegNonVeg: p.vegNonVeg || ''
-          }));
+          const mappedProperties = data.map(p => {
+            let pgPrices = [];
+            if (p.pgPricing) {
+              Object.values(p.pgPricing).forEach(priceObj => {
+                if (priceObj && priceObj.rentPerBed && Number(priceObj.rentPerBed) > 0) {
+                  pgPrices.push(Number(priceObj.rentPerBed));
+                }
+              });
+            }
+            if (pgPrices.length === 0 && p.rooms && p.rooms.length > 0) {
+              p.rooms.forEach(room => {
+                if (room.rentPerBed) pgPrices.push(Number(String(room.rentPerBed).replace(/,/g, '')));
+              });
+            }
+            
+            let minPrice = 0;
+            let maxPrice = 0;
+            if (pgPrices.length > 0) {
+              minPrice = Math.min(...pgPrices);
+              maxPrice = Math.max(...pgPrices);
+            } else {
+              minPrice = Number((p.monthlyRent || '0').toString().replace(/,/g, ''));
+              maxPrice = minPrice;
+            }
+
+            return {
+              id: p._id,
+              title: p.pgName || p.societyName || (p.bhkType ? `${p.bhkType} ${p.propertyCategory}` : p.propertyCategory) || 'Property',
+              type: p.propertyType,
+              bhkType: p.bhkType,
+              societyName: p.societyName,
+              location: [p.address, p.locality, p.city].filter(Boolean).join(', '),
+              price: (p.monthlyRent || '0').toString(),
+              minPrice,
+              maxPrice,
+              gender: p.preferredGender || 'Anyone',
+              roomType: p.rooms && p.rooms.length > 0 ? p.rooms[0].sharingType : '',
+              rating: p.rating || '0',
+              reviews: p.reviewCount || 0,
+              image: p.images && p.images.length > 0 ? p.images[0].url : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800',
+              images: p.images && p.images.length > 0 ? p.images.map(img => img.url) : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800'],
+              amenities: p.societyAmenities?.length > 0 ? p.societyAmenities : (p.commonAmenities?.length > 0 ? p.commonAmenities : []),
+              isVerified: p.isVerified || false,
+              category: p.propertyCategory || '',
+              rooms: p.rooms || [],
+              pgPricing: p.pgPricing || {},
+              floors: p.floors || [],
+              vegNonVeg: p.vegNonVeg || ''
+            };
+          });
           setDbProperties(mappedProperties);
         }
       } catch (error) {
@@ -144,10 +172,13 @@ const Properties = () => {
     if (propertyType && !property.title.toLowerCase().includes(propertyType.toLowerCase()) && !property.category.toLowerCase().includes(propertyType.toLowerCase())) return false;
 
     // Budget Range
-    const price = parseInt(property.price.replace(/,/g, ''), 10);
-    if (budgetRange === '₹0 - ₹10K' && price > 10000) return false;
-    if (budgetRange === '₹10K - ₹20K' && (price < 10000 || price > 20000)) return false;
-    if (budgetRange === '₹20K+' && price <= 20000) return false;
+    if (budgetRange === '₹0 - ₹10K') {
+      if (property.minPrice > 10000) return false;
+    } else if (budgetRange === '₹10K - ₹20K') {
+      if (property.minPrice > 20000 || property.maxPrice < 10000) return false;
+    } else if (budgetRange === '₹20K+') {
+      if (property.maxPrice <= 20000) return false;
+    }
 
     // PG For (Gender)
     if (pgForFilter && pgForFilter !== 'Both' && property.gender !== 'Anyone' && property.gender !== pgForFilter) return false;
@@ -159,7 +190,26 @@ const Properties = () => {
     // Amenities & Room Type
     if (amenitiesFilter && (!property.amenities || !property.amenities.includes(amenitiesFilter))) return false;
     // Room type (occupancy)
-    if (roomType && property.roomType !== roomType && (!property.amenities || !property.amenities.includes(roomType))) return false;
+    if (roomType) {
+      let hasRoomType = false;
+      if (property.floors && property.floors.length > 0) {
+        property.floors.forEach(f => {
+          f.rooms?.forEach(r => {
+            if (r.sharingType === roomType) hasRoomType = true;
+          });
+        });
+      } else if (property.rooms && property.rooms.length > 0) {
+        property.rooms.forEach(r => {
+          if (r.sharingType === roomType || (r.title && r.title.includes(roomType.split(' ')[0]))) hasRoomType = true;
+        });
+      }
+      
+      // Fallbacks
+      if (property.roomType === roomType) hasRoomType = true;
+      if (property.amenities && property.amenities.includes(roomType)) hasRoomType = true;
+      
+      if (!hasRoomType) return false;
+    }
 
     // Food Preference
     if (foodPreference && foodPreference !== 'Any') {
@@ -213,6 +263,27 @@ const Properties = () => {
     };
   }, [visibleCount, filteredProperties.length]);
 
+  // Compute unique sharing types for the Room Type filter
+  const uniqueSharingTypes = new Set();
+  dbProperties.forEach(p => {
+    if (p.floors && p.floors.length > 0) {
+      p.floors.forEach(f => f.rooms?.forEach(r => { if (r.sharingType) uniqueSharingTypes.add(r.sharingType); }));
+    } else if (p.rooms && p.rooms.length > 0) {
+      p.rooms.forEach(r => {
+        if (r.sharingType) uniqueSharingTypes.add(r.sharingType);
+        else if (r.title) uniqueSharingTypes.add(r.title.split(' ')[0]);
+      });
+    }
+    if (p.roomType) uniqueSharingTypes.add(p.roomType);
+  });
+  
+  const dynamicRoomTypes = Array.from(uniqueSharingTypes).sort((a, b) => {
+    const numA = parseInt(a);
+    const numB = parseInt(b);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return a.localeCompare(b);
+  }).filter(Boolean);
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans pb-20">
       <SEO 
@@ -242,6 +313,7 @@ const Properties = () => {
 
         {/* Left Sidebar - Filters */}
         <PropertiesFilter
+          availableRoomTypes={dynamicRoomTypes}
           propertyFor={propertyFor} setPropertyFor={setPropertyFor}
           propertyType={propertyType} setPropertyType={setPropertyType}
           roomType={roomType} setRoomType={setRoomType}

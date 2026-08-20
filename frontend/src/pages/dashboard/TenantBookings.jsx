@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import AgreementModal from '../../components/booking/AgreementModal';
+import MockPaymentModal from '../../components/booking/MockPaymentModal';
 
 const quickActions = [
   { icon: 'lucide:wallet', title: 'Pay Rent', desc: 'View dues and make payment securely' },
@@ -18,11 +19,30 @@ const TenantBookings = () => {
   const [loading, setLoading] = useState(true);
   const [processingPaymentId, setProcessingPaymentId] = useState(null);
   const [showAgreementModal, setShowAgreementModal] = useState(null);
+  const [showMockPayment, setShowMockPayment] = useState(false);
+  const [pendingPaymentData, setPendingPaymentData] = useState(null); // { bookingId, amount }
   const [confirmingMoveInId, setConfirmingMoveInId] = useState(null);
+  const [actionToFocus, setActionToFocus] = useState(null);
+
+  useEffect(() => {
+    if (selectedBooking && actionToFocus) {
+      setTimeout(() => {
+        const el = document.getElementById(`${actionToFocus}-section`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setActionToFocus(null);
+      }, 100);
+    }
+  }, [selectedBooking, actionToFocus]);
 
   const [requestingMoveOutId, setRequestingMoveOutId] = useState(null);
   const [moveOutDateInput, setMoveOutDateInput] = useState('');
   const [moveOutReasonInput, setMoveOutReasonInput] = useState('');
+
+  const [showEsignOtp, setShowEsignOtp] = useState(false);
+  const [esignOtp, setEsignOtp] = useState('');
+  const [isVerifyingEsign, setIsVerifyingEsign] = useState(false);
 
   const getBookingStatusBadge = (status, size = 'sm') => {
     const isSmall = size === 'sm';
@@ -30,10 +50,17 @@ const TenantBookings = () => {
     const pyClass = isSmall ? 'py-1' : 'py-1.5';
     const pxClass = isSmall ? 'px-2.5' : 'px-3';
 
-    if (['Confirmed', 'Active', 'Reserved'].includes(status)) {
+    if (['Confirmed', 'Active'].includes(status)) {
       return (
         <div className={`inline-flex items-center gap-1.5 ${pxClass} ${pyClass} bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm hover:bg-emerald-100 transition-colors`}>
           <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5 text-emerald-500" />
+          <span className={`${textClass} font-bold uppercase tracking-wider`}>{status}</span>
+        </div>
+      );
+    } else if (status === 'Reserved') {
+      return (
+        <div className={`inline-flex items-center gap-1.5 ${pxClass} ${pyClass} bg-blue-50 text-blue-700 border border-blue-200 rounded-full shadow-sm hover:bg-blue-100 transition-colors`}>
+          <Icon icon="lucide:shield-check" className="w-3.5 h-3.5 text-blue-500" />
           <span className={`${textClass} font-bold uppercase tracking-wider`}>{status}</span>
         </div>
       );
@@ -78,26 +105,17 @@ const TenantBookings = () => {
     fetchBookings();
   }, []);
 
-  const handlePayment = async (bookingId) => {
-    setProcessingPaymentId(bookingId);
-    try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(`/api/bookings/${bookingId}/pay`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        toast.success('Payment successful! Your booking is confirmed.');
-        fetchBookings();
-      } else {
-        toast.error('Payment failed. Please try again.');
+  const handlePayment = (bookingId) => {
+    const booking = bookings.find(b => b._id === bookingId);
+    if (!booking) return;
+    
+    // Navigate to the property booking wizard to complete the rest of the flow
+    navigate(`/properties/${booking.propertyId._id || booking.propertyId}/book`, {
+      state: {
+        bookingId: booking._id,
+        property: booking.propertyId
       }
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      toast.error('An error occurred during payment.');
-    } finally {
-      setProcessingPaymentId(null);
-    }
+    });
   };
 
   const handlePayBalance = async (bookingId, amount) => {
@@ -213,6 +231,45 @@ const TenantBookings = () => {
     }
   };
 
+  const handleSendEsignOtp = () => {
+    setShowEsignOtp(true);
+    toast.success('OTP sent to your Aadhaar linked mobile number for eSign');
+  };
+
+  const handleVerifyEsign = async (bookingId) => {
+    if (esignOtp.length < 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+    setIsVerifyingEsign(true);
+    try {
+      // Simulate backend delay for eSign verification
+      await new Promise(r => setTimeout(r, 2000));
+      
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${bookingId}/consent`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        toast.success('Agreement E-Signed Successfully!');
+        
+        // Update local state
+        setBookings(bookings.map(b => b._id === bookingId ? { ...b, eSignStatus: 'Completed', tenantConsentStatus: 'Consented' } : b));
+        if (selectedBooking && selectedBooking._id === bookingId) {
+          setSelectedBooking({ ...selectedBooking, eSignStatus: 'Completed', tenantConsentStatus: 'Consented' });
+        }
+        setShowEsignOtp(false);
+        setEsignOtp('');
+      }
+    } catch (error) {
+      toast.error('Failed to verify eSign OTP');
+    } finally {
+      setIsVerifyingEsign(false);
+    }
+  };
+
   if (loading) {
     return <div className="p-8 text-center text-slate-500">Loading bookings...</div>;
   }
@@ -307,7 +364,11 @@ const TenantBookings = () => {
                           if (needsConfirmationRow) {
                             return (
                               <button
-                                onClick={(e) => { e.stopPropagation(); setSelectedBooking(booking); }}
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setSelectedBooking(booking); 
+                                  setActionToFocus('confirm-move-in');
+                                }}
                                 className="text-white px-3 py-2 rounded-lg cursor-pointer bg-indigo-600 hover:bg-indigo-700 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
                               >
                                 <Icon icon="lucide:home" className="w-4 h-4 mr-1.5" />
@@ -590,7 +651,10 @@ const TenantBookings = () => {
 
                         {isTokenPaid && remainingAmount > 0 && booking.status === 'Reserved' && (
                           <button
-                            onClick={() => setShowAgreementModal({ bookingId: booking._id, amount: remainingAmount })}
+                            onClick={() => {
+                              setPendingPaymentData({ bookingId: booking._id, amount: remainingAmount });
+                              setShowMockPayment(true);
+                            }}
                             disabled={processingPaymentId === booking._id}
                             className="w-full sm:w-auto px-8 py-2.5 bg-[#062F26] text-white font-bold text-sm rounded-lg cursor-pointer shadow-md hover:bg-[#08483B] disabled:bg-slate-400 transition-colors shrink-0 flex items-center justify-center min-w-[200px]"
                           >
@@ -605,9 +669,11 @@ const TenantBookings = () => {
                     </div>
                   )}
 
+
+
                   {/* Move-in Confirmation Banner */}
-                  {(booking.status === 'Confirmed' || booking.status === 'Active') && booking.paymentDetails?.status === 'Paid' && !isTokenPaid && (
-                    <div className="mt-6">
+                  {(booking.status === 'Confirmed' || booking.status === 'Active') && booking.paymentDetails?.status === 'Paid' && !isTokenPaid && booking.eSignStatus === 'Completed' && (
+                    <div id="confirm-move-in-section" className="mt-6">
                       <h3 className="text-lg font-bold text-[#062F26] mb-4">Move-in Status</h3>
                       <div className={`border rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${booking.tenantConfirmedMoveIn ? 'bg-emerald-50 border-emerald-200' : 'bg-indigo-50 border-indigo-200'}`}>
                         <div className="flex gap-4">
@@ -629,7 +695,7 @@ const TenantBookings = () => {
                           <button
                             onClick={() => handleConfirmMoveIn(booking._id)}
                             disabled={confirmingMoveInId === booking._id}
-                            className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-bold text-sm rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors shrink-0 whitespace-nowrap flex items-center justify-center min-w-[150px]"
+                            className="animate-periodic-vibrate w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-bold text-sm rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors shrink-0 whitespace-nowrap flex items-center justify-center min-w-[150px]"
                           >
                             {confirmingMoveInId === booking._id ? (
                               <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin" />
@@ -754,6 +820,19 @@ const TenantBookings = () => {
         booking={showAgreementModal ? bookings.find(b => b._id === showAgreementModal.bookingId) : null}
         isReadOnly={showAgreementModal?.isReadOnly || false}
       />
+
+      {/* Mock Payment Modal */}
+      {showMockPayment && pendingPaymentData && (
+        <MockPaymentModal
+          isOpen={true}
+          amount={pendingPaymentData.amount}
+          onClose={() => setShowMockPayment(false)}
+          onSuccess={() => {
+            setShowMockPayment(false);
+            setShowAgreementModal({ bookingId: pendingPaymentData.bookingId, amount: pendingPaymentData.amount });
+          }}
+        />
+      )}
     </div>
   );
 };

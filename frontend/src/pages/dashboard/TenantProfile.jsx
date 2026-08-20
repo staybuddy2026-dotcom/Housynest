@@ -138,22 +138,37 @@ const TenantProfile = () => {
   };
 
   return (
-    <div className="animate-fadeIn p-4 mx-auto">
-      <h1 className="text-2xl font-bold text-[#062F26] tracking-tight mb-6">Profile Settings</h1>
+    <div className="animate-fadeIn mx-auto pb-10 ">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-sm">
+            <Icon icon="lucide:user" className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#062F26] mb-0.5 tracking-tight">Profile Settings</h1>
+            <p className="text-sm text-slate-500 font-medium">Manage your personal information and contact details</p>
+          </div>
+        </div>
+      </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* Left Side: Profile Summary Card */}
-        <div className="w-full lg:w-[320px] shrink-0 bg-white border border-slate-200 rounded-2xl p-8 shadow-sm flex flex-col items-center text-center lg:sticky lg:top-6">
-          <div className="relative group mb-5">
-            <div className="w-28 h-28 bg-[#062F26] rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-inner overflow-hidden ring-4 ring-slate-50">
-              {formData.profilePic ? (
-                <img src={formData.profilePic} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                formData.fullName ? formData.fullName.charAt(0).toUpperCase() : 'T'
-              )}
+        <div className="w-full lg:w-[320px] shrink-0 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col items-center text-center lg:sticky lg:top-6 overflow-hidden relative">
+          {/* Cover Photo / Top Background */}
+          <div className="w-full h-32 bg-linear-to-r from-emerald-600 to-brand-teal absolute top-0 left-0"></div>
+
+          <div className="relative group mb-4 mt-16 z-10">
+            <div className="w-32 h-32 bg-white rounded-full p-1.5 shadow-md">
+              <div className="w-full h-full bg-linear-to-tr from-[#062F26] to-emerald-500 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-inner overflow-hidden">
+                {formData.profilePic ? (
+                  <img src={formData.profilePic} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  formData.fullName ? formData.fullName.charAt(0).toUpperCase() : 'T'
+                )}
+              </div>
             </div>
 
-            <label className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+            <label className="absolute inset-1.5 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
               {isUploading ? (
                 <Icon icon="lucide:loader-2" className="w-6 h-6 text-white animate-spin" />
               ) : (
@@ -169,39 +184,52 @@ const TenantProfile = () => {
             </label>
           </div>
 
-          <h2 className="text-xl font-bold text-slate-800 leading-tight mb-1.5">{formData.fullName || 'Tenant Name'}</h2>
-          <p className="text-sm font-medium text-slate-500 mb-4">{formData.email}</p>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#EAF5F2] text-[#062F26] mb-8">
-            Tenant
-          </span>
+          <div className="px-8 pb-8 flex flex-col items-center w-full">
+            <h2 className="text-2xl font-bold text-slate-800 leading-tight mb-1">{formData.fullName || 'Tenant Name'}</h2>
+            <p className="text-sm font-medium text-slate-500 mb-4">{formData.email}</p>
+            <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 mb-8 border border-emerald-100">
+              <Icon icon="lucide:shield-check" className="w-4 h-4 mr-1.5" />
+              Verified Tenant
+            </span>
 
-          {/* Update Photo Button */}
-          <label className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-100 hover:text-[#062F26] transition-all cursor-pointer group">
-            {isUploading ? (
-              <Icon icon="lucide:loader-2" className="w-4.5 h-4.5 animate-spin" />
-            ) : (
-              <Icon icon="lucide:image-plus" className="w-4.5 h-4.5 text-slate-400 group-hover:text-[#062F26] transition-colors" />
-            )}
-            {isUploading ? 'Uploading...' : 'Update Photo'}
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageUpload}
-              disabled={isUploading}
-            />
-          </label>
+            {/* Update Photo Button */}
+            <label className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all cursor-pointer group">
+              {isUploading ? (
+                <Icon icon="lucide:loader-2" className="w-4.5 h-4.5 animate-spin" />
+              ) : (
+                <Icon icon="lucide:image-plus" className="w-4.5 h-4.5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+              )}
+              {isUploading ? 'Uploading...' : 'Update Photo'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+                disabled={isUploading}
+              />
+            </label>
+          </div>
         </div>
 
         {/* Right Side: Form Card */}
-        <div className="w-full flex-1 bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
-          <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
-            <h3 className="text-lg font-bold text-[#062F26]">Personal Information</h3>
+        <div className="w-full flex-1 bg-white border border-slate-200 rounded-xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-800"></div>
+
+          <div className="flex items-start justify-between mb-8 border-b border-slate-100 pb-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-200 shadow-xs">
+                <Icon icon="lucide:user" className="w-6 h-6 text-slate-600" />
+              </div>
+              <div className="pt-0.5">
+                <h3 className="text-xl font-bold text-[#062F26]">Personal Information</h3>
+                <p className="text-sm text-slate-500 font-medium mt-1">Manage your basic details and contact information.</p>
+              </div>
+            </div>
             {!isEditing ? (
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#EAF5F2] text-[#062F26] text-sm font-bold rounded-xl hover:bg-[#062F26] hover:text-white transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 bg-slate-50 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-800 hover:text-white transition-all shadow-xs"
               >
                 <Icon icon="lucide:pencil" className="w-4 h-4" />
                 Edit Profile
@@ -210,7 +238,7 @@ const TenantProfile = () => {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors shadow-xs"
               >
                 <Icon icon="lucide:x" className="w-4 h-4" />
                 Cancel

@@ -11,6 +11,8 @@ import BookingStepDocuments from '../components/booking/BookingStepDocuments';
 import BookingStepPayment from '../components/booking/BookingStepPayment';
 import BookingSidebarCard from '../components/booking/BookingSidebarCard';
 import BookingSuccessCard from '../components/booking/BookingSuccessCard';
+import BookingESignWizard from '../components/booking/BookingESignWizard';
+import MockPaymentModal from '../components/booking/MockPaymentModal';
 
 const PropertyBooking = () => {
   const { id } = useParams();
@@ -20,6 +22,7 @@ const PropertyBooking = () => {
 
   // State data passed from BookNowModal or property details
   const stateData = location.state || {};
+  const existingBookingId = stateData.bookingId || null;
   const [property, setProperty] = useState(stateData.property || null);
   const [loading, setLoading] = useState(!stateData.property);
 
@@ -75,6 +78,10 @@ const PropertyBooking = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingRef, setBookingRef] = useState('');
+  const [completedBookingId, setCompletedBookingId] = useState('');
+
+  // Payment Mock State
+  const [showMockPayment, setShowMockPayment] = useState(false);
 
   // Dropdown options
   const genderOptions = [
@@ -280,6 +287,13 @@ const PropertyBooking = () => {
       return;
     }
 
+    // Open Mock Payment Modal instead of directly submitting
+    setShowMockPayment(true);
+  };
+
+  const processActualBooking = async (paymentStatus) => {
+    setShowMockPayment(false);
+    const token = localStorage.getItem('accessToken');
     setIsSubmitting(true);
 
     try {
@@ -309,24 +323,46 @@ const PropertyBooking = () => {
         },
         paymentDetails: {
           amount: payNowAmount,
-          status: 'Pending',
+          status: paymentStatus,
           paymentMethod: paymentType === 'token' ? 'Token Amount' : 'Full Payment'
         }
       };
 
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(bookingData)
-      });
+      let res;
+      if (existingBookingId) {
+        res = await fetch(`/api/bookings/${existingBookingId}/complete`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(bookingData)
+        });
+      } else {
+        res = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(bookingData)
+        });
+      }
 
       if (res.ok) {
         const result = await res.json();
+        
+        // TRIGGER MOCK E-STAMP & E-SIGN IN BACKGROUND IF PAID
+        if (paymentStatus === 'Paid') {
+          fetch(`/api/bookings/${result._id}/trigger-estamp`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).catch(err => console.error('Error triggering e-stamp:', err));
+        }
+
         // The backend generates the actual booking ID, but we can display a custom ref on success page
         setBookingRef(result._id.substring(result._id.length - 8).toUpperCase());
+        setCompletedBookingId(result._id);
         setBookingSuccess(true);
         toast.success(result.status === 'Confirmed' ? 'Booking Confirmed Successfully!' : 'Booking Request Submitted Successfully!');
       } else {
@@ -482,16 +518,39 @@ const PropertyBooking = () => {
 
           </div>
         ) : (
-          /* SUCCESS SCREEN */
-          <BookingSuccessCard
-            isPG={isPG}
-            bookingRef={bookingRef}
-            firstName={firstName}
-            selectedBedName={selectedBedName}
-            propTitle={propTitle}
-            moveInDate={moveInDate}
-            id={id}
-            navigate={navigate}
+          /* SUCCESS SCREEN OR WIZARD */
+          paymentType === 'full' ? (
+            <BookingESignWizard
+              isPG={isPG}
+              bookingRef={bookingRef}
+              bookingId={completedBookingId}
+              firstName={firstName}
+              selectedBedName={selectedBedName}
+              propTitle={propTitle}
+              moveInDate={moveInDate}
+              navigate={navigate}
+            />
+          ) : (
+            <BookingSuccessCard
+              isPG={isPG}
+              bookingRef={bookingRef}
+              firstName={firstName}
+              selectedBedName={selectedBedName}
+              propTitle={propTitle}
+              moveInDate={moveInDate}
+              id={id}
+              navigate={navigate}
+            />
+          )
+        )}
+
+        {/* Mock Payment Modal */}
+        {showMockPayment && (
+          <MockPaymentModal
+            isOpen={true}
+            amount={payNowAmount}
+            onClose={() => setShowMockPayment(false)}
+            onSuccess={processActualBooking}
           />
         )}
 

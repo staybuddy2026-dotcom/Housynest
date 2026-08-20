@@ -10,6 +10,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
   const [selectedRoomId, setSelectedRoomId] = useState('');
   const [selectedBedName, setSelectedBedName] = useState('');
   const [guestName, setGuestName] = useState('');
+  const [moveInDate, setMoveInDate] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -195,7 +196,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
 
   if (!isOpen || !property) return null;
 
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -209,14 +210,44 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
       return;
     }
 
-    onClose();
-    navigate(`/properties/${property.id || property._id}/book`, {
-      state: {
-        selectedRoom: currentRoom,
-        selectedBedName: selectedBedName,
-        property: property
+    if (!moveInDate) {
+      toast.error('Please select a move-in date');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/bookings/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          propertyId: property._id || property.id,
+          moveInDate,
+          roomDetails: isPG ? {
+            floorName: currentRoom?.floorName,
+            roomName: currentRoom?.roomName,
+            bedName: selectedBedName,
+            sharingType: currentRoom?.sharingType
+          } : {}
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setBookingId(data.bookingId);
+        setIsSuccess(true);
+        toast.success('Booking request sent to owner!');
+      } else {
+        toast.error(data.message || 'Failed to send request');
       }
-    });
+    } catch (err) {
+      toast.error('Server error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -363,7 +394,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                           <div>
                             <p className="text-xs font-bold text-[#062F26]">{bed.bedName}</p>
                             <p className="text-[10px] font-semibold text-slate-400 mt-0.5">
-                              {isVacant ? 'Ready for Move-in' : 'Occupied'}
+                              {isVacant ? 'Available' : bed.status === 'Reserved' ? 'Reserved' : 'Occupied'}
                             </p>
                           </div>
                         </div>
@@ -373,8 +404,8 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                             {isBedSelected && <Icon icon="lucide:check" width="12" strokeWidth="3" />}
                           </div>
                         ) : (
-                          <span className="text-[10px] font-bold bg-slate-200 text-slate-500 px-2 py-0.5 rounded-md">
-                            Full
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${bed.status === 'Reserved' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-500'}`}>
+                            {bed.status === 'Reserved' ? 'Reserved' : 'Occupied'}
                           </span>
                         )}
                       </div>
@@ -383,6 +414,27 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                 </div>
               </div>
             )}
+
+            {/* STEP 3: SELECT MOVE-IN DATE */}
+            <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-3 mb-6">
+              <label className="text-xs font-bold text-[#062F26] uppercase tracking-wider flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-brand-teal text-white flex items-center justify-center text-[10px] font-bold shadow-xs">{isPG ? '3' : '2'}</span>
+                Select Expected Move-in Date
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Icon icon="lucide:calendar" className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="date"
+                  min={new Date().toISOString().split('T')[0]}
+                  value={moveInDate}
+                  onChange={(e) => setMoveInDate(e.target.value)}
+                  className="pl-10 block w-full rounded-xl border-2 border-slate-200 bg-white shadow-sm focus:border-brand-teal focus:ring focus:ring-brand-teal/20 py-2.5 text-sm font-bold text-[#062F26]"
+                  required
+                />
+              </div>
+            </div>
 
             {/* Bottom Sticky Action Area */}
             <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -433,12 +485,12 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                 Booking Reference: {bookingId}
               </span>
               <h3 className="text-2xl sm:text-3xl font-bold text-[#062F26] mt-3">
-                {isPG ? 'Bed Reserved Successfully!' : 'Property Booked Successfully!'}
+                {isPG ? 'Booking Request Sent!' : 'Booking Request Sent!'}
               </h3>
               <p className="text-sm text-slate-600 font-medium max-w-lg mx-auto mt-2 leading-relaxed">
                 Thank you, <span className="font-bold text-[#062F26]">{guestName}</span>! Your {isPG ? `reservation for ` : `booking for `}
                 {isPG && <><span className="font-bold text-brand-teal">{selectedBedName}</span> in </>}
-                <span className="font-bold text-[#062F26]">{isPG ? currentRoom?.roomName : property.title}</span> is locked.
+                <span className="font-bold text-[#062F26]">{isPG ? currentRoom?.roomName : property.title}</span> has been sent to the owner for approval.
               </p>
             </div>
 
@@ -459,7 +511,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                 type="button"
                 onClick={() => {
                   onClose();
-                  navigate('/dashboard/leads');
+                  navigate('/tenant/bookings');
                 }}
                 className="flex-1 py-3.5 px-5 rounded-xl bg-[#062F26] text-white font-bold text-xs hover:bg-brand-teal transition-all shadow-md cursor-pointer"
               >

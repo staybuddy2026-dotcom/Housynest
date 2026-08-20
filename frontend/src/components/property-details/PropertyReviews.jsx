@@ -148,43 +148,61 @@ const PropertyReviews = ({ property, reviews = [], setIsReviewModalOpen, setIsSc
               {owner.fullName ? owner.fullName.charAt(0).toUpperCase() : 'O'}
             </div>
           )}
-          <h4 className="text-[24px] font-bold text-[#062F26] mb-0.5">{owner.fullName}</h4>
-          <p className="text-[12px] font-bold text-brand-teal mb-5 tracking-widest uppercase">Property Owner</p>
+          <h4 className="text-2xl font-bold text-[#062F26] mb-0.5">{owner.fullName}</h4>
+          <p className="text-xs font-bold text-brand-teal mb-1 tracking-widest uppercase">Property Owner</p>
 
           <div className="flex flex-col gap-0 w-full mb-6">
-            <div className="flex items-center gap-3 border-b border-slate-100 py-3 group">
-              <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-[#EAF5F2] group-hover:text-brand-teal transition-colors">
-                <Icon icon="lucide:phone" className="w-4 h-4" />
+            {[
+              {
+                id: 1,
+                icon: "lucide:phone",
+                label: "Phone Number",
+                value: owner.phone,
+                wrapperClass: "flex items-center gap-3 border-b border-slate-100 py-3 group",
+                iconClass: "w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-[#EAF5F2] group-hover:text-brand-teal transition-colors",
+                iconSize: "w-4 h-4",
+                textContainerClass: "flex flex-col items-start",
+                valClass: "text-sm lg:text-base font-bold text-[#062F26] group-hover:text-brand-teal transition-colors"
+              },
+              {
+                id: 2,
+                icon: "lucide:mail",
+                label: "Email Address",
+                value: owner.email,
+                wrapperClass: "flex items-center gap-3 border-b border-slate-100 py-3 group w-full overflow-hidden",
+                iconClass: "w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-[#EAF5F2] group-hover:text-brand-teal transition-colors",
+                iconSize: "w-4 h-4",
+                textContainerClass: "flex flex-col items-start text-left flex-1 min-w-0",
+                valClass: "text-[15px] font-bold text-[#062F26] truncate w-full group-hover:text-brand-teal transition-colors"
+              },
+              {
+                id: 3,
+                icon: "lucide:shield-check",
+                label: "Status",
+                value: "Verified Profile",
+                wrapperClass: "flex items-center gap-3 py-3",
+                iconClass: "w-10 h-10 rounded-full bg-[#EAF5F2] flex items-center justify-center text-brand-teal shrink-0",
+                iconSize: "w-5 h-5",
+                textContainerClass: "flex flex-col items-start",
+                valClass: "text-[15px] font-bold text-brand-teal"
+              }
+            ].map((detail) => (
+              <div key={detail.id} className={detail.wrapperClass}>
+                <div className={detail.iconClass}>
+                  <Icon icon={detail.icon} className={detail.iconSize} />
+                </div>
+                <div className={detail.textContainerClass}>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{detail.label}</span>
+                  <span className={detail.valClass}>{detail.value}</span>
+                </div>
               </div>
-              <div className="flex flex-col items-start">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Phone Number</span>
-                <span className="text-[15px] font-bold text-[#062F26] group-hover:text-brand-teal transition-colors">{owner.phone}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 border-b border-slate-100 py-3 group w-full overflow-hidden">
-              <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-[#EAF5F2] group-hover:text-brand-teal transition-colors">
-                <Icon icon="lucide:mail" className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col items-start text-left flex-1 min-w-0">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Email Address</span>
-                <span className="text-[15px] font-bold text-[#062F26] truncate w-full group-hover:text-brand-teal transition-colors">{owner.email}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 py-3">
-              <div className="w-10 h-10 rounded-full bg-[#EAF5F2] flex items-center justify-center text-brand-teal shrink-0">
-                <Icon icon="lucide:shield-check" className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Status</span>
-                <span className="text-[15px] font-bold text-brand-teal">Verified Profile</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
         {/* CTA Box */}
         {isTenantOrGuest && (
-          <div className="p-6 sm:p-8 pt-0 w-full flex flex-col gap-3 mt-auto relative z-10">
+          <div className="p-6 sm:p-8 !pt-0 w-full flex flex-col gap-3 mt-auto relative z-10">
             <a
               href={property?.owner?.phone ? `tel:${property.owner.phone}` : '#'}
               onClick={(e) => {

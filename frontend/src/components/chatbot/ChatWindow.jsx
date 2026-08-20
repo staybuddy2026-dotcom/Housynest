@@ -6,11 +6,22 @@ import QuickActions from './QuickActions';
 import axios from 'axios';
 
 const ChatWindow = ({ onClose }) => {
+  const getWelcomeMessage = (lang) => {
+    if (lang === 'Hindi') {
+      return "नमस्ते 👋\n\nमैं HousyNest AI Assistant हूँ।\n\nमैं आपकी मदद कर सकता हूँ:\n\n🏠 PGs खोजने में\n📍 लोकेशन से खोजने में\n💰 बजट के अनुसार प्रॉपर्टी खोजने में\n⭐ PGs की तुलना करने में\n📅 विज़िट शेड्यूल करने में\n📄 बुकिंग ट्रैक करने में\n💳 पेमेंट हेल्प में\n❓ वेबसाइट सपोर्ट में\n\nआज मैं आपकी कैसे मदद कर सकता हूँ?";
+    } else if (lang === 'Gujarati') {
+      return "નમસ્તે 👋\n\nહું HousyNest AI Assistant છું.\n\nહું તમારી મદદ કરી શકું છું:\n\n🏠 PGs શોધવા માટે\n📍 લોકેશનથી શોધવા માટે\n💰 બજેટ મુજબ પ્રોપર્ટી શોધવા માટે\n⭐ PGs ની સરખામણી કરવા માટે\n📅 વિઝિટ શેડ્યૂલ કરવા માટે\n📄 બુકિંગ ટ્રેક કરવા માટે\n💳 પેમેન્ટ હેલ્પ માટે\n❓ વેબસાઇટ સપોર્ટ માટે\n\nઆજે હું તમારી કેવી રીતે મદદ કરી શકું?";
+    }
+    return "Hi 👋\n\nI'm HousyNest AI Assistant.\n\nI can help you:\n\n🏠 Find PGs\n📍 Search by location\n💰 Find properties by budget\n⭐ Compare PGs\n📅 Schedule Visits\n📄 Track Bookings\n💳 Payment Help\n❓ Website Support\n\nWhat would you like help with today?";
+  };
+
+  const [language, setLanguage] = useState(() => localStorage.getItem('housynest_chat_lang') || 'English');
+
   const [messages, setMessages] = useState([
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi 👋\n\nI'm HousyNest AI Assistant.\n\nI can help you:\n\n🏠 Find PGs\n📍 Search by location\n💰 Find properties by budget\n⭐ Compare PGs\n📅 Schedule Visits\n📄 Track Bookings\n💳 Payment Help\n❓ Website Support\n\nWhat would you like help with today?",
+      content: getWelcomeMessage(localStorage.getItem('housynest_chat_lang') || 'English'),
       timestamp: new Date().toISOString(),
     }
   ]);
@@ -20,7 +31,7 @@ const ChatWindow = ({ onClose }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   
   // New features state
-  const [language, setLanguage] = useState(() => localStorage.getItem('housynest_chat_lang') || 'English');
+
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef(null);
@@ -80,6 +91,15 @@ const ChatWindow = ({ onClose }) => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (messages.length === 1 && messages[0].id === 'welcome') {
+      setMessages([{
+        ...messages[0],
+        content: getWelcomeMessage(language)
+      }]);
+    }
+  }, [language]);
 
   useEffect(() => {
     scrollToBottom();
