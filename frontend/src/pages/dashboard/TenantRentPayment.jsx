@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import { jsPDF } from 'jspdf';
 
 const TenantRentPayment = () => {
   const { id } = useParams();
@@ -13,6 +14,7 @@ const TenantRentPayment = () => {
   const [selectedMethod, setSelectedMethod] = useState('UPI');
   const [autoPayEnabled, setAutoPayEnabled] = useState(false);
   const [processingId, setProcessingId] = useState(null);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -402,7 +404,10 @@ const TenantRentPayment = () => {
                         <td className="p-4 text-slate-500">{formatDate(new Date(inv.paidAt || inv.dueDate))}</td>
                         <td className="p-4"><span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 font-bold text-[10px] rounded border border-emerald-100">Paid</span></td>
                         <td className="p-4 text-right">
-                          <button className="text-[#0AA87D] hover:text-[#062F26] font-bold text-[11px] flex items-center justify-end gap-1.5 transition-colors ml-auto cursor-pointer">
+                          <button 
+                            onClick={() => setSelectedReceipt(inv)}
+                            className="text-[#0AA87D] hover:text-[#062F26] font-bold text-[11px] flex items-center justify-end gap-1.5 transition-colors ml-auto cursor-pointer"
+                          >
                             <Icon icon="lucide:download" className="w-3.5 h-3.5" /> View Receipt
                           </button>
                         </td>
@@ -566,6 +571,317 @@ const TenantRentPayment = () => {
 
         </div>
       </div>
+
+      {/* Receipt Modal */}
+      {selectedReceipt && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-xl">
+              <h2 className="text-lg font-bold text-[#062F26]">Payment Receipt</h2>
+              <button 
+                onClick={() => setSelectedReceipt(null)}
+                className="w-8 h-8 hover:bg-slate-100 text-slate-500 rounded-full flex items-center justify-center transition-colors"
+              >
+                <Icon icon="lucide:x" className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Receipt Content */}
+            <div className="p-6 overflow-y-auto" id="receipt-content">
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <img src="/src/assets/logo.png" alt="Housynest" className="h-8 object-contain mb-1" />
+                  <p className="text-xs text-slate-500 mt-1">Payment Receipt</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-slate-800">Receipt #{selectedReceipt._id?.substring(0, 8).toUpperCase()}</p>
+                  <p className="text-xs font-semibold text-slate-500 mt-0.5">Date: {formatDate(new Date(selectedReceipt.paidAt || selectedReceipt.updatedAt || Date.now()))}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Paid To</p>
+                  <p className="text-sm font-bold text-slate-800">{booking?.propertyId?.pgName || 'Property Owner'}</p>
+                  <p className="text-xs font-semibold text-slate-500">{booking?.propertyId?.address || 'N/A'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Billed To</p>
+                  <p className="text-sm font-bold text-slate-800">{booking?.tenantId?.fullName || JSON.parse(localStorage.getItem('user') || '{}')?.fullName || 'Tenant'}</p>
+                  <p className="text-xs font-semibold text-slate-500">Room {booking?.roomDetails?.roomName}, {booking?.roomDetails?.bedName}</p>
+                </div>
+              </div>
+              
+              <div className="border border-slate-200 rounded-lg overflow-hidden mb-6">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
+                    <tr>
+                      <th className="px-4 py-3">Description</th>
+                      <th className="px-4 py-3 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-700 font-semibold">
+                    {(() => {
+                      const finalRentAmt = booking?.paymentDetails?.rentAmount || booking?.roomDetails?.rentAmount || (typeof rentAmount !== 'undefined' ? rentAmount : 0);
+                      const stamp = booking?.eStampFees || booking?.paymentDetails?.extraCharges || 0;
+                      const maint = booking?.roomDetails?.maintenanceFees || 0;
+                      let secDep = booking?.paymentDetails?.securityDeposit || booking?.roomDetails?.securityDeposit || 0;
+                      
+                      const sortedInvoices = [...invoices].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                      const isFirstInvoice = sortedInvoices.length > 0 && selectedReceipt && sortedInvoices[0]._id === selectedReceipt._id;
+                      
+                      let isMoveIn = false;
+                      if (secDep > 0 && selectedReceipt.amount > finalRentAmt + 10) {
+                        isMoveIn = true;
+                      } else if (isFirstInvoice && selectedReceipt.amount > finalRentAmt + 500) {
+                        isMoveIn = true;
+                        if (secDep === 0) {
+                          secDep = selectedReceipt.amount - finalRentAmt - maint - stamp;
+                        }
+                      }
+                      
+                      if (isMoveIn) {
+                        return (
+                          <>
+                            <tr>
+                              <td className="px-4 py-3">Rent ({formatDate(new Date(selectedReceipt.billingPeriodStart))} - {formatDate(new Date(selectedReceipt.billingPeriodEnd))})</td>
+                              <td className="px-4 py-3 text-right">₹{finalRentAmt.toLocaleString()}</td>
+                            </tr>
+                            <tr>
+                              <td className="px-4 py-3">Security Deposit</td>
+                              <td className="px-4 py-3 text-right">₹{secDep.toLocaleString()}</td>
+                            </tr>
+                            {maint > 0 && (
+                              <tr>
+                                <td className="px-4 py-3">Maintenance Charges</td>
+                                <td className="px-4 py-3 text-right">₹{maint.toLocaleString()}</td>
+                              </tr>
+                            )}
+                            {stamp > 0 && (
+                              <tr>
+                                <td className="px-4 py-3">Extra Charges (E-Sign & E-Stamp)</td>
+                                <td className="px-4 py-3 text-right">₹{stamp.toLocaleString()}</td>
+                              </tr>
+                            )}
+                            <tr>
+                              <td className="px-4 py-3">Transaction Fee</td>
+                              <td className="px-4 py-3 text-right">₹0</td>
+                            </tr>
+                          </>
+                        );
+                      }
+                      
+                      return (
+                        <>
+                          <tr>
+                            <td className="px-4 py-3">
+                              Rent ({formatDate(new Date(selectedReceipt.billingPeriodStart))} - {formatDate(new Date(selectedReceipt.billingPeriodEnd))})
+                            </td>
+                            <td className="px-4 py-3 text-right">₹{selectedReceipt.amount.toLocaleString()}</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3">Transaction Fee</td>
+                            <td className="px-4 py-3 text-right">₹0</td>
+                          </tr>
+                        </>
+                      );
+                    })()}
+                  </tbody>
+                  <tfoot className="bg-slate-50 border-t border-slate-200">
+                    <tr>
+                      <td className="px-4 py-3 font-bold text-slate-800">Total Paid</td>
+                      <td className="px-4 py-3 text-right font-black text-[#0AA87D] text-lg">₹{selectedReceipt.amount.toLocaleString()}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-emerald-50 text-emerald-700 p-3 rounded-lg border border-emerald-100">
+                <Icon icon="lucide:check-circle-2" className="w-4 h-4 shrink-0" />
+                This payment was successfully processed.
+              </div>
+            </div>
+            
+            {/* Footer / Actions */}
+            <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-xl shrink-0">
+              <button 
+                onClick={() => setSelectedReceipt(null)}
+                className="px-5 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors"
+              >
+                Close
+              </button>
+              <button 
+                onClick={async () => {
+                  try {
+                    const doc = new jsPDF();
+                    
+                    // Helper to get image base64
+                    const getLogoBase64 = async () => {
+                      return new Promise((resolve) => {
+                        const img = new Image();
+                        img.crossOrigin = 'Anonymous';
+                        img.src = '/src/assets/logo.png';
+                        img.onload = () => {
+                          const canvas = document.createElement('canvas');
+                          canvas.width = img.width;
+                          canvas.height = img.height;
+                          const ctx = canvas.getContext('2d');
+                          ctx.drawImage(img, 0, 0);
+                          resolve(canvas.toDataURL('image/png'));
+                        };
+                        img.onerror = () => resolve(null);
+                      });
+                    };
+
+                    const logoBase64 = await getLogoBase64();
+                    
+                    // Header
+                    if (logoBase64) {
+                      // Add Logo (top left)
+                      doc.addImage(logoBase64, 'PNG', 14, 12, 40, 12);
+                      
+                      // Add Watermark (center)
+                      doc.setGState(new doc.GState({ opacity: 0.08 }));
+                      doc.addImage(logoBase64, 'PNG', 45, 120, 120, 36);
+                      doc.setGState(new doc.GState({ opacity: 1.0 }));
+                    } else {
+                      doc.setFontSize(22);
+                      doc.setTextColor(10, 168, 125);
+                      doc.setFont("helvetica", "bold");
+                      doc.text("Housynest", 14, 20);
+                    }
+                    
+                    doc.setFontSize(10);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text("Payment Receipt", 14, 26);
+                    
+                    doc.setFontSize(12);
+                    doc.setTextColor(40, 40, 40);
+                    doc.text(`Receipt #${selectedReceipt._id?.substring(0, 8).toUpperCase()}`, 196, 20, { align: 'right' });
+                    doc.setFontSize(10);
+                    doc.text(`Date: ${formatDate(new Date(selectedReceipt.paidAt || selectedReceipt.updatedAt || Date.now()))}`, 196, 26, { align: 'right' });
+                    
+                    doc.setDrawColor(230, 230, 230);
+                    doc.line(14, 32, 196, 32);
+                    
+                    // Billed To / Paid To
+                    doc.setFontSize(9);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text("PAID TO", 14, 42);
+                    doc.text("BILLED TO", 196, 42, { align: 'right' });
+                    
+                    doc.setFontSize(11);
+                    doc.setTextColor(40, 40, 40);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(booking?.propertyId?.pgName || 'Property Owner', 14, 48);
+                    doc.text(booking?.tenantId?.fullName || JSON.parse(localStorage.getItem('user') || '{}')?.fullName || 'Tenant', 196, 48, { align: 'right' });
+                    
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(booking?.propertyId?.address || 'N/A', 14, 54);
+                    doc.text(`Room ${booking?.roomDetails?.roomName}, ${booking?.roomDetails?.bedName}`, 196, 54, { align: 'right' });
+                    
+                    // Table Header
+                    const startY = 70;
+                    doc.setFillColor(248, 250, 252);
+                    doc.rect(14, startY, 182, 10, 'F');
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(100, 100, 100);
+                    doc.text("Description", 20, startY + 7);
+                    doc.text("Amount", 188, startY + 7, { align: 'right' });
+                    
+                    // Table Content
+                    doc.setTextColor(40, 40, 40);
+                    doc.setFont("helvetica", "normal");
+                    
+                    const finalRentAmt = booking?.paymentDetails?.rentAmount || booking?.roomDetails?.rentAmount || (typeof rentAmount !== 'undefined' ? rentAmount : 0);
+                    const stamp = booking?.eStampFees || booking?.paymentDetails?.extraCharges || 0;
+                    const maint = booking?.roomDetails?.maintenanceFees || 0;
+                    let secDep = booking?.paymentDetails?.securityDeposit || booking?.roomDetails?.securityDeposit || 0;
+                    
+                    const sortedInvoices = [...invoices].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    const isFirstInvoice = sortedInvoices.length > 0 && selectedReceipt && sortedInvoices[0]._id === selectedReceipt._id;
+                    
+                    let isMoveIn = false;
+                    if (secDep > 0 && selectedReceipt.amount > finalRentAmt + 10) {
+                      isMoveIn = true;
+                    } else if (isFirstInvoice && selectedReceipt.amount > finalRentAmt + 500) {
+                      isMoveIn = true;
+                      if (secDep === 0) {
+                        secDep = selectedReceipt.amount - finalRentAmt - maint - stamp;
+                      }
+                    }
+                    
+                    let currentY = startY + 10;
+                    
+                    if (isMoveIn) {
+                      const items = [
+                        { label: `Rent (${formatDate(new Date(selectedReceipt.billingPeriodStart))} - ${formatDate(new Date(selectedReceipt.billingPeriodEnd))})`, amount: finalRentAmt },
+                        { label: 'Security Deposit', amount: secDep }
+                      ];
+                      if (maint > 0) items.push({ label: 'Maintenance Charges', amount: maint });
+                      if (stamp > 0) items.push({ label: 'Extra Charges (E-Sign & E-Stamp)', amount: stamp });
+                      items.push({ label: 'Transaction Fee', amount: 0 });
+                      
+                      items.forEach(item => {
+                        doc.rect(14, currentY, 182, 12);
+                        doc.text(item.label, 20, currentY + 8);
+                        doc.text(`Rs. ${item.amount.toLocaleString('en-IN')}`, 188, currentY + 8, { align: 'right' });
+                        currentY += 12;
+                      });
+                    } else {
+                      doc.rect(14, currentY, 182, 16); 
+                      doc.text(`Rent (${formatDate(new Date(selectedReceipt.billingPeriodStart))} - ${formatDate(new Date(selectedReceipt.billingPeriodEnd))})`, 20, currentY + 7);
+                      doc.text(`Rs. ${selectedReceipt.amount.toLocaleString('en-IN')}`, 188, currentY + 7, { align: 'right' });
+                      currentY += 16;
+                      
+                      doc.rect(14, currentY, 182, 12);
+                      doc.text("Transaction Fee", 20, currentY + 8);
+                      doc.text("Rs. 0", 188, currentY + 8, { align: 'right' });
+                      currentY += 12;
+                    }
+              
+                    const finalY = currentY + 6;
+              
+                    // Total Summary
+                    doc.setFillColor(248, 250, 252);
+                    doc.rect(14, finalY, 182, 16, 'F');
+                    doc.rect(14, finalY, 182, 16); 
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(40, 40, 40);
+                    doc.text("Total Paid:", 20, finalY + 11);
+                    doc.setTextColor(10, 168, 125);
+                    doc.text(`Rs. ${selectedReceipt.amount.toLocaleString('en-IN')}`, 188, finalY + 11, { align: 'right' });
+              
+                    // Footer
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "italic");
+                    doc.setTextColor(120, 120, 120);
+                    doc.text("This payment was successfully processed.", 105, 275, { align: "center" });
+                    doc.text("Thank you for using Housynest!", 105, 282, { align: "center" });
+              
+                    // Save
+                    doc.save(`Receipt_${selectedReceipt._id.substring(selectedReceipt._id.length - 8).toUpperCase()}.pdf`);
+                    toast.success('Receipt downloaded successfully!');
+                  } catch (error) {
+                    console.error("Error generating receipt:", error);
+                    toast.error('Failed to generate receipt.');
+                  }
+                }}
+                className="px-5 py-2 bg-[#062F26] text-white rounded-lg font-bold text-sm hover:bg-[#08483B] transition-colors flex items-center gap-2"
+              >
+                <Icon icon="lucide:download" className="w-4 h-4" />
+                Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

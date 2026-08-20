@@ -60,7 +60,6 @@ const pgSchema = z.object({
 
   paymentModel: z.string().min(1, "Payment Model is required"),
   rentalPeriod: z.string().min(1, "Rental Period (Months) is required"),
-  bookingType: z.string().min(1, "Booking Type is required"),
 
   services: z.array(z.string()).optional(),
   extraServices: z.array(z.string()).optional(),

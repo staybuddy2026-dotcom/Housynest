@@ -296,10 +296,10 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden" id="edit-form-container">
       {/* Header */}
-      <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md bg-slate-50/90">
+      <div className="bg-slate-50 px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md bg-slate-50/90">
         <div>
-          <h2 className="text-xl font-bold text-[#062F26]">Edit Property</h2>
-          <p className="text-sm text-slate-500 font-medium">Update the details for this listing</p>
+          <h2 className="text-lg sm:text-xl font-bold text-[#062F26]">Edit Property</h2>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">Update the details for this listing</p>
         </div>
         <button
           onClick={() => onClose()}
@@ -309,12 +309,12 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
         </button>
       </div>
 
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <FormProvider {...methods}>
-          <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-6 items-center">
+          <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-4 sm:gap-6 items-center">
 
             {/* Top Stepper */}
-            <div className="w-full max-w-7xl hidden md:block">
+            <div className="w-full max-w-7xl">
               <StepperSidebar activeStep={activeStep} propertyType={propertyType} layout="horizontal" />
             </div>
 

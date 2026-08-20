@@ -12,7 +12,7 @@ import BookingStepPayment from '../components/booking/BookingStepPayment';
 import BookingSidebarCard from '../components/booking/BookingSidebarCard';
 import BookingSuccessCard from '../components/booking/BookingSuccessCard';
 import BookingESignWizard from '../components/booking/BookingESignWizard';
-import MockPaymentModal from '../components/booking/MockPaymentModal';
+import RazorpayPaymentHandler from '../components/booking/RazorpayPaymentHandler';
 
 const PropertyBooking = () => {
   const { id } = useParams();
@@ -486,6 +486,7 @@ const PropertyBooking = () => {
                   handleContinue={handleContinue}
                   isStep3Valid={isStep3Valid}
                   isSubmitting={isSubmitting}
+                  property={property}
                 />
               )}
 
@@ -546,9 +547,10 @@ const PropertyBooking = () => {
 
         {/* Mock Payment Modal */}
         {showMockPayment && (
-          <MockPaymentModal
+          <RazorpayPaymentHandler
             isOpen={true}
             amount={payNowAmount}
+            bookingId={existingBookingId}
             onClose={() => setShowMockPayment(false)}
             onSuccess={processActualBooking}
           />

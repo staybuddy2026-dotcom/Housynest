@@ -71,9 +71,38 @@ const RootApp = () => {
   const location = useLocation();
   const hideChatbotPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
   const shouldHideChatbot = hideChatbotPaths.includes(location.pathname);
+  
+  const isDashboard = location.pathname.startsWith('/tenant') || 
+                      location.pathname.startsWith('/owner') || 
+                      location.pathname.startsWith('/admin');
+  
+  const toastPosition = isDashboard ? 'bottom-right' : 'top-center';
 
   return (
     <>
+      <Toaster 
+        position={toastPosition}
+        containerStyle={{ zIndex: 99999 }}
+        toastOptions={{
+          duration: 3000,
+          className: 'toast-with-progress',
+          style: {
+            background: '#04473a',
+            color: '#fbbf24',
+            border: '1px solid rgba(251, 191, 36, 0.3)',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            fontWeight: '600',
+            fontSize: '14px',
+            padding: '12px 20px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#fbbf24',
+              secondary: '#04473a',
+            },
+          },
+        }}
+      />
       <Outlet />
       {!shouldHideChatbot && <ChatbotWidget />}
     </>
@@ -137,6 +166,20 @@ function App() {
       window.dispatchEvent(new CustomEvent('globalLawyerRequestUpdated', { detail: data }));
     });
 
+    socket.on('newBookingRequest', (data) => {
+      toast.success(`New booking request received!`, {
+        duration: 3000,
+      });
+      window.dispatchEvent(new CustomEvent('globalNewBookingRequest', { detail: data }));
+    });
+
+    socket.on('bookingStatusUpdated', (data) => {
+      toast.success(`Booking status updated to ${data.status}!`, {
+        duration: 3000,
+      });
+      window.dispatchEvent(new CustomEvent('globalBookingStatusUpdated', { detail: data }));
+    });
+
     socket.on('visit_update', (data) => {
       const currentUserId = user.id || user._id;
       if (data.ownerId === currentUserId || data.tenantId === currentUserId) {
@@ -184,34 +227,13 @@ function App() {
       socket.off('newTenantContract');
       socket.off('ownerSignedContract');
       socket.off('tenantSignedContract');
+      socket.off('newBookingRequest');
+      socket.off('bookingStatusUpdated');
     };
   }, []);
 
   return (
     <>
-      <Toaster 
-        position="top-center" 
-        containerStyle={{ zIndex: 99999 }}
-        toastOptions={{
-          duration: 3000,
-          className: 'toast-with-progress',
-          style: {
-            background: '#04473a',
-            color: '#fbbf24',
-            border: '1px solid rgba(251, 191, 36, 0.3)',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-            fontWeight: '600',
-            fontSize: '14px',
-            padding: '12px 20px',
-          },
-          success: {
-            iconTheme: {
-              primary: '#fbbf24',
-              secondary: '#04473a',
-            },
-          },
-        }}
-      />
       <RouterProvider router={router} />
     </>
   );

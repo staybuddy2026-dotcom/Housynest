@@ -20,7 +20,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
 
   const handleSubscribeWaitlist = async (bedName, roomId, sharingType) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       if (!token) {
         toast.error('Please log in to receive availability email alerts.');
         return;
@@ -253,13 +253,13 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
   return (
     <div
       data-lenis-prevent
-      className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-9999 flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+      className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-9999 flex items-center justify-center p-2 sm:p-6 overflow-y-auto"
     >
       {/* Expanded Modal Container (max-w-4xl for extra space & professional layout) */}
-      <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl relative my-auto overflow-hidden animate-fadeIn border border-slate-100/80 flex flex-col max-h-[92vh]">
+      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl relative my-auto overflow-hidden animate-fadeIn border border-slate-100/80 flex flex-col max-h-[92vh]">
 
         {/* Sleek Top Header */}
-        <div className="bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] px-6 sm:px-8 py-5 text-white flex items-center justify-between shrink-0 relative">
+        <div className="bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] px-4 sm:px-8 py-5 text-white flex items-center justify-between shrink-0 relative">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
               <span className="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white backdrop-blur-xs shadow-xs">
@@ -290,7 +290,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
           <form
             onSubmit={handleBookingSubmit}
             data-lenis-prevent
-            className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-brand-teal/30 [&::-webkit-scrollbar-thumb]:rounded-full"
+            className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-brand-teal/30 [&::-webkit-scrollbar-thumb]:rounded-full"
           >
             {/* STEP 1: SELECT ROOM NUMBER (Compact Cards with Low Height) */}
             {isPG && (
@@ -306,7 +306,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                 </div>
 
                 {/* 4-column Grid with Compact Low-Height Cards (h-12) */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5">
                   {allRooms.map((room) => {
                     const isSelected = room.id === currentRoom?.id;
                     const vacantCount = room.beds.filter(b => b.status === 'Vacant').length;
@@ -314,23 +314,23 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                       <div
                         key={room.id}
                         onClick={() => handleRoomSelect(room.id)}
-                        className={`h-13 px-3 py-2 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between group ${isSelected
-                            ? 'border-brand-teal bg-[#EAF5F2] shadow-sm ring-2 ring-brand-teal/10'
-                            : 'border-slate-200/80 bg-slate-50/50 hover:border-brand-teal/40 hover:bg-slate-50'
+                        className={`h-13 px-2 py-2 sm:px-3 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between group ${isSelected
+                          ? 'border-brand-teal bg-[#EAF5F2] shadow-sm ring-2 ring-brand-teal/10'
+                          : 'border-slate-200/80 bg-slate-50/50 hover:border-brand-teal/40 hover:bg-slate-50'
                           }`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-brand-teal text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
-                            <Icon icon="lucide:door-open" width="15" />
+                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                          <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-brand-teal text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                            <Icon icon="lucide:door-open" className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px]" />
                           </div>
                           <div className="truncate">
-                            <p className="text-xs font-bold text-[#062F26] truncate leading-tight">{room.roomName}</p>
-                            <p className="text-[10px] text-slate-400 font-semibold truncate">{room.sharingType}</p>
+                            <p className="text-[11px] sm:text-xs font-bold text-[#062F26] truncate leading-tight">{room.roomName}</p>
+                            <p className="text-[9px] sm:text-[10px] text-slate-400 font-semibold truncate">{room.sharingType}</p>
                           </div>
                         </div>
 
                         <div className="flex flex-col items-end shrink-0 pl-1">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${vacantCount > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-500'}`}>
+                          <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${vacantCount > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-500'}`}>
                             <span className={`w-1 h-1 rounded-full ${vacantCount > 0 ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
                             {vacantCount} Vacant
                           </span>
@@ -344,11 +344,11 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
 
             {/* STEP 2: SELECT AVAILABLE BED (Spacious Professional 3-column Grid) */}
             {isPG && currentRoom && (
-              <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs font-bold text-[#062F26] uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-brand-teal text-white flex items-center justify-center text-[10px] font-bold shadow-xs">2</span>
-                    Select Bed in {currentRoom.roomName} ({currentRoom.sharingType})
+              <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2">
+                  <label className="text-xs font-bold text-[#062F26] uppercase tracking-wider flex items-start sm:items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-brand-teal text-white flex shrink-0 items-center justify-center text-[10px] font-bold shadow-xs">2</span>
+                    <span className="leading-snug mt-0.5 sm:mt-0">Select Bed in {currentRoom.roomName} ({currentRoom.sharingType})</span>
                   </label>
                   <div className="flex items-center gap-2">
                     {currentRoom.beds && currentRoom.beds.length > 0 && !currentRoom.beds.some(b => b.status === 'Vacant') && (
@@ -381,10 +381,10 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                         key={idx}
                         onClick={() => isVacant && setSelectedBedName(bed.bedName)}
                         className={`p-3.5 rounded-2xl border-2 transition-all duration-200 flex items-center justify-between ${!isVacant
-                            ? 'bg-slate-100/70 border-slate-200/80 opacity-60 cursor-not-allowed'
-                            : isBedSelected
-                              ? 'bg-gradient-to-br from-white to-[#EAF5F2]/60 border-brand-teal shadow-md ring-2 ring-brand-teal/15 cursor-pointer scale-[1.02]'
-                              : 'bg-white border-slate-200 hover:border-brand-teal/40 hover:shadow-sm cursor-pointer'
+                          ? 'bg-slate-100/70 border-slate-200/80 opacity-60 cursor-not-allowed'
+                          : isBedSelected
+                            ? 'bg-gradient-to-br from-white to-[#EAF5F2]/60 border-brand-teal shadow-md ring-2 ring-brand-teal/15 cursor-pointer scale-[1.02]'
+                            : 'bg-white border-slate-200 hover:border-brand-teal/40 hover:shadow-sm cursor-pointer'
                           }`}
                       >
                         <div className="flex items-center gap-3">
@@ -421,32 +421,29 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                 <span className="w-5 h-5 rounded-full bg-brand-teal text-white flex items-center justify-center text-[10px] font-bold shadow-xs">{isPG ? '3' : '2'}</span>
                 Select Expected Move-in Date
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Icon icon="lucide:calendar" className="h-5 w-5 text-slate-400" />
-                </div>
+              <div className="relative mt-2">
                 <input
                   type="date"
                   min={new Date().toISOString().split('T')[0]}
                   value={moveInDate}
                   onChange={(e) => setMoveInDate(e.target.value)}
-                  className="pl-10 block w-full rounded-xl border-2 border-slate-200 bg-white shadow-sm focus:border-brand-teal focus:ring focus:ring-brand-teal/20 py-2.5 text-sm font-bold text-[#062F26]"
+                  className="block w-full rounded-lg border-2 border-slate-200 bg-white shadow-sm focus:border-brand-teal focus:ring focus:ring-brand-teal/20 px-4 py-2.5 text-sm font-semibold text-[#062F26] cursor-pointer hover:border-slate-300 transition-colors"
                   required
                 />
               </div>
             </div>
 
             {/* Bottom Sticky Action Area */}
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-brand-teal/10 text-brand-teal flex items-center justify-center shrink-0">
                   <Icon icon="lucide:bookmark-check" width="20" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#062F26]">
+                  <p className="text-[11px] sm:text-xs font-bold text-[#062F26]">
                     {isPG ? `Reserved: ${currentRoom?.roomName} (${selectedBedName || 'Bed'})` : property.title}
                   </p>
-                  <p className="text-[11px] font-medium text-slate-500">
+                  <p className="text-[10px] sm:text-[11px] font-medium text-slate-500">
                     Rent: <span className="font-bold text-slate-800">₹{currentRoom?.rent?.toLocaleString('en-IN') || property.price}/mo</span>
                     {isPG && (
                       <> • Token (40%): <span className="font-bold text-[#0AA87D]">₹{Math.round((currentRoom?.rent || (property.price ? parseInt(String(property.price).replace(/,/g, ''), 10) : 12000)) * 0.40).toLocaleString('en-IN')}</span></>
@@ -458,7 +455,7 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] text-white font-bold text-xs sm:text-sm tracking-wide hover:shadow-[0_8px_25px_rgba(10,168,125,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 active:scale-98 flex items-center justify-center gap-2 cursor-pointer shadow-md shrink-0"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-lg bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] text-white font-bold text-xs sm:text-sm tracking-wide hover:shadow-[0_8px_25px_rgba(10,168,125,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 active:scale-98 flex items-center justify-center gap-2 cursor-pointer shadow-md shrink-0"
               >
                 {isSubmitting ? (
                   <>

@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { translateWithGoogleFreeApi } from '../../lib/translate';
 
 export const DEFAULT_CONTRACT_TEXT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
+<p style="text-align: center; font-weight: bold;">(11-Month Rental Agreement)</p>
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
 
@@ -32,53 +33,6 @@ Date of Birth: [tenant_date_of_birth]
 <b>Vacation Date:</b> [move_out_date]
 <b>Booking Reference:</b> [booking_reference]
 
-<h3>TERMS AND CONDITIONS</h3>
-
-<b>1. Nature of Agreement</b>
-This Agreement is a Leave and License Agreement only. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.
-
-<b>2. Monthly Rent and Payment</b>
-The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the due date communicated by the Licensor. Continued occupation of the premises is conditional on timely payment of rent and any applicable charges.
-
-<b>3. Security Deposit</b>
-A refundable security deposit of ₹[deposit_amount] has been or shall be collected prior to move-in. The deposit shall be refunded within a reasonable time after the Licensee vacates the premises, after adjusting any outstanding dues, unpaid rent, utility charges, or costs of repairing damages caused by the Licensee beyond normal wear and tear.
-
-<b>4. Utilities and Additional Charges</b>
-Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card communicated separately.
-
-<b>5. Maintenance and Care of Premises</b>
-The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The Licensee shall promptly report any damage or defect to the Licensor. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.
-
-<b>6. Conduct and House Rules</b>
-The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents, staff, or neighbors. The Licensee shall abide by all house rules, facility timings, and guidelines communicated by the Licensor from time to time.
-
-<b>7. Guests and Visitors</b>
-Guests and visitors shall be permitted on the premises only as per the Licensor's guest and visitor policy communicated separately. Overnight stays of guests shall require prior permission from the Licensor.
-
-<b>8. Alterations</b>
-The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas without the prior written consent of the Licensor.
-
-<b>9. Prohibited Uses</b>
-The Licensee shall not use the premises for any illegal, commercial, or immoral activity. The Licensee shall not sublet the accommodation or any part thereof to any third party.
-
-<b>10. Notice Period and Termination</b>
-Either party may terminate this Agreement by giving advance notice as agreed at the time of move-in or as communicated in writing. The Licensor reserves the right to terminate this Agreement immediately in the event of breach of any term of this Agreement, non-payment of rent, or conduct detrimental to other residents.
-
-<b>11. Vacation of Premises</b>
-Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation on or before the agreed vacation date, remove all personal belongings, return all keys and access devices, and hand over the premises in the same condition as received, subject to normal wear and tear.
-
-<b>12. Liability</b>
-The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises. The Licensee is advised to arrange personal insurance coverage for their valuables if required.
-
-<b>13. Force Majeure</b>
-Neither party shall be liable for any failure or delay in performance due to circumstances beyond their reasonable control, including natural disasters, government restrictions, or other force majeure events.
-
-<b>14. Governing Law and Jurisdiction</b>
-This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].
-
-<b>15. Entire Agreement</b>
-This Agreement, along with any house rules communicated separately, constitutes the entire understanding between the parties regarding the accommodation. Any modification to this Agreement shall be mutually agreed upon in writing.
-
 <h3>EMERGENCY CONTACT</h3>
 <b>Name:</b> [emergency_contact_name]
 <b>Phone:</b> [emergency_contact_phone]
@@ -89,6 +43,74 @@ By proceeding with occupation of the premises, the Licensee acknowledges that th
 
 <b>Licensee:</b> [tenant_full_name]
 <b>Date:</b> [agreement_date]`;
+
+const DEFAULT_TERMS_AND_CONDITIONS = [
+  {
+    titleEn: "Nature and Duration of Agreement",
+    descriptionEn: "This Agreement is a Leave and License Agreement granted for a period of 11 (eleven) months from the Commencement Date. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Monthly Rent and Payment",
+    descriptionEn: "The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the 5th day of every calendar month. Continued occupation of the premises is conditional on timely payment of rent. A late fee may be charged for delayed payments as per the Licensor's policy.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Security Deposit and Lock-in Period",
+    descriptionEn: "A refundable security deposit of ₹[deposit_amount] is collected prior to move-in. The Licensee agrees to a minimum lock-in period of 3 months. If the Licensee vacates the premises before the lock-in period expires, the security deposit shall be forfeited. The deposit shall be refunded upon vacating the premises after adjusting any outstanding dues, unpaid rent, utility charges, or damages.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Utilities and Additional Charges",
+    descriptionEn: "Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Maintenance and Care of Premises",
+    descriptionEn: "The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "House Rules and Prohibited Activities",
+    descriptionEn: "a) Smoking, consumption of alcohol, and use of illegal substances are strictly prohibited within the premises.\nb) The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents or neighbors.\nc) Cooking in rooms is strictly prohibited unless a designated kitchen area is provided.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Guests and Visitors",
+    descriptionEn: "Guests and visitors are permitted only in the designated common areas during visiting hours. Overnight stays of guests are strictly prohibited without prior written permission from the Licensor and may incur additional charges.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Alterations",
+    descriptionEn: "The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Notice Period and Termination",
+    descriptionEn: "After the lock-in period, either party may terminate this Agreement by giving a 30-day advance notice in writing. The Licensor reserves the right to terminate this Agreement immediately and evict the Licensee in the event of breach of any term, non-payment of rent, or misconduct.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Vacation of Premises",
+    descriptionEn: "Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation, remove all personal belongings, return all keys, and hand over the premises in the same condition as received, subject to normal wear and tear.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Liability",
+    descriptionEn: "The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Governing Law and Jurisdiction",
+    descriptionEn: "This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Entire Agreement",
+    descriptionEn: "This Agreement constitutes the entire understanding between the parties regarding the accommodation.",
+    titleGu: "", descriptionGu: ""
+  }
+];
 
 const BookingStepPayment = ({
   isPG,
@@ -116,7 +138,8 @@ const BookingStepPayment = ({
   isStep3Valid,
   isSubmitting,
   customContractText = null,
-  customContractTextGu = null
+  customContractTextGu = null,
+  property = null
 }) => {
   const [isAgreementCollapsed, setIsAgreementCollapsed] = useState(false);
   const [agreementLanguage, setAgreementLanguage] = useState('en'); // 'en' or 'gu'
@@ -197,6 +220,10 @@ const BookingStepPayment = ({
     const substituted = injectDynamicValuesIntoText(rawText);
     const lines = substituted.split('\n');
 
+    const termsToUse = property?.ownerContract?.termsAndConditions?.length > 0 
+      ? property.ownerContract.termsAndConditions 
+      : DEFAULT_TERMS_AND_CONDITIONS;
+
     return (
       <div className="space-y-3 font-sans text-xs leading-relaxed text-slate-700">
         {lines.map((line, index) => {
@@ -233,6 +260,26 @@ const BookingStepPayment = ({
             </p>
           );
         })}
+
+        {/* Dynamic Terms and Conditions */}
+        {termsToUse.length > 0 && (
+          <div className="mt-4 space-y-3">
+            <div className="font-bold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">
+              TERMS AND CONDITIONS
+            </div>
+            {termsToUse.map((term, idx) => (
+              <p key={`term-${idx}`} className="leading-relaxed">
+                <strong className="font-bold text-slate-800">
+                  {idx + 1}. {agreementLanguage === 'en' ? injectDynamicValuesIntoText(term.titleEn) : injectDynamicValuesIntoText(term.titleGu || term.titleEn)}
+                </strong>
+                <br />
+                <span className="whitespace-pre-wrap">
+                  {agreementLanguage === 'en' ? injectDynamicValuesIntoText(term.descriptionEn) : injectDynamicValuesIntoText(term.descriptionGu || term.descriptionEn)}
+                </span>
+              </p>
+            ))}
+          </div>
+        )}
       </div>
     );
   };

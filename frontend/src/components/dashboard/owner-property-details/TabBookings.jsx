@@ -98,7 +98,7 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Tenant</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Room / Bed</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Move-in Date</th>
-                {activeTab !== 'requests' && <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>}
+                <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Payment</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
                 <th className="py-4 px-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">Actions</th>
               </tr>
@@ -334,7 +334,6 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                   </div>
                 </div>
 
-                {activeTab !== 'requests' && (
                 <div className="mb-4">
                   <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 w-full flex items-center justify-between">
                     <div>
@@ -351,7 +350,6 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                     )}
                   </div>
                 </div>
-                )}
 
                 {booking.status === 'Pending Request' && (
                   <div className="flex gap-2 mt-2 border-t border-slate-100 pt-3" onClick={(e) => e.stopPropagation()}>

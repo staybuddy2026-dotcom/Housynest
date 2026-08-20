@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { translateWithGoogleFreeApi } from '../../lib/translate';
 
 const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
+<p style="text-align: center; font-weight: bold;">(11-Month Rental Agreement)</p>
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
 
@@ -33,53 +34,6 @@ Date of Birth: [tenant_date_of_birth]
 <b>Vacation Date:</b> [move_out_date]
 <b>Booking Reference:</b> [booking_reference]
 
-<h3>TERMS AND CONDITIONS</h3>
-
-<b>1. Nature of Agreement</b>
-This Agreement is a Leave and License Agreement only. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.
-
-<b>2. Monthly Rent and Payment</b>
-The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the due date communicated by the Licensor. Continued occupation of the premises is conditional on timely payment of rent and any applicable charges.
-
-<b>3. Security Deposit</b>
-A refundable security deposit of ₹[deposit_amount] has been or shall be collected prior to move-in. The deposit shall be refunded within a reasonable time after the Licensee vacates the premises, after adjusting any outstanding dues, unpaid rent, utility charges, or costs of repairing damages caused by the Licensee beyond normal wear and tear.
-
-<b>4. Utilities and Additional Charges</b>
-Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card communicated separately.
-
-<b>5. Maintenance and Care of Premises</b>
-The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The Licensee shall promptly report any damage or defect to the Licensor. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.
-
-<b>6. Conduct and House Rules</b>
-The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents, staff, or neighbors. The Licensee shall abide by all house rules, facility timings, and guidelines communicated by the Licensor from time to time.
-
-<b>7. Guests and Visitors</b>
-Guests and visitors shall be permitted on the premises only as per the Licensor's guest and visitor policy communicated separately. Overnight stays of guests shall require prior permission from the Licensor.
-
-<b>8. Alterations</b>
-The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas without the prior written consent of the Licensor.
-
-<b>9. Prohibited Uses</b>
-The Licensee shall not use the premises for any illegal, commercial, or immoral activity. The Licensee shall not sublet the accommodation or any part thereof to any third party.
-
-<b>10. Notice Period and Termination</b>
-Either party may terminate this Agreement by giving advance notice as agreed at the time of move-in or as communicated in writing. The Licensor reserves the right to terminate this Agreement immediately in the event of breach of any term of this Agreement, non-payment of rent, or conduct detrimental to other residents.
-
-<b>11. Vacation of Premises</b>
-Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation on or before the agreed vacation date, remove all personal belongings, return all keys and access devices, and hand over the premises in the same condition as received, subject to normal wear and tear.
-
-<b>12. Liability</b>
-The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises. The Licensee is advised to arrange personal insurance coverage for their valuables if required.
-
-<b>13. Force Majeure</b>
-Neither party shall be liable for any failure or delay in performance due to circumstances beyond their reasonable control, including natural disasters, government restrictions, or other force majeure events.
-
-<b>14. Governing Law and Jurisdiction</b>
-This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].
-
-<b>15. Entire Agreement</b>
-This Agreement, along with any house rules communicated separately, constitutes the entire understanding between the parties regarding the accommodation. Any modification to this Agreement shall be mutually agreed upon in writing.
-
 <h3>EMERGENCY CONTACT</h3>
 <b>Name:</b> [emergency_contact_name]
 <b>Phone:</b> [emergency_contact_phone]
@@ -91,15 +45,81 @@ By proceeding with occupation of the premises, the Licensee acknowledges that th
 <b>Licensee:</b> [tenant_full_name]
 <b>Date:</b> [agreement_date]`;
 
+const DEFAULT_TERMS_AND_CONDITIONS = [
+  {
+    titleEn: "Nature and Duration of Agreement",
+    descriptionEn: "This Agreement is a Leave and License Agreement granted for a period of 11 (eleven) months from the Commencement Date. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Monthly Rent and Payment",
+    descriptionEn: "The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the 5th day of every calendar month. Continued occupation of the premises is conditional on timely payment of rent. A late fee may be charged for delayed payments as per the Licensor's policy.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Security Deposit and Lock-in Period",
+    descriptionEn: "A refundable security deposit of ₹[deposit_amount] is collected prior to move-in. The Licensee agrees to a minimum lock-in period of 3 months. If the Licensee vacates the premises before the lock-in period expires, the security deposit shall be forfeited. The deposit shall be refunded upon vacating the premises after adjusting any outstanding dues, unpaid rent, utility charges, or damages.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Utilities and Additional Charges",
+    descriptionEn: "Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Maintenance and Care of Premises",
+    descriptionEn: "The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "House Rules and Prohibited Activities",
+    descriptionEn: "a) Smoking, consumption of alcohol, and use of illegal substances are strictly prohibited within the premises.\nb) The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents or neighbors.\nc) Cooking in rooms is strictly prohibited unless a designated kitchen area is provided.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Guests and Visitors",
+    descriptionEn: "Guests and visitors are permitted only in the designated common areas during visiting hours. Overnight stays of guests are strictly prohibited without prior written permission from the Licensor and may incur additional charges.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Alterations",
+    descriptionEn: "The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Notice Period and Termination",
+    descriptionEn: "After the lock-in period, either party may terminate this Agreement by giving a 30-day advance notice in writing. The Licensor reserves the right to terminate this Agreement immediately and evict the Licensee in the event of breach of any term, non-payment of rent, or misconduct.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Vacation of Premises",
+    descriptionEn: "Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation, remove all personal belongings, return all keys, and hand over the premises in the same condition as received, subject to normal wear and tear.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Liability",
+    descriptionEn: "The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises.",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Governing Law and Jurisdiction",
+    descriptionEn: "This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].",
+    titleGu: "", descriptionGu: ""
+  },
+  {
+    titleEn: "Entire Agreement",
+    descriptionEn: "This Agreement constitutes the entire understanding between the parties regarding the accommodation.",
+    titleGu: "", descriptionGu: ""
+  }
+];
+
 const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
   const { watch, setValue } = useFormContext();
-  const [dragActive, setDragActive] = useState(false);
   const textareaRef = useRef(null);
 
-  // Contract Mode: 'upload' or 'customize'
+  // Contract Mode: always 'customize'
   const ownerContract = watch('ownerContract');
-  const initialMode = ownerContract?.isCustomized || ownerContract?.mode === 'customized' ? 'customize' : 'upload';
-  const [contractMode, setContractMode] = useState(initialMode);
+  const [contractMode, setContractMode] = useState('customize');
 
   // Language Selection for Customization: 'en' or 'gu'
   const [contractLang, setContractLang] = useState('en');
@@ -123,6 +143,14 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
   const [contractTextGu, setContractTextGu] = useState(
     ownerContract?.contractTextGu || ''
   );
+
+  const [terms, setTerms] = useState(
+    ownerContract?.termsAndConditions?.length > 0
+      ? ownerContract.termsAndConditions
+      : DEFAULT_TERMS_AND_CONDITIONS
+  );
+  const [newTermTitle, setNewTermTitle] = useState('');
+  const [newTermDesc, setNewTermDesc] = useState('');
 
   const [isAgreementSaved, setIsAgreementSaved] = useState(Boolean(ownerContract?.isCustomized));
 
@@ -209,62 +237,53 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
     }, 50);
   };
 
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleChange = (e) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
-    }
-  };
-
-  const handleFile = (file) => {
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Please upload a valid PDF document.');
-      return;
-    }
-    const fileObj = {
-      mode: 'upload',
-      isCustomized: false,
-      file: file,
-      name: file.name,
-      size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-      previewUrl: URL.createObjectURL(file)
-    };
-    setValue('ownerContract', fileObj, { shouldValidate: true });
-    setIsAgreementSaved(false);
-    toast.success('PDF Contract uploaded successfully');
-  };
-
-  const removeContract = () => {
-    setValue('ownerContract', null, { shouldValidate: true });
-    setIsAgreementSaved(false);
-    toast.success('Contract removed');
-  };
 
   // Reset agreement text to default template
   const handleResetToDefault = () => {
     setContractTextEn(DEFAULT_ENGLISH_AGREEMENT);
     setContractTextGu('');
+    setTerms(DEFAULT_TERMS_AND_CONDITIONS);
     setIsAgreementSaved(false);
     toast.success('Agreement reset to default template');
+  };
+
+  const handleAddTerm = async () => {
+    if (!newTermTitle.trim() || !newTermDesc.trim()) {
+      toast.error('Title and Description are required');
+      return;
+    }
+    
+    let titleGu = '';
+    let descGu = '';
+    
+    try {
+      toast.loading('Translating new term...', { id: 'term-trans' });
+      titleGu = await translateWithGoogleFreeApi(newTermTitle, 'gu', 'en');
+      descGu = await translateWithGoogleFreeApi(newTermDesc, 'gu', 'en');
+      toast.success('Term added and translated', { id: 'term-trans' });
+    } catch (error) {
+      toast.error('Translation failed, term added in English', { id: 'term-trans' });
+    }
+    
+    const newTerm = {
+      titleEn: newTermTitle,
+      descriptionEn: newTermDesc,
+      titleGu: titleGu,
+      descriptionGu: descGu
+    };
+    
+    setTerms([...terms, newTerm]);
+    setNewTermTitle('');
+    setNewTermDesc('');
+    setIsAgreementSaved(false);
+  };
+  
+  const handleRemoveTerm = (index) => {
+    const updated = [...terms];
+    updated.splice(index, 1);
+    setTerms(updated);
+    setIsAgreementSaved(false);
   };
 
   // Auto Translate button action
@@ -295,7 +314,8 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
       name: 'Bilingual Dynamic Leave & License Agreement',
       contractTextEn: contractTextEn,
       contractTextGu: finalGu,
-      contractText: contractTextEn
+      contractText: contractTextEn,
+      termsAndConditions: terms
     };
     setValue('ownerContract', contractObj, { shouldValidate: true });
     setIsAgreementSaved(true);
@@ -304,9 +324,18 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
 
   // Remove customized agreement
   const handleRemoveCustomAgreement = () => {
-    setValue('ownerContract', null, { shouldValidate: true });
+    setValue('ownerContract', {
+      mode: 'customize',
+      isCustomized: false,
+      contractTextEn: '',
+      contractTextGu: '',
+      termsAndConditions: []
+    });
+    setContractTextEn(DEFAULT_ENGLISH_AGREEMENT);
+    setContractTextGu('');
+    setTerms(DEFAULT_TERMS_AND_CONDITIONS);
     setIsAgreementSaved(false);
-    toast.success('Customized Agreement removed');
+    toast.success('Custom agreement removed');
   };
 
   // Substitute dynamic placeholders & format sections for live preview
@@ -384,6 +413,26 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
             </p>
           );
         })}
+
+        {/* Append dynamic Terms and Conditions to preview */}
+        {terms.length > 0 && (
+          <div className="mt-4 space-y-3">
+            <div className="font-bold text-[#062F26] uppercase text-[11px] tracking-wider pt-2 border-t border-slate-200/60 mt-3">
+              TERMS AND CONDITIONS
+            </div>
+            {terms.map((term, idx) => (
+              <p key={`term-${idx}`} className="leading-relaxed">
+                <strong className="font-bold text-slate-800">
+                  {idx + 1}. {contractLang === 'en' ? term.titleEn : (term.titleGu || term.titleEn)}
+                </strong>
+                <br />
+                <span className="whitespace-pre-wrap">
+                  {contractLang === 'en' ? term.descriptionEn : (term.descriptionGu || term.descriptionEn)}
+                </span>
+              </p>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -414,152 +463,9 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
         </div>
       </div>
 
-      {/* MODE SWITCHER TABS */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <button
-          type="button"
-          onClick={() => setContractMode('upload')}
-          className={`p-3.5 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer ${contractMode === 'upload'
-              ? 'border-[#0AA87D] bg-[#EAF5F2] text-[#062F26] shadow-sm'
-              : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:border-slate-300'
-            }`}
-        >
-          <Icon icon="lucide:file-up" className="w-4.5 h-4.5 text-[#0AA87D]" />
-          <span>Upload PDF Agreement</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setContractMode('customize')}
-          className={`p-3.5 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer ${contractMode === 'customize'
-              ? 'border-[#0AA87D] bg-[#EAF5F2] text-[#062F26] shadow-sm'
-              : 'border-slate-200 bg-slate-50/60 text-slate-600 hover:border-slate-300'
-            }`}
-        >
-          <Icon icon="lucide:edit-3" className="w-4.5 h-4.5 text-[#0AA87D]" />
-          <span>Customize Entire Agreement</span>
-        </button>
-      </div>
-
       <div className="flex flex-col gap-6 flex-1">
-
-        {/* TAB 1: UPLOAD PDF CONTRACT MODE */}
-        {contractMode === 'upload' && (
-          <>
-            {/* Information Banner */}
-            <div className="bg-linear-to-r from-[#EAF5F2] to-[#F2F9F7] border border-brand-teal/20 rounded-xl p-4 flex gap-3.5 items-start shadow-xs">
-              <div className="mt-0.5 text-brand-teal shrink-0 bg-white p-2 rounded-lg shadow-xs">
-                <Icon icon="lucide:file-text" className="w-5 h-5" strokeWidth="2.5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-[#062F26] mb-1">Contract PDF Storage</h4>
-                <p className="text-xs font-medium text-slate-600 leading-relaxed">
-                  Uploading your signed owner contract builds trust and provides verified compliance for your property. All uploaded PDFs are encrypted and saved securely.
-                </p>
-              </div>
-            </div>
-
-            {/* Existing Contract (if url present in data) */}
-            {ownerContract?.url && !ownerContract?.file && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold">
-                    <Icon icon="lucide:file-type-2" width="22" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-[#062F26]">{ownerContract.fileName || 'Uploaded Owner Contract PDF'}</p>
-                    <span className="text-[11px] text-slate-400 font-medium">Stored in Cloudinary</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={ownerContract.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all flex items-center gap-1.5"
-                  >
-                    <Icon icon="lucide:external-link" width="14" />
-                    View PDF
-                  </a>
-                  <button
-                    type="button"
-                    onClick={removeContract}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                    title="Remove contract"
-                  >
-                    <Icon icon="lucide:trash-2" width="16" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Selected File Preview */}
-            {ownerContract?.file && (
-              <div className="bg-[#EAF5F2]/60 border border-brand-teal/30 rounded-xl p-4 flex items-center justify-between shadow-xs">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-md shadow-red-500/20">
-                    <Icon icon="lucide:file-text" width="24" strokeWidth="2.5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#062F26] truncate max-w-[200px] sm:max-w-md">{ownerContract.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs font-medium text-slate-500">{ownerContract.size}</span>
-                      <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                      <span className="text-xs font-bold text-brand-teal flex items-center gap-1">
-                        <Icon icon="lucide:check-circle-2" width="12" /> Ready to upload
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={removeContract}
-                  className="w-8 h-8 rounded-lg bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all shadow-xs cursor-pointer"
-                  title="Remove file"
-                >
-                  <Icon icon="lucide:x" width="18" />
-                </button>
-              </div>
-            )}
-
-            {/* Drag & Drop Upload Zone */}
-            {(!ownerContract || (!ownerContract.file && !ownerContract.url && !ownerContract.isCustomized)) && (
-              <div
-                className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center transition-all duration-300 ${dragActive
-                    ? 'border-brand-teal bg-[#EAF5F2] scale-[1.01] shadow-lg shadow-brand-teal/10'
-                    : 'border-slate-200 bg-slate-50/50 hover:border-brand-teal/50 hover:bg-slate-50'
-                  }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              >
-                <input
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={handleChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                />
-                <div
-                  className={`w-14 h-14 rounded-2xl shadow-sm flex items-center justify-center mb-4 transition-all duration-300 ${dragActive ? 'bg-brand-teal text-white scale-110' : 'bg-white text-brand-teal border border-slate-150'
-                    }`}
-                >
-                  <Icon icon="lucide:upload-cloud" className="w-7 h-7" strokeWidth="2" />
-                </div>
-                <h3 className="text-base font-bold text-[#062F26] mb-1">
-                  Click to upload or drag & drop PDF contract
-                </h3>
-                <p className="text-xs text-slate-500 font-medium max-w-sm">
-                  Official owner agreement PDF document (PDF format only, up to 10MB)
-                </p>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* TAB 2: FULLY CUSTOMIZABLE AGREEMENT TEXT EDITOR (REORGANIZED LAYOUT) */}
-        {contractMode === 'customize' && (
-          <div className="space-y-5">
+        {/* FULLY CUSTOMIZABLE AGREEMENT TEXT EDITOR */}
+        <div className="space-y-5">
 
             {/* SUB-TABS: EDIT VS LIVE PREVIEW & TWO-WAY TRANSLATE */}
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
@@ -679,7 +585,7 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
                   <textarea
                     ref={textareaRef}
                     data-lenis-prevent="true"
-                    rows={16}
+                    rows={12}
                     value={activeContractText}
                     onChange={(e) => setActiveContractText(e.target.value)}
                     placeholder={contractLang === 'gu' && !activeContractText ? 'Click "Translate to Gujarati" or type in Gujarati...' : ''}
@@ -689,6 +595,85 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
                       scrollbarColor: '#0AA87D #EAF5F2'
                     }}
                   />
+                </div>
+
+                {/* TERMS AND CONDITIONS EDITOR */}
+                <div className="mt-8 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                  <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-[#062F26] flex items-center gap-2">
+                      <Icon icon="lucide:list-checks" className="w-4 h-4 text-[#0AA87D]" />
+                      Terms and Conditions ({contractLang === 'gu' ? 'ગુજરાતી' : 'English'})
+                    </h3>
+                    <span className="text-xs font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      {terms.length} Items
+                    </span>
+                  </div>
+                  
+                  <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }} data-lenis-prevent="true">
+                    {terms.map((term, idx) => (
+                      <div key={idx} className="group relative bg-white border border-slate-200 rounded-lg p-3 hover:border-[#0AA87D]/50 transition-colors">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTerm(idx)}
+                          className="absolute top-3 right-3 p-1.5 bg-red-50 text-red-500 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                          title="Remove Term"
+                        >
+                          <Icon icon="lucide:trash-2" className="w-3.5 h-3.5" />
+                        </button>
+                        <h4 className="text-xs font-bold text-[#062F26] mb-1 pr-8">
+                          {idx + 1}. {contractLang === 'en' ? term.titleEn : (term.titleGu || term.titleEn)}
+                        </h4>
+                        <p className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed pr-8">
+                          {contractLang === 'en' ? term.descriptionEn : (term.descriptionGu || term.descriptionEn)}
+                        </p>
+                      </div>
+                    ))}
+
+                    {terms.length === 0 && (
+                      <div className="text-center py-6 text-slate-400 text-xs italic">
+                        No terms and conditions added yet.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add New Term */}
+                  <div className="bg-slate-50 p-4 border-t border-slate-200 space-y-3">
+                    <h4 className="text-xs font-bold text-[#062F26]">Add Custom Term</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                      <div className="sm:col-span-4">
+                        <input
+                          type="text"
+                          value={newTermTitle}
+                          onChange={(e) => setNewTermTitle(e.target.value)}
+                          placeholder="Term Title (English)"
+                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0AA87D] focus:ring-1 focus:ring-[#0AA87D]"
+                        />
+                      </div>
+                      <div className="sm:col-span-6">
+                        <textarea
+                          value={newTermDesc}
+                          onChange={(e) => setNewTermDesc(e.target.value)}
+                          placeholder="Term Description (English)"
+                          rows={1}
+                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0AA87D] focus:ring-1 focus:ring-[#0AA87D]"
+                        />
+                      </div>
+                      <div className="sm:col-span-2 flex items-end">
+                        <button
+                          type="button"
+                          onClick={handleAddTerm}
+                          disabled={!newTermTitle.trim() || !newTermDesc.trim()}
+                          className="w-full h-[34px] bg-[#0AA87D] text-white text-xs font-bold rounded-lg hover:bg-[#088c68] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                        >
+                          <Icon icon="lucide:plus" className="w-3.5 h-3.5" />
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-slate-500 italic">
+                      * Term will be automatically translated to Gujarati when added, if applicable.
+                    </p>
+                  </div>
                 </div>
 
               </div>
@@ -755,8 +740,6 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
             </div>
 
           </div>
-        )}
-
       </div>
 
       {/* Form Actions */}

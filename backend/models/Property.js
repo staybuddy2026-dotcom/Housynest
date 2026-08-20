@@ -68,7 +68,7 @@ const propertySchema = new mongoose.Schema({
   // PG Booking Configuration
   paymentModel: String,
   rentalPeriod: String,
-  bookingType: String,
+
 
   // PG Amenities
   services: [String],
@@ -134,14 +134,17 @@ const propertySchema = new mongoose.Schema({
     public_id: String
   }],
 
-  // Owner contract PDF uploaded to Cloudinary or customized text
+  // Owner contract customized text
   ownerContract: {
-    mode: { type: String, enum: ['upload', 'customize'], default: 'upload' },
-    url: String,
-    public_id: String,
-    fileName: String,
+    mode: { type: String, enum: ['customize'], default: 'customize' },
     contractTextEn: String,
-    contractTextGu: String
+    contractTextGu: String,
+    termsAndConditions: [{
+      titleEn: String,
+      descriptionEn: String,
+      titleGu: String,
+      descriptionGu: String
+    }]
   },
   
   status: {

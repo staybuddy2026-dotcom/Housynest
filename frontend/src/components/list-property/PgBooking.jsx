@@ -6,8 +6,6 @@ import CustomDropdown from './CustomDropdown';
 const PgBooking = ({ onNext, onPrev }) => {
   const { control, setValue, watch, formState: { errors } } = useFormContext();
 
-  const bookingType = watch('bookingType');
-
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 border border-slate-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] flex flex-col h-full">
 
@@ -94,62 +92,6 @@ const PgBooking = ({ onNext, onPrev }) => {
               />
             </div>
           </div>
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1 h-px bg-slate-100"></div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Booking Configuration</span>
-          <div className="flex-1 h-px bg-slate-100"></div>
-        </div>
-
-        {/* Booking Type */}
-        <div>
-          <label className="text-sm font-bold text-[#062F26] mb-3 block">Booking Type <span className="text-red-500">*</span></label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
-            <label className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${bookingType === 'Request-Based' ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' : (errors.bookingType ? 'border-red-500 bg-red-50' : 'border-slate-100 bg-white hover:border-brand-teal/30 hover:shadow-sm')}`}>
-              <div className="flex items-start gap-4">
-                <div className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center transition-colors ${bookingType === 'Request-Based' ? 'bg-brand-teal text-white' : 'bg-slate-100 text-slate-400'}`}>
-                  <Icon icon="lucide:clock" className="w-5 h-5" strokeWidth="2.5" />
-                </div>
-                <div className="flex-1">
-                  <h4 className={`text-sm font-bold mb-1 ${bookingType === 'Request-Based' ? 'text-[#062F26]' : 'text-slate-700'}`}>Request-Based</h4>
-                  <p className={`text-[12px] leading-relaxed ${bookingType === 'Request-Based' ? 'text-[#062F26]/70 font-medium' : 'text-slate-500'}`}>
-                    Tenants send booking requests that you can approve or reject
-                  </p>
-                </div>
-                <div className="shrink-0 mt-0.5">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${bookingType === 'Request-Based' ? 'bg-brand-teal text-white' : 'border-2 border-slate-200'}`}>
-                    {bookingType === 'Request-Based' && <Icon icon="lucide:check" className="w-3.5 h-3.5" strokeWidth="3" />}
-                  </div>
-                </div>
-              </div>
-              <input type="radio" name="bookingType" value="Request-Based" className="hidden" checked={bookingType === 'Request-Based'} onChange={() => setValue('bookingType', 'Request-Based', { shouldValidate: true })} />
-            </label>
-
-            <label className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${bookingType === 'Direct Booking' ? 'border-brand-teal bg-[#EAF5F2] shadow-sm' : (errors.bookingType ? 'border-red-500 bg-red-50' : 'border-slate-100 bg-white hover:border-brand-teal/30 hover:shadow-sm')}`}>
-              <div className="flex items-start gap-4">
-                <div className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center transition-colors ${bookingType === 'Direct Booking' ? 'bg-brand-teal text-white' : 'bg-slate-100 text-slate-400'}`}>
-                  <Icon icon="lucide:check-circle" className="w-5 h-5" strokeWidth="2.5" />
-                </div>
-                <div className="flex-1">
-                  <h4 className={`text-sm font-bold mb-1 ${bookingType === 'Direct Booking' ? 'text-[#062F26]' : 'text-slate-700'}`}>Direct Booking</h4>
-                  <p className={`text-[12px] leading-relaxed ${bookingType === 'Direct Booking' ? 'text-[#062F26]/70 font-medium' : 'text-slate-500'}`}>
-                    Tenants can book instantly without approval
-                  </p>
-                </div>
-                <div className="shrink-0 mt-0.5">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${bookingType === 'Direct Booking' ? 'bg-brand-teal text-white' : 'border-2 border-slate-200'}`}>
-                    {bookingType === 'Direct Booking' && <Icon icon="lucide:check" className="w-3.5 h-3.5" strokeWidth="3" />}
-                  </div>
-                </div>
-              </div>
-              <input type="radio" name="bookingType" value="Direct Booking" className="hidden" checked={bookingType === 'Direct Booking'} onChange={() => setValue('bookingType', 'Direct Booking', { shouldValidate: true })} />
-            </label>
-
-          </div>
-          {errors.bookingType && <span className="text-red-500 text-[10px] sm:text-xs mt-2 block">{errors.bookingType.message}</span>}
         </div>
 
       </div>

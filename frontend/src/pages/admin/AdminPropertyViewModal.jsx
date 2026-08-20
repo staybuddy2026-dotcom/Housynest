@@ -296,12 +296,6 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                             <span className="font-bold text-slate-800 text-sm">{property.rentalPeriod}</span>
                           </div>
                         )}
-                        {property.bookingType && (
-                          <div>
-                            <span className="text-slate-400 block text-[11px] uppercase font-bold">Booking Type</span>
-                            <span className="font-bold text-slate-800 text-sm">{property.bookingType}</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}

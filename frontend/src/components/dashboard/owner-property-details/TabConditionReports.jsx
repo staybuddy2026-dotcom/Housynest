@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
+import CustomDropdown from '../../list-property/CustomDropdown';
 
 const DEFAULT_ITEMS = [
   'Main Door', 'Walls & Paint', 'Flooring', 'Windows', 'Electrical Fittings',
@@ -122,31 +123,25 @@ const TabConditionReports = ({ propertyId }) => {
         <form onSubmit={handleCreateReport} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Select Tenant Booking</label>
-              <select
+              <CustomDropdown
+                label="Select Tenant Booking"
                 required
+                options={bookings.map(b => ({
+                  value: b._id,
+                  label: `${b.tenantId?.fullName} (${b.roomDetails?.roomName || 'Property'}) - ${b.status}`
+                }))}
                 value={selectedBooking || ''}
-                onChange={(e) => setSelectedBooking(e.target.value)}
-                className="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#062F26] outline-none"
-              >
-                <option value="">-- Select --</option>
-                {bookings.map(b => (
-                  <option key={b._id} value={b._id}>
-                    {b.tenantId?.fullName} ({b.roomDetails?.roomName || 'Property'}) - {b.status}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedBooking(val)}
+                placeholder="-- Select --"
+              />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Report Type</label>
-              <select
+              <CustomDropdown
+                label="Report Type"
+                options={['Move-In', 'Move-Out']}
                 value={reportType}
-                onChange={(e) => setReportType(e.target.value)}
-                className="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#062F26] outline-none"
-              >
-                <option>Move-In</option>
-                <option>Move-Out</option>
-              </select>
+                onChange={(val) => setReportType(val)}
+              />
             </div>
           </div>
 
@@ -164,17 +159,13 @@ const TabConditionReports = ({ propertyId }) => {
                     />
                   </div>
                   <div className="col-span-3">
-                    <select
+                    <CustomDropdown
+                      options={['Excellent', 'Good', 'Fair', 'Poor', 'Damaged']}
                       value={item.condition}
-                      onChange={(e) => handleItemChange(idx, 'condition', e.target.value)}
-                      className="w-full p-2 border border-slate-200 rounded text-sm"
-                    >
-                      <option>Excellent</option>
-                      <option>Good</option>
-                      <option>Fair</option>
-                      <option>Poor</option>
-                      <option>Damaged</option>
-                    </select>
+                      onChange={(val) => handleItemChange(idx, 'condition', val)}
+                      containerClassName="w-full"
+                      buttonClassName="!px-3 !py-1.5"
+                    />
                   </div>
                   <div className="col-span-5">
                     <input

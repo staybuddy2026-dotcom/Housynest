@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
+import { toast } from 'react-hot-toast';
 
 const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
 
@@ -30,33 +31,22 @@ Date of Birth: [tenant_date_of_birth]
 <b>Vacation Date:</b> [move_out_date]
 <b>Booking Reference:</b> [booking_reference]
 
-<h3>TERMS AND CONDITIONS</h3>
+<b>9. Notice Period and Termination</b>
+After the lock-in period, either party may terminate this Agreement by giving a 30-day advance notice in writing. The Licensor reserves the right to terminate this Agreement immediately and evict the Licensee in the event of breach of any term, non-payment of rent, or misconduct.
 
-<b>1. Nature of Agreement</b>
-This Agreement is a Leave and License Agreement only. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes.
+<b>10. Vacation of Premises</b>
+Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation, remove all personal belongings, return all keys, and hand over the premises in the same condition as received, subject to normal wear and tear.
 
-<b>2. Monthly Rent and Payment</b>
-The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the due date communicated by the Licensor. Continued occupation of the premises is conditional on timely payment of rent and any applicable charges.
+<b>11. Liability</b>
+The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises.
 
-<b>3. Security Deposit</b>
-A refundable security deposit of ₹[deposit_amount] has been or shall be collected prior to move-in. The deposit shall be refunded within a reasonable time after the Licensee vacates the premises, after adjusting any outstanding dues, unpaid rent, utility charges, or costs of repairing damages caused by the Licensee beyond normal wear and tear.
+<b>12. Governing Law and Jurisdiction</b>
+This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city].
 
-<b>4. Utilities and Additional Charges</b>
-Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card communicated separately.
+<b>13. Entire Agreement</b>
+This Agreement constitutes the entire understanding between the parties regarding the accommodation.
 
-<b>5. Maintenance and Care of Premises</b>
-The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The Licensee shall promptly report any damage or defect to the Licensor. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit.
-
-<b>6. Conduct and House Rules</b>
-The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents, staff, or neighbors. The Licensee shall abide by all house rules, facility timings, and guidelines communicated by the Licensor from time to time.
-
-<b>7. Guests and Visitors</b>
-Guests and visitors shall be permitted on the premises only as per the Licensor's guest and visitor policy communicated separately. Overnight stays of guests shall require prior permission from the Licensor.
-
-<b>8. Alterations</b>
-The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas without the prior written consent of the Licensor.
-
-<b>9. Prohibited Uses</b>
+<h3>EMERGENCY CONTACT</h3>
 The Licensee shall not use the premises for any illegal, commercial, or immoral activity. The Licensee shall not sublet the accommodation or any part thereof to any third party.
 
 <b>10. Notice Period and Termination</b>
@@ -110,6 +100,38 @@ const TabContract = ({ property, bookings = [] }) => {
     };
   });
 
+  const handleViewContract = (contractUrl) => {
+    if (!contractUrl) {
+      toast.error('No contract PDF available for this tenant.');
+      return;
+    }
+    window.open(contractUrl, '_blank');
+  };
+
+  const handleDownloadContract = async (contractUrl, tenantName) => {
+    if (!contractUrl) {
+      toast.error('No contract PDF available for this tenant.');
+      return;
+    }
+    try {
+      const toastId = toast.loading('Downloading contract...');
+      const response = await fetch(contractUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Rent_Agreement_${tenantName.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Download complete', { id: toastId });
+    } catch (error) {
+      toast.error('Failed to download contract PDF');
+      console.error(error);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Contract Agreement Card */}
@@ -141,80 +163,75 @@ const TabContract = ({ property, bookings = [] }) => {
         </div>
 
         {showContractFormat ? (
-          <>
-            {property.ownerContract?.isCustomized || property.ownerContract?.url ? (
-              <>
-                <p className="text-sm text-slate-500 font-medium mb-4">
-                  Official customized owner contract stored in Cloudinary
-                </p>
-                <div className="bg-[#EAF5F2]/50 border border-brand-teal/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center font-bold shrink-0">
-                      <Icon icon="lucide:file-type-2" width="22" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-[#062F26] truncate max-w-[200px] sm:max-w-md">
-                        {property.ownerContract?.fileName || 'Owner Contract Agreement.pdf'}
-                      </p>
-                      <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                        <Icon icon="lucide:cloud-check" width="12" className="text-brand-teal" /> Stored in Cloudinary
-                      </span>
-                    </div>
-                  </div>
-                  {property.ownerContract?.url && (
-                    <a
-                      href={property.ownerContract.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-all flex items-center justify-center gap-2 shadow-sm shrink-0"
-                    >
-                      <Icon icon="lucide:external-link" width="16" />
-                      Open in New Tab
-                    </a>
-                  )}
-                </div>
-
-                {/* Embedded PDF Viewer */}
-                {property.ownerContract?.url && (
-                  <div className="mt-6 w-full h-[600px] md:h-[700px] rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                    <iframe
-                      src={`${property.ownerContract.url}#view=FitH`}
-                      title="Contract Agreement"
-                      className="w-full h-full"
-                    />
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="bg-[#FAF6F0] border border-[#F3EFE9] rounded-xl p-4 sm:p-5 md:p-6 flex flex-col gap-4 sm:gap-6">
-                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold shrink-0 mt-1 sm:mt-0">
-                    <Icon icon="lucide:shield-check" className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm sm:text-base font-bold text-[#062F26]">
-                      {property.ownerContract?.isCustomized ? 'Customized Agreement' : 'Standard Agreement'}
-                    </p>
-                    <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5">
-                      {property.ownerContract?.isCustomized ? 'Using customized contract text' : 'Using Housynest\'s default standardized contract'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Embedded Text Viewer */}
-                <div className="w-full h-[600px] md:h-[700px] rounded-xl overflow-y-auto custom-scrollbar border border-slate-200 bg-white p-6 md:p-8" data-lenis-prevent="true">
-                  <div
-                    className="prose prose-sm md:prose-base max-w-none text-slate-700 whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{
-                      __html: property.ownerContract?.isCustomized && property.ownerContract?.contractTextEn
-                        ? property.ownerContract.contractTextEn
-                        : DEFAULT_ENGLISH_AGREEMENT
-                    }}
-                  />
-                </div>
+          <div className="bg-[#FAF6F0] border border-[#F3EFE9] rounded-xl p-4 sm:p-5 md:p-6 flex flex-col gap-4 sm:gap-6">
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold shrink-0 mt-1 sm:mt-0">
+                <Icon icon="lucide:shield-check" className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-            )}
-          </>
+              <div>
+                <p className="text-sm sm:text-base font-bold text-[#062F26]">
+                  {property.ownerContract?.isCustomized ? 'Customized Agreement' : 'Standard Agreement'}
+                </p>
+                <p className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5">
+                  {property.ownerContract?.isCustomized ? 'Using customized contract text' : 'Using Housynest\'s default standardized contract'}
+                </p>
+              </div>
+            </div>
+
+            {/* Embedded Text Viewer */}
+            <div className="w-full h-[600px] md:h-[700px] rounded-xl overflow-y-auto custom-scrollbar border border-slate-200 bg-white p-6 md:p-8 space-y-6" data-lenis-prevent="true">
+              <div
+                className="prose prose-sm md:prose-base max-w-none text-slate-700 whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{
+                  __html: property.ownerContract?.isCustomized && property.ownerContract?.contractTextEn
+                    ? property.ownerContract.contractTextEn
+                    : DEFAULT_ENGLISH_AGREEMENT
+                }}
+              />
+              
+              {/* Dynamic Terms and Conditions */}
+              {(() => {
+                const termsToUse = property?.ownerContract?.termsAndConditions?.length > 0
+                  ? property.ownerContract.termsAndConditions
+                  : [
+                      { titleEn: "Nature and Duration of Agreement", descriptionEn: "This Agreement is a Leave and License Agreement granted for a period of 11 (eleven) months from the Commencement Date. It does not create any tenancy rights, sub-tenancy rights, or any other right of occupation in favor of the Licensee. The Licensee shall use the accommodation solely for residential purposes." },
+                      { titleEn: "Monthly Rent and Payment", descriptionEn: "The Licensee agrees to pay the monthly license fee of ₹[rent_amount] on or before the 5th day of every calendar month. Continued occupation of the premises is conditional on timely payment of rent. A late fee may be charged for delayed payments as per the Licensor's policy." },
+                      { titleEn: "Security Deposit and Lock-in Period", descriptionEn: "A refundable security deposit of ₹[deposit_amount] is collected prior to move-in. The Licensee agrees to a minimum lock-in period of 3 months. If the Licensee vacates the premises before the lock-in period expires, the security deposit shall be forfeited. The deposit shall be refunded upon vacating the premises after adjusting any outstanding dues, unpaid rent, utility charges, or damages." },
+                      { titleEn: "Utilities and Additional Charges", descriptionEn: "Charges for electricity, water, internet, laundry, food, housekeeping, and any other services availed by the Licensee shall be borne by the Licensee as per actual consumption or as per the Licensor's applicable rate card." },
+                      { titleEn: "Maintenance and Care of Premises", descriptionEn: "The Licensee shall maintain the accommodation, attached furniture, fixtures, fittings, and common areas in good, clean, and hygienic condition. The cost of any willful damage or negligent damage caused by the Licensee shall be recoverable from the Licensee or from the security deposit." },
+                      { titleEn: "House Rules and Prohibited Activities", descriptionEn: "a) Smoking, consumption of alcohol, and use of illegal substances are strictly prohibited within the premises.\nb) The Licensee shall conduct themselves in a lawful and considerate manner so as not to disturb other residents or neighbors.\nc) Cooking in rooms is strictly prohibited unless a designated kitchen area is provided." },
+                      { titleEn: "Guests and Visitors", descriptionEn: "Guests and visitors are permitted only in the designated common areas during visiting hours. Overnight stays of guests are strictly prohibited without prior written permission from the Licensor and may incur additional charges." },
+                      { titleEn: "Alterations", descriptionEn: "The Licensee shall not make any structural changes, permanent alterations, drilling, painting, or modifications to the accommodation or common areas." },
+                      { titleEn: "Notice Period and Termination", descriptionEn: "After the lock-in period, either party may terminate this Agreement by giving a 30-day advance notice in writing. The Licensor reserves the right to terminate this Agreement immediately and evict the Licensee in the event of breach of any term, non-payment of rent, or misconduct." },
+                      { titleEn: "Vacation of Premises", descriptionEn: "Upon termination or expiry of this Agreement, the Licensee shall vacate the accommodation, remove all personal belongings, return all keys, and hand over the premises in the same condition as received, subject to normal wear and tear." },
+                      { titleEn: "Liability", descriptionEn: "The Licensor shall not be liable for any loss, theft, or damage to the Licensee's personal belongings within the premises." },
+                      { titleEn: "Governing Law and Jurisdiction", descriptionEn: "This Agreement shall be governed by the laws of India. Any disputes arising out of or in connection with this Agreement shall be subject to the jurisdiction of the competent courts at [agreement_city]." },
+                      { titleEn: "Entire Agreement", descriptionEn: "This Agreement constitutes the entire understanding between the parties regarding the accommodation." }
+                    ];
+                
+                if (termsToUse.length === 0) return null;
+
+                return (
+                  <div className="mt-6 pt-4 border-t border-slate-200">
+                    <h3 className="font-bold text-[#062F26] uppercase tracking-wider text-base mb-4">
+                      TERMS AND CONDITIONS
+                    </h3>
+                    <div className="space-y-4">
+                      {termsToUse.map((term, idx) => (
+                        <p key={idx} className="text-sm md:text-base text-slate-700 leading-relaxed">
+                          <strong className="font-bold text-slate-800">
+                            {idx + 1}. {term.titleEn}
+                          </strong>
+                          <br />
+                          <span className="whitespace-pre-wrap">{term.descriptionEn}</span>
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             {tenantContracts.length > 0 ? (
@@ -238,11 +255,17 @@ const TabContract = ({ property, bookings = [] }) => {
                     </div>
 
                     <div className="flex items-center gap-2 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                      <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#EAF5F2] text-[#0AA87D] hover:bg-[#0AA87D] hover:text-white transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                      <button 
+                        onClick={() => handleViewContract(property.ownerContract?.url)}
+                        className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#EAF5F2] text-[#0AA87D] hover:bg-[#0AA87D] hover:text-white transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                      >
                         <Icon icon="lucide:eye" width="16" />
                         View
                       </button>
-                      <button className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                      <button 
+                        onClick={() => handleDownloadContract(property.ownerContract?.url, contract.tenantName)}
+                        className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                      >
                         <Icon icon="lucide:download" width="16" />
                         Download
                       </button>

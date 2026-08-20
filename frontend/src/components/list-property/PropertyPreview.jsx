@@ -72,8 +72,7 @@ const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
     ? (formData.preferredGender || 'Anyone')
     : (Array.isArray(formData.preferredTenants) && formData.preferredTenants.length > 0 ? formData.preferredTenants.join(', ') : 'Anyone');
 
-  // Booking Type & Notice Period
-  const bookingType = formData.bookingType || 'Request-Based';
+  // Notice Period
   const noticePeriod = formData.noticePeriod || '30 Days';
 
   // Owner Contract Status
@@ -169,11 +168,7 @@ const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
                 </span>
               )}
 
-              {bookingType && (
-                <span className="bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg shadow-sm">
-                  {bookingType}
-                </span>
-              )}
+
             </div>
 
             {/* Image Counter Badge */}

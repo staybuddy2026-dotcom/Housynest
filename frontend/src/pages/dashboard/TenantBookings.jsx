@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import AgreementModal from '../../components/booking/AgreementModal';
-import MockPaymentModal from '../../components/booking/MockPaymentModal';
+import RazorpayPaymentHandler from '../../components/booking/RazorpayPaymentHandler';
 
 const quickActions = [
   { icon: 'lucide:wallet', title: 'Pay Rent', desc: 'View dues and make payment securely' },
@@ -23,6 +23,7 @@ const TenantBookings = () => {
   const [pendingPaymentData, setPendingPaymentData] = useState(null); // { bookingId, amount }
   const [confirmingMoveInId, setConfirmingMoveInId] = useState(null);
   const [actionToFocus, setActionToFocus] = useState(null);
+  const [showOwnerModal, setShowOwnerModal] = useState(null);
 
   useEffect(() => {
     if (selectedBooking && actionToFocus) {
@@ -103,12 +104,21 @@ const TenantBookings = () => {
 
   useEffect(() => {
     fetchBookings();
+
+    const handleStatusUpdate = () => {
+      fetchBookings();
+    };
+    window.addEventListener('globalBookingStatusUpdated', handleStatusUpdate);
+
+    return () => {
+      window.removeEventListener('globalBookingStatusUpdated', handleStatusUpdate);
+    };
   }, []);
 
   const handlePayment = (bookingId) => {
     const booking = bookings.find(b => b._id === bookingId);
     if (!booking) return;
-    
+
     // Navigate to the property booking wizard to complete the rest of the flow
     navigate(`/properties/${booking.propertyId._id || booking.propertyId}/book`, {
       state: {
@@ -245,16 +255,16 @@ const TenantBookings = () => {
     try {
       // Simulate backend delay for eSign verification
       await new Promise(r => setTimeout(r, 2000));
-      
+
       const token = localStorage.getItem('accessToken');
       const res = await fetch(`/api/bookings/${bookingId}/consent`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (res.ok) {
         toast.success('Agreement E-Signed Successfully!');
-        
+
         // Update local state
         setBookings(bookings.map(b => b._id === bookingId ? { ...b, eSignStatus: 'Completed', tenantConsentStatus: 'Consented' } : b));
         if (selectedBooking && selectedBooking._id === bookingId) {
@@ -357,50 +367,69 @@ const TenantBookings = () => {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
-                        {(() => {
-                          const isTokenPaidRow = (booking.status === 'Reserved' || booking.status === 'Confirmed') && ['Token Amount', 'Token (40%)'].includes(booking.paymentDetails?.paymentMethod);
-                          const needsConfirmationRow = (booking.status === 'Confirmed' || booking.status === 'Active') && booking.paymentDetails?.status === 'Paid' && !isTokenPaidRow && !booking.tenantConfirmedMoveIn;
+                        {['Rejected', 'Cancelled', 'Pending Request'].includes(booking.status) ? (
+                          <span className="text-xs text-slate-400 font-medium italic">No Actions</span>
+                        ) : booking.status === 'Pending Payment' ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/properties/${booking.propertyId._id}/book`, {
+                                state: { bookingId: booking._id, property: booking.propertyId }
+                              });
+                            }}
+                            className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
+                          >
+                            <Icon icon="lucide:check-circle" className="w-4 h-4 mr-1.5" />
+                            <span className="text-xs font-bold">Book Now</span>
+                          </button>
+                        ) : (
+                          <>
+                            {(() => {
+                              const isTokenPaidRow = (booking.status === 'Reserved' || booking.status === 'Confirmed') && ['Token Amount', 'Token (40%)'].includes(booking.paymentDetails?.paymentMethod);
+                              const needsConfirmationRow = (booking.status === 'Confirmed' || booking.status === 'Active') && booking.paymentDetails?.status === 'Paid' && !booking.tenantConfirmedMoveIn;
 
-                          if (needsConfirmationRow) {
-                            return (
-                              <button
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  setSelectedBooking(booking); 
-                                  setActionToFocus('confirm-move-in');
-                                }}
-                                className="text-white px-3 py-2 rounded-lg cursor-pointer bg-indigo-600 hover:bg-indigo-700 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
-                              >
-                                <Icon icon="lucide:home" className="w-4 h-4 mr-1.5" />
-                                <span className="text-xs font-bold">Confirm Move-in</span>
-                              </button>
-                            );
-                          } else if (booking.status === 'Pending Payment' || (isTokenPaidRow && booking.status === 'Reserved')) {
-                            return (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setSelectedBooking(booking); }}
-                                className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
-                              >
-                                <Icon icon="lucide:wallet" className="w-4 h-4 mr-1.5" />
-                                <span className="text-xs font-bold">Pay Now</span>
-                              </button>
-                            );
-                          } else {
-                            return (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); navigate(`/tenant/bookings/${booking._id}/pay-rent`); }}
-                                className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
-                              >
-                                <Icon icon="lucide:wallet" className="w-4 h-4 mr-1.5" />
-                                <span className="text-xs font-bold">Pay Rent</span>
-                              </button>
-                            );
-                          }
-                        })()}
-                        <button className="text-brand-teal px-3 py-2 rounded-lg cursor-pointer bg-brand-teal/5 hover:bg-brand-teal/15 transition-colors flex items-center justify-center shadow-sm">
-                          <span className="text-xs font-bold mr-1">View</span>
-                          <Icon icon="lucide:arrow-right" className="w-4 h-4" />
-                        </button>
+                              if (needsConfirmationRow) {
+                                return (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedBooking(booking);
+                                      setActionToFocus('confirm-move-in');
+                                    }}
+                                    className="text-white px-3 py-2 rounded-lg cursor-pointer bg-indigo-600 hover:bg-indigo-700 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
+                                  >
+                                    <Icon icon="lucide:home" className="w-4 h-4 mr-1.5" />
+                                    <span className="text-xs font-bold">Confirm Move-in</span>
+                                  </button>
+                                );
+                              } else if (booking.status === 'Pending Payment' || (isTokenPaidRow && booking.status === 'Reserved')) {
+                                return (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setSelectedBooking(booking); }}
+                                    className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
+                                  >
+                                    <Icon icon="lucide:wallet" className="w-4 h-4 mr-1.5" />
+                                    <span className="text-xs font-bold">Pay Remaining Balance</span>
+                                  </button>
+                                );
+                              } else {
+                                return (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); navigate(`/tenant/bookings/${booking._id}/pay-rent`); }}
+                                    className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
+                                  >
+                                    <Icon icon="lucide:wallet" className="w-4 h-4 mr-1.5" />
+                                    <span className="text-xs font-bold">Pay Rent</span>
+                                  </button>
+                                );
+                              }
+                            })()}
+                            <button className="text-brand-teal px-3 py-2 rounded-lg cursor-pointer bg-brand-teal/5 hover:bg-brand-teal/15 transition-colors flex items-center justify-center shadow-sm">
+                              <span className="text-xs font-bold mr-1">View</span>
+                              <Icon icon="lucide:arrow-right" className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -495,7 +524,17 @@ const TenantBookings = () => {
               { label: 'Bed', value: booking.roomDetails?.bedName || 'N/A' },
               { label: 'Property Type', value: booking.propertyId?.propertyCategory || booking.propertyId?.propertyType || 'N/A' },
               { label: 'Payment Method', value: booking.paymentDetails?.paymentMethod || 'N/A', hasTopBorder: true },
-              { label: 'Payment Status', value: <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border border-emerald-100">{booking.paymentDetails?.status || 'Paid'}</span> }
+              {
+                label: 'Payment Status',
+                value: (
+                  <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border ${(booking.paymentDetails?.status === 'Partial' || (isTokenPaid && booking.status === 'Reserved'))
+                      ? 'bg-amber-50 text-amber-700 border-amber-100'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                    }`}>
+                    {(booking.paymentDetails?.status === 'Partial' || (isTokenPaid && booking.status === 'Reserved')) ? 'Token Paid (Remaining Due)' : (booking.paymentDetails?.status || 'Paid')}
+                  </span>
+                )
+              }
             ];
 
             return (
@@ -573,9 +612,29 @@ const TenantBookings = () => {
                       {quickActions.map((action, idx) => (
                         <div key={idx} onClick={() => {
                           if (action.title === 'Pay Rent') {
-                            navigate(`/tenant/bookings/${booking._id}/pay-rent`);
+                            const isFullPaid = booking.status === 'Confirmed' || booking.status === 'Active';
+                            if (!isFullPaid) {
+                              toast.error('First complete your full move-in payment');
+                            } else {
+                              navigate(`/tenant/bookings/${booking._id}/pay-rent`);
+                            }
                           } else if (action.title === 'My Agreement') {
-                            setShowAgreementModal({ bookingId: booking._id, isReadOnly: true });
+                            const isFullPaid = booking.status === 'Confirmed' || booking.status === 'Active';
+                            if (!isFullPaid || booking.eSignStatus !== 'Completed') {
+                              toast.error('First complete the full payment and sign the agreement');
+                            } else {
+                              if (booking.eStampPdfUrl) {
+                                window.open(booking.eStampPdfUrl, '_blank');
+                              } else {
+                                setShowAgreementModal({ bookingId: booking._id, isReadOnly: true });
+                              }
+                            }
+                          } else if (action.title === 'Contact Owner') {
+                            if (booking.ownerId) {
+                              setShowOwnerModal(booking.ownerId);
+                            } else {
+                              toast.error('Owner information not available');
+                            }
                           }
                         }} className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between">
                           <div className="flex justify-between items-start mb-4">
@@ -626,6 +685,16 @@ const TenantBookings = () => {
 
                             <div className="hidden sm:block w-px h-10 bg-emerald-200/50 shrink-0"></div>
 
+                            {isTokenPaid && (
+                              <>
+                                <div>
+                                  <p className="text-[13px] text-slate-500 font-medium mb-0.5">Paid Token</p>
+                                  <p className="text-[15px] font-bold text-[#062F26]">₹{booking.paymentDetails?.amount?.toLocaleString() || 0}</p>
+                                </div>
+                                <div className="hidden sm:block w-px h-10 bg-emerald-200/50 shrink-0"></div>
+                              </>
+                            )}
+
                             <div>
                               <p className="text-[13px] text-slate-500 font-medium mb-1">Status</p>
                               <span className={`px-2.5 py-1 text-xs font-semibold rounded ${booking.status === 'Pending Payment' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
@@ -672,7 +741,7 @@ const TenantBookings = () => {
 
 
                   {/* Move-in Confirmation Banner */}
-                  {(booking.status === 'Confirmed' || booking.status === 'Active') && booking.paymentDetails?.status === 'Paid' && !isTokenPaid && booking.eSignStatus === 'Completed' && (
+                  {(booking.status === 'Confirmed' || booking.status === 'Active') && booking.paymentDetails?.status === 'Paid' && (
                     <div id="confirm-move-in-section" className="mt-6">
                       <h3 className="text-lg font-bold text-[#062F26] mb-4">Move-in Status</h3>
                       <div className={`border rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${booking.tenantConfirmedMoveIn ? 'bg-emerald-50 border-emerald-200' : 'bg-indigo-50 border-indigo-200'}`}>
@@ -823,15 +892,65 @@ const TenantBookings = () => {
 
       {/* Mock Payment Modal */}
       {showMockPayment && pendingPaymentData && (
-        <MockPaymentModal
+        <RazorpayPaymentHandler
           isOpen={true}
           amount={pendingPaymentData.amount}
+          bookingId={pendingPaymentData.bookingId}
           onClose={() => setShowMockPayment(false)}
           onSuccess={() => {
             setShowMockPayment(false);
             setShowAgreementModal({ bookingId: pendingPaymentData.bookingId, amount: pendingPaymentData.amount });
           }}
         />
+      )}
+
+      {/* Owner Contact Modal */}
+      {showOwnerModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            {/* Header / Cover */}
+            <div className="h-24 bg-gradient-to-r from-emerald-500 to-teal-600 relative">
+              <button 
+                onClick={() => setShowOwnerModal(null)}
+                className="absolute top-4 right-4 w-8 h-8 bg-black/20 hover:bg-black/30 text-white rounded-full flex items-center justify-center transition-colors"
+              >
+                <Icon icon="lucide:x" className="w-4 h-4" />
+              </button>
+            </div>
+            
+            {/* Profile Info */}
+            <div className="px-6 pb-6 pt-0 relative flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-white rounded-full p-1 -mt-10 mb-3 shadow-lg">
+                {showOwnerModal.profilePic ? (
+                  <img src={showOwnerModal.profilePic} alt="Owner" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-bold text-2xl">
+                    {showOwnerModal.fullName?.charAt(0)?.toUpperCase() || 'O'}
+                  </div>
+                )}
+              </div>
+              <h3 className="text-xl font-bold text-slate-800">{showOwnerModal.fullName || 'Property Owner'}</h3>
+              <p className="text-sm text-slate-500 mb-6">Property Owner / Manager</p>
+              
+              <div className="w-full space-y-3">
+                <a 
+                  href={`tel:${showOwnerModal.phone}`}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-[#062F26] text-white rounded-xl font-semibold hover:bg-emerald-900 transition-colors shadow-md shadow-emerald-900/20"
+                >
+                  <Icon icon="lucide:phone" className="w-5 h-5" />
+                  Call {showOwnerModal.phone || 'Owner'}
+                </a>
+                <a 
+                  href={`mailto:${showOwnerModal.email}`}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                >
+                  <Icon icon="lucide:mail" className="w-5 h-5" />
+                  Email Owner
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

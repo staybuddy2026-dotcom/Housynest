@@ -45,9 +45,13 @@ const OwnerBookingRequests = () => {
       fetchBookings();
     };
     window.addEventListener('refreshBookingsList', handleRefresh);
+    window.addEventListener('globalNewBookingRequest', handleRefresh);
+    window.addEventListener('globalBookingStatusUpdated', handleRefresh);
 
     return () => {
       window.removeEventListener('refreshBookingsList', handleRefresh);
+      window.removeEventListener('globalNewBookingRequest', handleRefresh);
+      window.removeEventListener('globalBookingStatusUpdated', handleRefresh);
     };
   }, []);
 
@@ -98,23 +102,34 @@ const OwnerBookingRequests = () => {
       const typeNonAC = `${baseType}_NonAC`;
 
       let rentAmt = 0;
+      let depositAmt = 0;
+      let maintenanceAmt = 0;
 
       if (b.propertyId?.propertyType === 'PG' && b.propertyId?.pgPricing) {
+        let pricing = null;
         if (b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
-          rentAmt = Number(String(b.propertyId.pgPricing[typeNonAC].rentPerBed).replace(/\\D/g, ''));
+          pricing = b.propertyId.pgPricing[typeNonAC];
         } else if (b.propertyId.pgPricing[typeAC]?.rentPerBed) {
-          rentAmt = Number(String(b.propertyId.pgPricing[typeAC].rentPerBed).replace(/\\D/g, ''));
+          pricing = b.propertyId.pgPricing[typeAC];
+        }
+        if (pricing) {
+          rentAmt = Number(String(pricing.rentPerBed || '').replace(/\\D/g, '') || 0);
+          depositAmt = Number(String(pricing.depositPerBed || '').replace(/\\D/g, '') || 0);
         }
       } else if (b.propertyId) {
         rentAmt = Number(String(b.propertyId.monthlyRent || '').replace(/\\D/g, '') || 0);
+        depositAmt = Number(String(b.propertyId.securityAmount || '').replace(/\\D/g, '') || 0);
+        maintenanceAmt = Number(String(b.propertyId.maintenanceCharges || '').replace(/\\D/g, '') || 0);
       }
 
-      const tokenAmt = Math.round(rentAmt * 0.40);
+      const stampFees = 300;
+      const totalAmount = rentAmt + depositAmt + maintenanceAmt + stampFees;
+      const tokenAmt = Math.round(totalAmount * 0.40);
 
       const paidAmount = b.paymentDetails?.amount || 0;
-      const isTokenPaid = paidAmount > 0 && paidAmount < rentAmt;
-      const isFullPaid = paidAmount > 0 && paidAmount >= rentAmt;
-      const dueAmount = Math.max(rentAmt - paidAmount, 0);
+      const isTokenPaid = paidAmount > 0 && paidAmount < totalAmount;
+      const isFullPaid = paidAmount > 0 && paidAmount >= totalAmount;
+      const dueAmount = Math.max(totalAmount - paidAmount, 0);
 
       return {
         _id: b._id,
@@ -129,7 +144,7 @@ const OwnerBookingRequests = () => {
         moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
         rent: `₹ ${rentAmt.toLocaleString()}`,
         token: `₹ ${tokenAmt.toLocaleString()}`,
-        paymentStatus: b.paymentDetails?.status || 'Pending',
+        paymentStatus: b.paymentDetails?.status === 'Partial' || (isTokenPaid && b.status === 'Reserved') ? 'Partial' : (b.paymentDetails?.status || 'Pending'),
         isFullPaid,
         isTokenPaid,
         paid: paidAmount,

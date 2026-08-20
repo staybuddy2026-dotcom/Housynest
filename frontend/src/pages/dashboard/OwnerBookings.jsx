@@ -63,19 +63,31 @@ const OwnerBookings = () => {
       const typeNonAC = `${baseType}_NonAC`;
 
       let rentAmt = 0;
+      let depositAmt = 0;
+      let maintenanceAmt = 0;
 
       if (b.propertyId?.propertyType === 'PG' && b.propertyId?.pgPricing) {
+        let pricing = null;
         if (b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
-          rentAmt = Number(String(b.propertyId.pgPricing[typeNonAC].rentPerBed).replace(/\D/g, ''));
+          pricing = b.propertyId.pgPricing[typeNonAC];
         } else if (b.propertyId.pgPricing[typeAC]?.rentPerBed) {
-          rentAmt = Number(String(b.propertyId.pgPricing[typeAC].rentPerBed).replace(/\D/g, ''));
+          pricing = b.propertyId.pgPricing[typeAC];
+        }
+        if (pricing) {
+          rentAmt = Number(String(pricing.rentPerBed || '').replace(/\D/g, '') || 0);
+          depositAmt = Number(String(pricing.depositPerBed || '').replace(/\D/g, '') || 0);
         }
       } else if (b.propertyId) {
         rentAmt = Number(String(b.propertyId.monthlyRent || '').replace(/\D/g, '') || 0);
+        depositAmt = Number(String(b.propertyId.securityAmount || '').replace(/\D/g, '') || 0);
+        maintenanceAmt = Number(String(b.propertyId.maintenanceCharges || '').replace(/\D/g, '') || 0);
       }
 
-      const tokenAmt = Math.round(rentAmt * 0.40);
+      const stampFees = 300;
+      const totalAmount = rentAmt + depositAmt + maintenanceAmt + stampFees;
+      const tokenAmt = Math.round(totalAmount * 0.40);
       const paidAmt = b.paymentDetails?.amount || 0;
+      const dueAmt = Math.max(totalAmount - paidAmt, 0);
 
       const rawStatus = getStatusMapping(b.status);
       const moveInDateObj = new Date(b.moveInDate);
@@ -104,9 +116,9 @@ const OwnerBookings = () => {
         rent: rentAmt,
         token: tokenAmt,
         paid: paidAmt,
-        due: Math.max(rentAmt - paidAmt, 0),
-        isTokenPaid: paidAmt > 0 && paidAmt < rentAmt,
-        isFullPaid: paidAmt > 0 && paidAmt >= rentAmt,
+        due: dueAmt,
+        isTokenPaid: paidAmt > 0 && paidAmt < totalAmount,
+        isFullPaid: paidAmt > 0 && paidAmt >= totalAmount,
         status: rawStatus,
         filterStatus: filterStatus,
         source: b.propertyId?.bookingType === 'Direct Booking' ? 'DIRECT' : 'REQUEST',

@@ -102,10 +102,8 @@ export const createBooking = async (req, res) => {
       }
     }
 
-    // Determine status based on bookingType
-    // If property.bookingType is 'Direct Booking', booking is Confirmed automatically
-    // Otherwise, it requires owner approval (Pending Request)
-    const status = property.bookingType === 'Direct Booking' ? 'Confirmed' : 'Pending Request';
+    // Determine status: all bookings now require owner approval (Pending Request) by default
+    const status = 'Pending Request';
 
     const booking = new Booking({
       propertyId,
@@ -158,7 +156,7 @@ export const createBooking = async (req, res) => {
 export const getOwnerBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ ownerId: req.user._id })
-      .populate('propertyId', 'pgName societyName propertyCategory propertyType address images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
+      .populate('propertyId', 'pgName societyName propertyCategory propertyType address images locality city monthlyRent securityAmount maintenanceCharges pgPricing floors')
       .populate('tenantId', 'fullName email phone profilePic')
       .sort('-createdAt');
     res.json(bookings);
@@ -174,7 +172,7 @@ export const getOwnerBookings = async (req, res) => {
 export const getTenantBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ tenantId: req.user._id })
-      .populate('propertyId', 'pgName societyName propertyCategory propertyType address images locality city monthlyRent securityAmount maintenanceCharges bookingType pgPricing floors')
+      .populate('propertyId', 'pgName societyName propertyCategory propertyType address images locality city monthlyRent securityAmount maintenanceCharges pgPricing floors')
       .populate('ownerId', 'fullName email phone profilePic')
       .sort('-createdAt');
     res.json(bookings);
@@ -249,6 +247,18 @@ export const updateBookingStatus = async (req, res) => {
       }
     }
 
+    try {
+      const io = getIo();
+      if (io) {
+        // Emit to tenant
+        io.to(`user_${booking.tenantId.toString()}`).emit('bookingStatusUpdated', { bookingId: updatedBooking._id, status: updatedBooking.status });
+        // Emit to owner
+        io.to(`user_${booking.ownerId.toString()}`).emit('bookingStatusUpdated', { bookingId: updatedBooking._id, status: updatedBooking.status });
+      }
+    } catch (err) {
+      console.error('Socket error on updateBookingStatus:', err);
+    }
+
     res.json(updatedBooking);
   } catch (error) {
     console.error('Update booking status error:', error);
@@ -272,9 +282,9 @@ export const processPayment = async (req, res) => {
     }
 
     // Update payment details and status
-    booking.paymentDetails.status = 'Paid';
-    booking.paymentDetails.paidAt = new Date();
     const isTokenPayment = booking.paymentDetails.paymentMethod === 'Token Amount' || booking.paymentDetails.paymentMethod === 'Token (40%)';
+    booking.paymentDetails.status = isTokenPayment ? 'Partial' : 'Paid';
+    booking.paymentDetails.paidAt = new Date();
     booking.status = isTokenPayment ? 'Reserved' : 'Confirmed';
 
     // Trigger E-stamp simulation automatically when Confirmed
@@ -381,6 +391,7 @@ export const payBalance = async (req, res) => {
     // Update payment details and status
     booking.paymentDetails.amount = Number(booking.paymentDetails.amount) + Number(remainingAmount);
     booking.paymentDetails.paymentMethod = 'Full Payment';
+    booking.paymentDetails.status = 'Paid';
     booking.paymentDetails.paidAt = new Date();
     booking.status = 'Confirmed';
 
@@ -1328,10 +1339,11 @@ export const completeBookingDetails = async (req, res) => {
         ...paymentDetails
       };
       
-      if (paymentDetails.status === 'Paid') {
+      if (paymentDetails.status === 'Paid' || paymentDetails.status === 'Partial') {
         booking.paymentDetails.paidAt = new Date();
         const isTokenPayment = paymentDetails.paymentMethod === 'Token Amount' || paymentDetails.paymentMethod === 'Token (40%)';
         booking.status = isTokenPayment ? 'Reserved' : 'Confirmed';
+        booking.paymentDetails.status = isTokenPayment ? 'Partial' : 'Paid';
 
         if (booking.status === 'Confirmed') {
           booking.eStampStatus = 'Processing';
