@@ -122,7 +122,7 @@ const OwnerBookingRequests = () => {
         maintenanceAmt = Number(String(b.propertyId.maintenanceCharges || '').replace(/\\D/g, '') || 0);
       }
 
-      const stampFees = 300;
+      const stampFees = 800;
       const totalAmount = rentAmt + depositAmt + maintenanceAmt + stampFees;
       const tokenAmt = Math.round(totalAmount * 0.40);
 

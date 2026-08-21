@@ -77,7 +77,7 @@ const bookingSchema = new mongoose.Schema({
     housynestFee: { type: Number, default: 0 },
     status: {
       type: String,
-      enum: ['Pending', 'Paid', 'Failed', 'Refunded'],
+      enum: ['Pending', 'Paid', 'Partial', 'Failed', 'Refunded'],
       default: 'Pending'
     },
     transactionId: String,
@@ -134,14 +134,35 @@ const bookingSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-bookingSchema.pre('save', function() {
+bookingSchema.pre('save', async function() {
   if (!this.bookingId) {
     this.bookingId = 'BKG-' + crypto.randomBytes(3).toString('hex').toUpperCase();
   }
 });
 
 bookingSchema.post('findOneAndDelete', async function(doc) {
-  if (doc && doc.propertyId && doc.roomDetails && doc.roomDetails.roomName && doc.roomDetails.bedName) {
+  if (!doc) return;
+
+  // Auto-remove related data
+  try {
+    const RentInvoice = mongoose.model('RentInvoice');
+    if (RentInvoice) {
+      await RentInvoice.deleteMany({ bookingId: doc._id });
+    }
+  } catch (err) {
+    console.error('Error deleting related invoices:', err);
+  }
+
+  try {
+    const ConditionReport = mongoose.model('ConditionReport');
+    if (ConditionReport) {
+      await ConditionReport.deleteMany({ bookingId: doc._id });
+    }
+  } catch (err) {
+    console.error('Error deleting related condition reports:', err);
+  }
+
+  if (doc.propertyId && doc.roomDetails && doc.roomDetails.roomName && doc.roomDetails.bedName) {
     try {
       const Property = mongoose.model('Property');
       const property = await Property.findById(doc.propertyId);

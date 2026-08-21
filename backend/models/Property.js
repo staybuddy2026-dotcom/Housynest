@@ -136,7 +136,7 @@ const propertySchema = new mongoose.Schema({
 
   // Owner contract customized text
   ownerContract: {
-    mode: { type: String, enum: ['customize'], default: 'customize' },
+    mode: { type: String, enum: ['customize', 'upload'], default: 'customize' },
     contractTextEn: String,
     contractTextGu: String,
     termsAndConditions: [{
@@ -145,6 +145,13 @@ const propertySchema = new mongoose.Schema({
       titleGu: String,
       descriptionGu: String
     }]
+  },
+
+  bankDetails: {
+    accountHolderName: { type: String },
+    accountNumber: { type: String },
+    ifscCode: { type: String },
+    bankName: { type: String }
   },
   
   status: {

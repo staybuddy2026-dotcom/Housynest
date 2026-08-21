@@ -550,18 +550,27 @@ const OwnerProfile = () => {
             </label>
             <div className="relative">
               <Icon icon="lucide:hash" className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${bankErrors.ifscCode ? 'text-rose-400' : 'text-slate-400'}`} />
-              <input
-                type="text"
-                name="ifscCode"
-                value={bankData.ifscCode}
-                onChange={handleBankChange}
-                disabled={!isEditingBank}
-                placeholder="e.g. SBIN0001234"
-                className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all uppercase ${isEditingBank
-                  ? (bankErrors.ifscCode ? 'bg-rose-50 border-rose-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500' : 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal')
-                  : 'bg-slate-50 border-transparent text-slate-500 cursor-default'
+              {isEditingBank ? (
+                <input
+                  type="text"
+                  name="ifscCode"
+                  value={bankData.ifscCode}
+                  onChange={handleBankChange}
+                  placeholder="e.g. SBIN0001234"
+                  className={`w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all uppercase ${
+                    bankErrors.ifscCode
+                      ? 'bg-rose-50 border-rose-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500'
+                      : 'bg-white border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal'
                   }`}
-              />
+                />
+              ) : (
+                <input
+                  type="text"
+                  disabled
+                  value={bankData.ifscCode ? '•••••••••••' : 'Not provided'}
+                  className="w-full border rounded-xl pl-11 pr-4 py-3 text-sm transition-all bg-slate-50 border-transparent text-slate-500 cursor-default tracking-widest font-bold"
+                />
+              )}
             </div>
             {bankErrors.ifscCode && <p className="text-xs font-bold text-rose-500 mt-1.5 flex items-center gap-1"><Icon icon="lucide:alert-circle" className="w-3.5 h-3.5" />{bankErrors.ifscCode}</p>}
             {!bankErrors.ifscCode && isEditingBank && <p className="text-xs text-slate-400 mt-1.5">Standard 11-character format.</p>}

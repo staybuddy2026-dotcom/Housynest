@@ -7,6 +7,7 @@ import { sendGenericEmail } from '../utils/emailService.js';
 import puppeteer from 'puppeteer';
 import { getIo } from '../socket.js';
 import { triggerRoomAvailabilityAlerts } from './waitlistController.js';
+import { generateReceiptPdfBuffer } from '../utils/receiptGenerator.js';
 
 const updateBedStatus = async (propertyId, roomName, bedName) => {
   if (!roomName || !bedName) return;
@@ -1357,6 +1358,31 @@ export const completeBookingDetails = async (req, res) => {
     // Update bed status
     if (updatedBooking.roomDetails?.roomName && updatedBooking.roomDetails?.bedName) {
       await updateBedStatus(updatedBooking.propertyId, updatedBooking.roomDetails.roomName, updatedBooking.roomDetails.bedName);
+    }
+
+    // Generate and send receipt asynchronously if payment was made
+    if (paymentDetails && (paymentDetails.status === 'Paid' || paymentDetails.status === 'Partial')) {
+      (async () => {
+        try {
+          const property = await Property.findById(updatedBooking.propertyId);
+          const tenant = await User.findById(updatedBooking.tenantId);
+          const pdfBuffer = await generateReceiptPdfBuffer(updatedBooking, property, tenant);
+          
+          const propName = property?.societyName || property?.pgName || property?.propertyCategory || 'Property';
+          const subject = `Payment Receipt for ${propName}`;
+          const text = `Hello ${tenant.name},\n\nThank you for your payment! Please find your official payment receipt attached to this email.\n\nBest regards,\nHousynest Team`;
+          
+          const attachments = [{
+            filename: `Receipt-${updatedBooking.bookingId || updatedBooking._id}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf'
+          }];
+          
+          await sendGenericEmail(tenant.email, subject, text, null, attachments);
+        } catch (err) {
+          console.error('Failed to generate/send receipt:', err);
+        }
+      })();
     }
 
     res.json(updatedBooking);

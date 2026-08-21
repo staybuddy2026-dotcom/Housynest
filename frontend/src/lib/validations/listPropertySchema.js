@@ -2,6 +2,13 @@ import { z } from 'zod';
 
 const numericString = z.coerce.string().regex(/^\d*$/, "Must be a valid positive number");
 
+const bankDetailsSchema = z.object({
+  accountHolderName: z.string().min(1, 'Account Holder Name is required'),
+  accountNumber: z.string().min(1, 'Account Number is required'),
+  ifscCode: z.string().min(1, 'IFSC Code is required'),
+  bankName: z.string().min(1, 'Bank Name is required'),
+});
+
 const pgSchema = z.object({
   propertyType: z.literal('PG'),
   postingAs: z.enum(['Owner', 'Property Manager', 'Agent']),
@@ -91,6 +98,7 @@ const pgSchema = z.object({
   removeDocs: z.any().optional(),
   verificationDocs: z.array(z.any()).optional(),
   ownerContract: z.any().optional(),
+  bankDetails: bankDetailsSchema,
 });
 
 const tenantSchema = z.object({
@@ -146,6 +154,7 @@ const tenantSchema = z.object({
   removeDocs: z.any().optional(),
   verificationDocs: z.array(z.any()).optional(),
   ownerContract: z.any().optional(),
+  bankDetails: bankDetailsSchema,
 });
 
 export const listPropertySchema = z.discriminatedUnion("propertyType", [

@@ -92,7 +92,7 @@ const OwnerTenants = () => {
                 const pricing = getPricing();
 
                 if (b.status === 'Reserved') {
-                  const stampFees = 300;
+                  const stampFees = 800;
                   const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
                   const due = fullAmount > 0 ? fullAmount - Number(b.paymentDetails?.amount || 0) : 0;
                   return { due, paid: b.paymentDetails?.amount || 0, dueType: 'Move-In Due', dueDate: new Date(b.createdAt) };

@@ -164,7 +164,7 @@ const PropertyPreview = ({ activeStep = 1, totalSteps = 9 }) => {
 
               {isPg && formData.preferredGender && (
                 <span className="bg-brand-teal text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm">
-                  {formData.preferredGender} PG
+                  For {formData.preferredGender}
                 </span>
               )}
 

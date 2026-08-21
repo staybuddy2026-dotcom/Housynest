@@ -161,6 +161,20 @@ const TenantBookings = () => {
           return b;
         }));
 
+        if (selectedBooking && selectedBooking._id === bookingId) {
+          setSelectedBooking({
+            ...selectedBooking,
+            status: 'Confirmed',
+            paymentDetails: {
+              ...selectedBooking.paymentDetails,
+              amount: Number(selectedBooking.paymentDetails.amount) + Number(amount),
+              paymentMethod: 'Full Payment',
+              status: 'Paid',
+              paidAt: new Date()
+            }
+          });
+        }
+
         // Notify sidebar to refresh counts
         window.dispatchEvent(new Event('refreshCounts'));
       } else {
@@ -493,7 +507,7 @@ const TenantBookings = () => {
             };
 
             const pricing = getPricing();
-            const stampFees = 300;
+            const stampFees = 800;
             const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
             const isTokenPaid = (booking.status === 'Reserved' || booking.status === 'Confirmed') && ['Token Amount', 'Token (40%)'].includes(booking.paymentDetails?.paymentMethod);
             const remainingAmount = Math.max(0, fullAmount - (booking.paymentDetails?.amount || 0));

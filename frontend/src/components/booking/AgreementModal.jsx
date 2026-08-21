@@ -10,7 +10,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
   const [agreementLanguage, setAgreementLanguage] = useState('en');
   const [translatedGujaratiText, setTranslatedGujaratiText] = useState('');
   const [isTranslatingText, setIsTranslatingText] = useState(false);
-  
+
   const [showEsignOtp, setShowEsignOtp] = useState(false);
   const [esignOtp, setEsignOtp] = useState('');
   const [isVerifyingEsign, setIsVerifyingEsign] = useState(false);
@@ -18,7 +18,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
 
   const [isGeneratingStamp, setIsGeneratingStamp] = useState(false);
   const [stampGenerated, setStampGenerated] = useState(false);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isEmailing, setIsEmailing] = useState(false);
@@ -57,19 +57,19 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
       toast.error('Could not generate PDF');
       return;
     }
-    
+
     // Create a temporary element to hold the HTML
     const element = document.createElement('div');
     element.innerHTML = htmlString;
-    
+
     const opt = {
-      margin:       10,
-      filename:     `Agreement_${booking?._id ? booking._id.substring(booking._id.length - 8).toUpperCase() : 'Draft'}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      margin: 10,
+      filename: `Agreement_${booking?._id ? booking._id.substring(booking._id.length - 8).toUpperCase() : 'Draft'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-    
+
     toast.loading('Generating PDF...', { id: 'pdf-toast' });
     html2pdf().from(element).set(opt).save().then(() => {
       toast.success('PDF downloaded!', { id: 'pdf-toast' });
@@ -226,7 +226,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in p-4 sm:p-6 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl relative my-auto animate-in zoom-in-95 duration-300">
-        
+
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-2xl shadow-sm">
           <div>
@@ -250,18 +250,16 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
               <button
                 type="button"
                 onClick={() => handleSelectLanguage('en')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                  agreementLanguage === 'en' ? 'bg-[#062F26] text-white shadow-xs' : 'text-slate-600 hover:text-[#062F26]'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${agreementLanguage === 'en' ? 'bg-[#062F26] text-white shadow-xs' : 'text-slate-600 hover:text-[#062F26]'
+                  }`}
               >
                 🌐 English
               </button>
               <button
                 type="button"
                 onClick={() => handleSelectLanguage('gu')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                  agreementLanguage === 'gu' ? 'bg-[#0AA87D] text-white shadow-xs' : 'text-slate-600 hover:text-[#062F26]'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${agreementLanguage === 'gu' ? 'bg-[#0AA87D] text-white shadow-xs' : 'text-slate-600 hover:text-[#062F26]'
+                  }`}
               >
                 🌐 ગુજરાતી (Google Translate)
               </button>
@@ -318,7 +316,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
               </div>
             )}
           </div>
-          
+
           {/* DIGITAL SIGNATURE SECTION */}
           {!isReadOnly && (
             <div className="space-y-3">
@@ -398,13 +396,13 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
                 <div className={`border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 mt-2 transition-all min-h-[104px] ${isGeneratingStamp ? 'bg-emerald-50/50 justify-center' : 'bg-slate-50/50 justify-between'}`}>
                   {isGeneratingStamp ? (
                     <div className="flex items-center gap-4 animate-in fade-in duration-300">
-                       <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center animate-stamp-press border-2 border-emerald-500 text-emerald-600 shadow-sm shadow-emerald-200 shrink-0">
-                         <Icon icon="lucide:stamp" className="w-7 h-7" />
-                       </div>
-                       <div>
-                         <h4 className="font-bold text-base text-emerald-800">Affixing e-Stamp...</h4>
-                         <p className="text-xs text-emerald-600 mt-0.5 animate-pulse">Please wait while the document is stamped</p>
-                       </div>
+                      <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center animate-stamp-press border-2 border-emerald-500 text-emerald-600 shadow-sm shadow-emerald-200 shrink-0">
+                        <Icon icon="lucide:stamp" className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-base text-emerald-800">Affixing e-Stamp...</h4>
+                        <p className="text-xs text-emerald-600 mt-0.5 animate-pulse">Please wait while the document is stamped</p>
+                      </div>
                     </div>
                   ) : (
                     <>
@@ -447,7 +445,7 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
                 Close
               </button>
               <button onClick={handleEmailPDF} disabled={isEmailing} className="px-6 py-2.5 rounded-xl font-bold text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-sm transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50">
-                {isEmailing ? <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" /> : <Icon icon="lucide:mail" className="w-4 h-4" />} 
+                {isEmailing ? <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" /> : <Icon icon="lucide:mail" className="w-4 h-4" />}
                 {isEmailing ? 'Sending...' : 'Email PDF'}
               </button>
               <button onClick={handleDownloadPDF} className="px-8 py-2.5 rounded-xl font-bold text-sm bg-[#062F26] hover:bg-[#08483B] text-white shadow-md transition-all cursor-pointer flex items-center gap-2">

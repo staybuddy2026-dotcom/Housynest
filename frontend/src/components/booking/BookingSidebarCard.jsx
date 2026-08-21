@@ -146,7 +146,7 @@ const BookingSidebarCard = ({
                       <span className="font-bold text-[#062F26]">₹{tokenAmount.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between font-medium text-[#062F26]">
-                      <span>Stamp & Agreement Fees:</span>
+                      <span>Extra Charges (Stamp & Agreement):</span>
                       <span className="font-bold">₹{stampFees.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between font-bold text-[#0AA87D] pt-1.5 border-t border-slate-200/80">
@@ -189,7 +189,7 @@ const BookingSidebarCard = ({
                       </div>
                     )}
                     <div className="flex justify-between font-medium text-[#062F26]">
-                      <span>Stamp & Agreement Fees:</span>
+                      <span>Extra Charges (Stamp & Agreement):</span>
                       <span className="font-bold">₹{stampFees.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between font-bold text-[#0AA87D] pt-1.5 border-t border-slate-200/80">

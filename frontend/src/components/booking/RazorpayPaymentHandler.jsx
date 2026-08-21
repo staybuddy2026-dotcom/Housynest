@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { faviconBase64 } from '../../assets/faviconBase64.js';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -39,7 +40,7 @@ const RazorpayPaymentHandler = ({ isOpen, onClose, amount, bookingId, onSuccess,
       }
 
       const token = localStorage.getItem('accessToken');
-      
+
       // Create Order
       const orderRes = await fetch('/api/payments/razorpay/order', {
         method: 'POST',
@@ -61,11 +62,12 @@ const RazorpayPaymentHandler = ({ isOpen, onClose, amount, bookingId, onSuccess,
 
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || orderData.key_id, // Enter the Key ID generated from the Dashboard
-        amount: orderData.order.amount, 
+        amount: orderData.order.amount,
         currency: orderData.order.currency,
         name: "Housynest",
         description: "Property Booking Payment",
-        order_id: orderData.order.id, 
+        image: faviconBase64,
+        order_id: orderData.order.id,
         handler: async function (response) {
           try {
             const verifyRes = await fetch('/api/payments/razorpay/verify', {

@@ -66,7 +66,7 @@ const PropertyBooking = () => {
   // Payment Selection ('token' or 'full')
   const initialIsPG = stateData.property ? (stateData.property.type === 'PG' || stateData.property.propertyType === 'PG') : true;
   const [paymentType, setPaymentType] = useState(initialIsPG ? 'token' : 'full');
-  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(true);
 
   // Document Verification (Step 2)
   const [aadhaarFront, setAadhaarFront] = useState(null);
@@ -156,14 +156,14 @@ const PropertyBooking = () => {
     }
   }, [property, isPG]);
 
-  // Base pricing calculations (Token Amount is strictly 40% of Monthly Rent + ₹300 Stamp Fees)
-  const stampFees = 300;
+  // Base pricing calculations (Token Amount is strictly 40% of Monthly Rent + Extra Charges)
+  const stampFees = 800; // 300 stamp + 500 agreement
   const rawRent = selectedRoom?.rent || property?.monthlyRent || property?.price || property?.rent || 12000;
   const baseRent = typeof rawRent === 'number' ? rawRent : (parseInt(String(rawRent).replace(/\D/g, ''), 10) || 12000);
   const deposit = selectedRoom?.deposit ? (Number(selectedRoom.deposit) || 0) : (property?.securityAmount ? (parseInt(String(property.securityAmount).replace(/\D/g, ''), 10) || baseRent) : baseRent);
   const maintenance = property?.maintenanceCharges ? (parseInt(String(property.maintenanceCharges).replace(/\D/g, ''), 10) || 0) : 0;
 
-  // 40% Token Amount vs Full Amount (both include ₹300 stamp & agreement fees)
+  // 40% Token Amount vs Full Amount (both include ₹800 extra charges)
   const tokenAmount = Math.round(baseRent * 0.40);
   const tokenPayableNow = tokenAmount + stampFees;
   const fullPayableNow = baseRent + deposit + maintenance + stampFees;

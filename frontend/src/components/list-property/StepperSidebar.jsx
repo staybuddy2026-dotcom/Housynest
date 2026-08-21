@@ -10,7 +10,8 @@ const pgSteps = [
   { id: 6, title: 'Services', subtitle: 'Facilities, food & more' },
   { id: 7, title: 'Rules & Policies', subtitle: 'PG rules and policies' },
   { id: 8, title: 'Photos & Videos', subtitle: 'Add photos, floor plan & video' },
-  { id: 9, title: 'Owner Contract', subtitle: 'Upload contract PDF' }
+  { id: 9, title: 'Owner Contract', subtitle: 'Upload contract PDF' },
+  { id: 10, title: 'Bank Details', subtitle: 'Account info for rent collection' }
 ];
 
 const tenantSteps = [
@@ -20,7 +21,8 @@ const tenantSteps = [
   { id: 4, title: 'Additional Details', subtitle: 'Rooms, facing & overlooking' },
   { id: 5, title: 'Amenities', subtitle: 'Society and property amenities' },
   { id: 6, title: 'Photos & Videos', subtitle: 'Add photos, floor plan & video' },
-  { id: 7, title: 'Owner Contract', subtitle: 'Upload contract PDF' }
+  { id: 7, title: 'Owner Contract', subtitle: 'Upload contract PDF' },
+  { id: 8, title: 'Bank Details', subtitle: 'Account info for rent collection' }
 ];
 
 const StepperSidebar = ({ activeStep, propertyType = 'PG', layout = 'sidebar' }) => {

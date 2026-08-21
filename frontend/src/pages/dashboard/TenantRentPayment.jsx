@@ -78,7 +78,7 @@ const TenantRentPayment = () => {
             };
 
             const pricing = getPricing();
-            const stampFees = 300;
+            const stampFees = 800;
             const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
             const paymentMethod = currentBooking.paymentDetails?.paymentMethod || '';
             const isTokenMethod = paymentMethod.includes('Token');
@@ -660,7 +660,7 @@ const TenantRentPayment = () => {
                             )}
                             {stamp > 0 && (
                               <tr>
-                                <td className="px-4 py-3">Extra Charges (E-Sign & E-Stamp)</td>
+                                <td className="px-4 py-3">Extra Charges (Stamp & Agreement)</td>
                                 <td className="px-4 py-3 text-right">₹{stamp.toLocaleString()}</td>
                               </tr>
                             )}
@@ -823,7 +823,7 @@ const TenantRentPayment = () => {
                         { label: 'Security Deposit', amount: secDep }
                       ];
                       if (maint > 0) items.push({ label: 'Maintenance Charges', amount: maint });
-                      if (stamp > 0) items.push({ label: 'Extra Charges (E-Sign & E-Stamp)', amount: stamp });
+                      if (stamp > 0) items.push({ label: 'Extra Charges (Stamp & Agreement)', amount: stamp });
                       items.push({ label: 'Transaction Fee', amount: 0 });
                       
                       items.forEach(item => {

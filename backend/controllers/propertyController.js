@@ -23,7 +23,7 @@ export const createProperty = async (req, res) => {
     delete propertyData.owner;
 
     // Convert complex objects/arrays from stringified JSON if needed (multipart/form-data sends complex objects as strings)
-    const jsonFields = ['rooms', 'floors', 'pgPricing'];
+    const jsonFields = ['rooms', 'floors', 'pgPricing', 'bankDetails'];
     jsonFields.forEach(field => {
       if (propertyData[field] && typeof propertyData[field] === 'string') {
         try {
@@ -148,7 +148,7 @@ export const updateProperty = async (req, res) => {
     delete propertyData.owner;
 
     // Convert complex objects/arrays from stringified JSON if needed
-    const jsonFields = ['rooms', 'floors', 'pgPricing'];
+    const jsonFields = ['rooms', 'floors', 'pgPricing', 'bankDetails'];
     jsonFields.forEach(field => {
       if (propertyData[field] && typeof propertyData[field] === 'string') {
         try {
@@ -385,9 +385,8 @@ export const getPropertyById = async (req, res) => {
         }
       }
 
-      // Increment views
-      propertyDoc.views = (propertyDoc.views || 0) + 1;
-      await propertyDoc.save();
+      // Increment views without triggering full document validation
+      await Property.updateOne({ _id: propertyDoc._id }, { $inc: { views: 1 } });
       
       let property = propertyDoc.toObject();
       property = await attachRatings(property);
@@ -397,6 +396,7 @@ export const getPropertyById = async (req, res) => {
       res.status(404).json({ message: 'Property not found' });
     }
   } catch (error) {
+    console.error("Error in getPropertyById:", error);
     res.status(500).json({ message: 'Failed to fetch property' });
   }
 };

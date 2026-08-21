@@ -25,10 +25,14 @@ import TenantPricingPreferences from '../components/list-property/TenantPricingP
 import TenantAdditionalDetails from '../components/list-property/TenantAdditionalDetails';
 import TenantAmenities from '../components/list-property/TenantAmenities';
 import OwnerContractStep from '../components/list-property/OwnerContractStep';
+import PgBankDetails from '../components/list-property/PgBankDetails';
 
 const ListProperty = () => {
   const savedStateStr = sessionStorage.getItem('listPropertyState');
   const savedState = savedStateStr ? JSON.parse(savedStateStr) : null;
+
+  const authUserStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+  const authUser = authUserStr ? JSON.parse(authUserStr) : null;
 
   const [activeStep, setActiveStep] = useState(savedState?.activeStep || 1);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -118,6 +122,12 @@ const ListProperty = () => {
       societyAmenities: [],
       preferredTenants: [],
       localityDescription: '',
+      bankDetails: {
+        accountHolderName: authUser?.bankDetails?.accountHolderName || '',
+        accountNumber: authUser?.bankDetails?.last4AccountNumber ? `********${authUser.bankDetails.last4AccountNumber}` : '',
+        ifscCode: authUser?.bankDetails?.ifscCode || '',
+        bankName: authUser?.bankDetails?.bankName || ''
+      },
     }
   });
 
@@ -375,6 +385,7 @@ const ListProperty = () => {
         if (['pgRules', 'extraRules', 'nearbyPlaces'].includes(field)) return 7;
         if (['virtualTour', 'photos'].includes(field)) return 8;
         if (['ownerContract'].includes(field)) return 9;
+        if (field.startsWith('bankDetails')) return 10;
       } else {
         if (['propertyType', 'postingAs', 'city', 'propertyCategory', 'societyName', 'ageOfProperty', 'preferredTenants'].includes(field)) return 1;
         if (['address', 'locality', 'state', 'pincode', 'landmark', 'mapLink', 'bhkType', 'bathrooms', 'balconies', 'furnishingStatus', 'builtUpArea', 'carpetArea', 'totalFloors', 'propertyOnFloor'].includes(field)) return 2;
@@ -383,6 +394,7 @@ const ListProperty = () => {
         if (['societyAmenities'].includes(field)) return 5;
         if (['virtualTour', 'photos'].includes(field)) return 6;
         if (['ownerContract'].includes(field)) return 7;
+        if (field.startsWith('bankDetails')) return 8;
       }
       return null;
     };
@@ -428,9 +440,10 @@ const ListProperty = () => {
       case 4: return propertyType === 'Tenant' ? <TenantAdditionalDetails onNext={handleNext} onPrev={handlePrev} /> : <PgBooking onNext={handleNext} onPrev={handlePrev} />;
       case 5: return propertyType === 'Tenant' ? <TenantAmenities onNext={handleNext} onPrev={handlePrev} /> : <PgAmenities onNext={handleNext} onPrev={handlePrev} />;
       case 6: return propertyType === 'Tenant' ? <PgPhotos onNext={handleNext} onPrev={handlePrev} /> : <PgServices onNext={handleNext} onPrev={handlePrev} />;
-      case 7: return propertyType === 'Tenant' ? <OwnerContractStep onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
-      case 8: return propertyType === 'Tenant' ? null : <PgPhotos onNext={handleNext} onPrev={handlePrev} />;
-      case 9: return propertyType === 'Tenant' ? null : <OwnerContractStep onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
+      case 7: return propertyType === 'Tenant' ? <OwnerContractStep onNext={handleNext} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgRulesPolicies onNext={handleNext} onPrev={handlePrev} />;
+      case 8: return propertyType === 'Tenant' ? <PgBankDetails onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} /> : <PgPhotos onNext={handleNext} onPrev={handlePrev} />;
+      case 9: return propertyType === 'Tenant' ? null : <OwnerContractStep onNext={handleNext} onPrev={handlePrev} isSubmitting={isSubmitting} />;
+      case 10: return propertyType === 'Tenant' ? null : <PgBankDetails onNext={methods.handleSubmit(onSubmit, onError)} onPrev={handlePrev} isSubmitting={isSubmitting} />;
       default: return null;
     }
   };
@@ -470,7 +483,7 @@ const ListProperty = () => {
 
             {/* Right Column - Live Preview */}
             <div className="w-full lg:w-[320px] xl:w-90 shrink-0 hidden lg:block">
-              <PropertyPreview activeStep={activeStep} totalSteps={propertyType === 'Tenant' ? 7 : 9} />
+              <PropertyPreview activeStep={activeStep} totalSteps={propertyType === 'Tenant' ? 8 : 10} />
             </div>
           </form>
         </FormProvider>

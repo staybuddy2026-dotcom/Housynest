@@ -106,8 +106,34 @@ const TabNoticePeriods = ({ propertyId }) => {
 
   return (
     <div className="space-y-4">
-      {noticeBookings.map(b => (
-        <div key={b._id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      {noticeBookings.map(b => {
+        const deposit = (() => {
+          if (b.propertyId?.propertyType === 'PG' && b.roomDetails?.sharingType) {
+            const floor = b.propertyId.floors?.find(f => f.floorName === b.roomDetails.floorName);
+            const room = floor?.rooms?.find(r => r.roomName === b.roomDetails.roomName);
+            let baseType = 'Single';
+            let isAC = false;
+
+            if (room) {
+              baseType = room.sharingType || 'Single';
+              isAC = room.isAC;
+            } else if (b.roomDetails?.sharingType) {
+              const st = b.roomDetails.sharingType;
+              baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
+              isAC = st.includes('(AC)');
+            }
+
+            const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
+            const pgPric = b.propertyId.pgPricing?.[typeStr];
+            if (pgPric) {
+              return Number(String(pgPric.depositPerBed || '').replace(/\D/g, '') || 0);
+            }
+          }
+          return Number(String(b.propertyId?.securityAmount || '').replace(/\D/g, '') || 0) || Number(b.paymentDetails?.securityDeposit || 0);
+        })();
+
+        return (
+          <div key={b._id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
           <div className="p-5">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-4">
@@ -150,7 +176,7 @@ const TabNoticePeriods = ({ propertyId }) => {
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase mb-1">Security Deposit</p>
                 <p className="text-sm font-bold text-slate-700">
-                  ₹{b.propertyId?.securityAmount ? b.propertyId.securityAmount.toLocaleString('en-IN') : '0'}
+                  ₹{deposit.toLocaleString('en-IN')}
                 </p>
               </div>
               <div>
@@ -207,7 +233,8 @@ const TabNoticePeriods = ({ propertyId }) => {
             </div>
           )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
