@@ -1,8 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { ReactLenis } from 'lenis/react';
+import toast from 'react-hot-toast';
 
 const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
+  const [showOtp, setShowOtp] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [isSigning, setIsSigning] = useState(false);
+  const [forceRender, setForceRender] = useState(0);
+
+  useEffect(() => {
+    // Reset state when a new tenant is selected
+    setShowOtp(false);
+    setOtp('');
+  }, [selectedTenant]);
+
+  const handleSendOtp = () => {
+    setShowOtp(true);
+    // Note: toast requires import toast from 'react-hot-toast', I need to add that import at top.
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length < 6) return;
+    setIsSigning(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/bookings/${selectedTenant.rawBooking._id}/consent`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast.success('Agreement signed successfully!');
+        setShowOtp(false);
+        setOtp('');
+        // Mutate the local object so the UI updates immediately
+        selectedTenant.rawBooking.ownerConsentStatus = 'Consented';
+        // Force a re-render
+        setForceRender(prev => prev + 1);
+
+        // Tell parent to refresh in background
+        window.dispatchEvent(new Event('globalBookingStatusUpdated'));
+        const event = new CustomEvent('tenantSigned', { detail: selectedTenant.rawBooking._id });
+        window.dispatchEvent(event);
+      } else {
+        toast.error('Failed to sign the agreement.');
+      }
+    } catch (error) {
+      console.error('Error signing agreement', error);
+      toast.error('An error occurred while signing.');
+    } finally {
+      setIsSigning(false);
+    }
+  };
+
   return (
     <>
       {/* Side Drawer Overlay */}
@@ -166,6 +216,80 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
                     </div>
                   </div>
                 </div>
+
+                {/* Agreement Status */}
+                {selectedTenant.rawBooking && (
+                  <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                    <h4 className="text-sm font-bold text-[#062F26] mb-4">Lease Agreement</h4>
+                    
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Tenant eSign</span>
+                        {(selectedTenant.rawBooking.tenantConsentStatus === 'Consented' || selectedTenant.rawBooking.eSignStatus === 'Completed') ? (
+                          <span className="text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md">Signed</span>
+                        ) : (
+                          <span className="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded-md">Pending</span>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-slate-500">Owner eSign</span>
+                          {selectedTenant.rawBooking.ownerConsentStatus === 'Consented' ? (
+                            <span className="text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md">Signed</span>
+                          ) : (
+                            <span className="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded-md">Pending</span>
+                          )}
+                        </div>
+
+                        {selectedTenant.rawBooking.ownerConsentStatus !== 'Consented' && (selectedTenant.rawBooking.tenantConsentStatus === 'Consented' || selectedTenant.rawBooking.eSignStatus === 'Completed') && (
+                          <div className="mt-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            {!showOtp ? (
+                              <div>
+                                <p className="text-xs text-slate-600 mb-3">Both parties must sign the agreement. Sign now using your Aadhaar OTP.</p>
+                                <button 
+                                  onClick={handleSendOtp}
+                                  className="w-full py-2 bg-[#062F26] text-white rounded-lg text-sm font-bold hover:bg-emerald-900 transition-colors"
+                                >
+                                  Sign Agreement
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <p className="text-xs font-bold text-emerald-700">OTP Sent to Aadhaar Linked Mobile</p>
+                                <input 
+                                  type="text" 
+                                  placeholder="Enter 6-digit OTP"
+                                  value={otp}
+                                  onChange={(e) => setOtp(e.target.value)}
+                                  maxLength={6}
+                                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-brand-teal"
+                                />
+                                <button 
+                                  onClick={handleVerifyOtp}
+                                  disabled={isSigning || otp.length < 6}
+                                  className="w-full py-2 bg-[#0AA87D] text-white rounded-lg text-sm font-bold hover:bg-[#088c68] disabled:opacity-50 transition-colors flex justify-center items-center"
+                                >
+                                  {isSigning ? <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" /> : 'Verify & Sign'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {selectedTenant.rawBooking.ownerConsentStatus === 'Consented' && (
+                          <button 
+                            onClick={() => window.open(`/api/bookings/${selectedTenant.rawBooking._id}/download-agreement?token=${localStorage.getItem('accessToken')}`, '_blank')}
+                            className="mt-2 w-full py-2 border-2 border-[#062F26] text-[#062F26] rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors flex justify-center items-center gap-2"
+                          >
+                            <Icon icon="lucide:download" className="w-4 h-4" />
+                            Download Agreement
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </ReactLenis>
           </>

@@ -634,14 +634,14 @@ const TenantBookings = () => {
                             }
                           } else if (action.title === 'My Agreement') {
                             const isFullPaid = booking.status === 'Confirmed' || booking.status === 'Active';
-                            if (!isFullPaid || booking.eSignStatus !== 'Completed') {
-                              toast.error('First complete the full payment and sign the agreement');
+                            if (!isFullPaid) {
+                              toast.error('First complete the full payment to view/sign agreement');
+                            } else if (booking.eSignStatus !== 'Completed') {
+                              setShowAgreementModal({ bookingId: booking._id, isReadOnly: false });
+                            } else if (booking.ownerConsentStatus !== 'Consented') {
+                              toast.error('Pending Owner Signature. Please check back later.');
                             } else {
-                              if (booking.eStampPdfUrl) {
-                                window.open(booking.eStampPdfUrl, '_blank');
-                              } else {
-                                setShowAgreementModal({ bookingId: booking._id, isReadOnly: true });
-                              }
+                              window.open(`/api/bookings/${booking._id}/download-agreement?token=${localStorage.getItem('accessToken')}`, '_blank');
                             }
                           } else if (action.title === 'Contact Owner') {
                             if (booking.ownerId) {
@@ -894,9 +894,31 @@ const TenantBookings = () => {
       <AgreementModal
         isOpen={!!showAgreementModal}
         onClose={() => setShowAgreementModal(null)}
-        onSubmit={() => {
+        onSubmit={async () => {
           if (showAgreementModal && !showAgreementModal.isReadOnly) {
-            handlePayBalance(showAgreementModal.bookingId, showAgreementModal.amount);
+            try {
+              const token = localStorage.getItem('accessToken');
+              const res = await fetch(`/api/bookings/${showAgreementModal.bookingId}/consent`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              
+              if (res.ok) {
+                if (showAgreementModal.amount) {
+                  handlePayBalance(showAgreementModal.bookingId, showAgreementModal.amount);
+                } else {
+                  setBookings(bookings.map(b => b._id === showAgreementModal.bookingId ? { ...b, eSignStatus: 'Completed', tenantConsentStatus: 'Consented' } : b));
+                  if (selectedBooking && selectedBooking._id === showAgreementModal.bookingId) {
+                    setSelectedBooking({ ...selectedBooking, eSignStatus: 'Completed', tenantConsentStatus: 'Consented' });
+                  }
+                  toast.success('Agreement Signed Successfully!');
+                }
+              } else {
+                toast.error('Failed to sign agreement.');
+              }
+            } catch (err) {
+              toast.error('Error connecting to server.');
+            }
             setShowAgreementModal(null);
           }
         }}

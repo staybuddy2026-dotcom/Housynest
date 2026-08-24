@@ -343,12 +343,12 @@ const OwnerContractStep = ({ onNext, onPrev, isSubmitting }) => {
           {isSubmitting ? (
             <>
               <Icon icon="lucide:loader-2" className="animate-spin w-4.5 h-4.5" />
-              Submitting Property...
+              Processing...
             </>
           ) : (
             <>
-              Submit Property
-              <Icon icon="lucide:check" className="w-4.5 h-4.5" strokeWidth="2.5" />
+              Next Step
+              <Icon icon="lucide:arrow-right" className="w-4 h-4" strokeWidth="2.5" />
             </>
           )}
         </button>

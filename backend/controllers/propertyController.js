@@ -51,10 +51,20 @@ export const createProperty = async (req, res) => {
 
     let ownerContractData = null;
     if (req.body.ownerContract_mode === 'customize') {
+      let parsedTerms = [];
+      try {
+        if (req.body.ownerContract_terms) {
+          parsedTerms = JSON.parse(req.body.ownerContract_terms);
+        }
+      } catch (e) {
+        console.error('Failed to parse ownerContract_terms', e);
+      }
+      
       ownerContractData = {
         mode: 'customize',
         contractTextEn: req.body.ownerContract_en || '',
-        contractTextGu: req.body.ownerContract_gu || ''
+        contractTextGu: req.body.ownerContract_gu || '',
+        termsAndConditions: parsedTerms
       };
     }
 
@@ -192,10 +202,20 @@ export const updateProperty = async (req, res) => {
 
     // Handle owner contract customized text
     if (req.body.ownerContract_mode === 'customize') {
+      let parsedTerms = [];
+      try {
+        if (req.body.ownerContract_terms) {
+          parsedTerms = JSON.parse(req.body.ownerContract_terms);
+        }
+      } catch (e) {
+        console.error('Failed to parse ownerContract_terms', e);
+      }
+      
       propertyData.ownerContract = {
         mode: 'customize',
         contractTextEn: req.body.ownerContract_en || '',
-        contractTextGu: req.body.ownerContract_gu || ''
+        contractTextGu: req.body.ownerContract_gu || '',
+        termsAndConditions: parsedTerms
       };
     }
     

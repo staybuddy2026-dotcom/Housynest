@@ -127,6 +127,7 @@ const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelect
       propertyType: property.propertyType || b.propertyId?.propertyType || 'PG',
       paymentDetails: b.paymentDetails,
       status: b.status,
+      rawBooking: b,
     };
   });
 

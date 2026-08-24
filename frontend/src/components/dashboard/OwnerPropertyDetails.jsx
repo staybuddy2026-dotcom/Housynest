@@ -198,7 +198,7 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
       }
     };
 
-    if (['Bookings', 'Rooms & Beds', 'Tenants', 'Rent Collection'].includes(activeTab) && !bookingsFetched) {
+    if (['Bookings', 'Rooms & Beds', 'Tenants', 'Rent Collection', 'Contract Agreement', 'Reports'].includes(activeTab) && !bookingsFetched) {
       fetchBookings();
     }
   }, [activeTab, propertyId, bookingsFetched]);

@@ -100,22 +100,34 @@ const TabContract = ({ property, bookings = [] }) => {
     };
   });
 
-  const handleViewContract = (contractUrl) => {
-    if (!contractUrl) {
-      toast.error('No contract PDF available for this tenant.');
-      return;
+  const handleViewContract = async (bookingId) => {
+    if (!bookingId) return;
+    try {
+      const toastId = toast.loading('Loading contract...');
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/bookings/${bookingId}/download-agreement`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      toast.dismiss(toastId);
+    } catch (error) {
+      toast.error('Failed to load contract PDF');
+      console.error(error);
     }
-    window.open(contractUrl, '_blank');
   };
 
-  const handleDownloadContract = async (contractUrl, tenantName) => {
-    if (!contractUrl) {
-      toast.error('No contract PDF available for this tenant.');
-      return;
-    }
+  const handleDownloadContract = async (bookingId, tenantName) => {
+    if (!bookingId) return;
     try {
       const toastId = toast.loading('Downloading contract...');
-      const response = await fetch(contractUrl);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/bookings/${bookingId}/download-agreement`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -256,14 +268,14 @@ const TabContract = ({ property, bookings = [] }) => {
 
                     <div className="flex items-center gap-2 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                       <button 
-                        onClick={() => handleViewContract(property.ownerContract?.url)}
+                        onClick={() => handleViewContract(contract.id)}
                         className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#EAF5F2] text-[#0AA87D] hover:bg-[#0AA87D] hover:text-white transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                       >
                         <Icon icon="lucide:eye" width="16" />
                         View
                       </button>
                       <button 
-                        onClick={() => handleDownloadContract(property.ownerContract?.url, contract.tenantName)}
+                        onClick={() => handleDownloadContract(contract.id, contract.tenantName)}
                         className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold bg-[#062F26] text-white hover:bg-brand-teal transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                       >
                         <Icon icon="lucide:download" width="16" />

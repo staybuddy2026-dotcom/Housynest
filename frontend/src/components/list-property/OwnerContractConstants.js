@@ -3,15 +3,7 @@ export const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL / LEAVE AND LICENSE AGREEME
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
 
-<h3>PARTIES TO THE AGREEMENT</h3>
-
-<b>Licensor (Owner/Property Manager):</b> [owner_name]
-<b>Signature:</b> ___________________________
-
-<b>Licensee (Tenant):</b> [tenant_full_name]
-<b>Signature:</b> ___________________________
-
-<b>Date:</b> [agreement_date]`;
+`;
 
 export const DEFAULT_TERMS_AND_CONDITIONS = [
   {

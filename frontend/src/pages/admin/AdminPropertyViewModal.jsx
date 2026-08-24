@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 
 const formatCurrency = (amount) => {
@@ -14,6 +14,16 @@ const formatCurrency = (amount) => {
 
 const AdminPropertyViewModal = ({ property, onClose }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [contractLang, setContractLang] = useState('en');
+
+  // Default to Gujarati if English contract is empty but Gujarati is present
+  useEffect(() => {
+    if (property?.ownerContract) {
+      if (!property.ownerContract.contractTextEn && !property.ownerContract.contractText && property.ownerContract.contractTextGu) {
+        setContractLang('gu');
+      }
+    }
+  }, [property]);
 
   if (!property) return null;
 
@@ -88,6 +98,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
               { id: 'details', label: isPg ? 'PG Pricing & Rooms' : 'Property Specs & Rent', icon: isPg ? 'lucide:bed' : 'lucide:building' },
               { id: 'amenities', label: 'Food, Amenities & Rules', icon: 'lucide:sparkles' },
               { id: 'media', label: `Media & Docs (${(property.images?.length || 0) + (property.verificationDocs?.length || 0)})`, icon: 'lucide:image' },
+              { id: 'agreement', label: 'Rent Agreement', icon: 'lucide:file-text' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -720,6 +731,68 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                   </div>
                 ) : (
                   <p className="text-xs text-slate-400 italic">No photos uploaded.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: RENT AGREEMENT */}
+          {activeTab === 'agreement' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <Icon icon="lucide:file-text" className="w-4 h-4 text-brand-teal" />
+                  Owner Rent Agreement
+                </h3>
+
+                {(property.ownerContract?.contractTextEn || property.ownerContract?.contractTextGu || property.ownerContract?.termsAndConditions?.length > 0) ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <button
+                        onClick={() => setContractLang('en')}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${contractLang === 'en' ? 'bg-[#062F26] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      >
+                        English Contract
+                      </button>
+                      {property.ownerContract.contractTextGu && (
+                        <button
+                          onClick={() => setContractLang('gu')}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${contractLang === 'gu' ? 'bg-[#0AA87D] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                        >
+                          Gujarati Contract
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 whitespace-pre-wrap border border-slate-200 min-h-60 max-h-96 overflow-y-auto" dangerouslySetInnerHTML={{ __html: contractLang === 'en' ? (property.ownerContract.contractTextEn || property.ownerContract.contractText) : property.ownerContract.contractTextGu }} />
+
+                    {property.ownerContract.termsAndConditions?.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Custom Terms</h4>
+                        <ul className="space-y-2">
+                          {property.ownerContract.termsAndConditions.map((term, idx) => (
+                            <li key={idx} className="bg-white border border-slate-200 p-3 rounded-lg">
+                              <p className="font-bold text-sm text-slate-800">{contractLang === 'en' ? term.titleEn : (term.titleGu || term.titleEn)}</p>
+                              <p className="text-xs text-slate-600 mt-1">{contractLang === 'en' ? term.descriptionEn : (term.descriptionGu || term.descriptionEn)}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : property.ownerContract?.file ? (
+                  <div className="flex flex-col items-center justify-center p-8 border border-slate-200 rounded-xl bg-slate-50">
+                    <Icon icon="lucide:file-pdf" className="w-12 h-12 text-red-500 mb-3" />
+                    <p className="text-sm font-bold text-slate-800 mb-2">Uploaded Document</p>
+                    <a href={property.ownerContract.file.url} target="_blank" rel="noreferrer" className="px-4 py-2 bg-brand-teal text-white rounded-lg text-xs font-bold hover:bg-[#062F26] transition-colors">
+                      View PDF
+                    </a>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-8 bg-slate-50 border border-slate-200 rounded-xl border-dashed">
+                    <Icon icon="lucide:file-x" className="w-8 h-8 text-slate-400 mb-2" />
+                    <p className="text-sm font-semibold text-slate-500">No rent agreement provided.</p>
+                  </div>
                 )}
               </div>
             </div>

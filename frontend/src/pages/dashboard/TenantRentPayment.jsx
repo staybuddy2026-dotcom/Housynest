@@ -589,10 +589,12 @@ const TenantRentPayment = () => {
             
             {/* Receipt Content */}
             <div className="p-6 overflow-y-auto" id="receipt-content">
-              <div className="flex justify-between items-start mb-8">
+              <div className="flex justify-between items-start mb-8 relative">
                 <div>
                   <img src="/src/assets/logo.png" alt="Housynest" className="h-8 object-contain mb-1" />
-                  <p className="text-xs text-slate-500 mt-1">Payment Receipt</p>
+                </div>
+                <div className="absolute left-1/2 -translate-x-1/2 top-0 text-center">
+                  <h3 className="text-[#0AA87D] font-bold text-lg tracking-wider">PAYMENT RECEIPT</h3>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-slate-800">Receipt #{selectedReceipt._id?.substring(0, 8).toUpperCase()}</p>
@@ -610,6 +612,7 @@ const TenantRentPayment = () => {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Billed To</p>
                   <p className="text-sm font-bold text-slate-800">{booking?.tenantId?.fullName || JSON.parse(localStorage.getItem('user') || '{}')?.fullName || 'Tenant'}</p>
                   <p className="text-xs font-semibold text-slate-500">Room {booking?.roomDetails?.roomName}, {booking?.roomDetails?.bedName}</p>
+                  <p className="text-xs font-semibold text-slate-500 mt-0.5">Booking ID: {booking?.bookingId || booking?._id?.substring(0, 8).toUpperCase()}</p>
                 </div>
               </div>
               
@@ -624,7 +627,7 @@ const TenantRentPayment = () => {
                   <tbody className="divide-y divide-slate-100 text-slate-700 font-semibold">
                     {(() => {
                       const finalRentAmt = booking?.paymentDetails?.rentAmount || booking?.roomDetails?.rentAmount || (typeof rentAmount !== 'undefined' ? rentAmount : 0);
-                      const stamp = booking?.eStampFees || booking?.paymentDetails?.extraCharges || 0;
+                      let stamp = booking?.eStampFees || booking?.paymentDetails?.extraCharges || 0;
                       const maint = booking?.roomDetails?.maintenanceFees || 0;
                       let secDep = booking?.paymentDetails?.securityDeposit || booking?.roomDetails?.securityDeposit || 0;
                       
@@ -632,13 +635,14 @@ const TenantRentPayment = () => {
                       const isFirstInvoice = sortedInvoices.length > 0 && selectedReceipt && sortedInvoices[0]._id === selectedReceipt._id;
                       
                       let isMoveIn = false;
-                      if (secDep > 0 && selectedReceipt.amount > finalRentAmt + 10) {
+                      if (isFirstInvoice && selectedReceipt.amount > finalRentAmt + 500) {
                         isMoveIn = true;
-                      } else if (isFirstInvoice && selectedReceipt.amount > finalRentAmt + 500) {
+                        if (stamp === 0) stamp = 800; // hardcode stamp for move-in
+                        secDep = selectedReceipt.amount - finalRentAmt - maint - stamp;
+                      } else if (secDep > 0 && selectedReceipt.amount > finalRentAmt + 10) {
                         isMoveIn = true;
-                        if (secDep === 0) {
-                          secDep = selectedReceipt.amount - finalRentAmt - maint - stamp;
-                        }
+                        if (stamp === 0) stamp = 800;
+                        secDep = selectedReceipt.amount - finalRentAmt - maint - stamp;
                       }
                       
                       if (isMoveIn) {
@@ -664,10 +668,6 @@ const TenantRentPayment = () => {
                                 <td className="px-4 py-3 text-right">₹{stamp.toLocaleString()}</td>
                               </tr>
                             )}
-                            <tr>
-                              <td className="px-4 py-3">Transaction Fee</td>
-                              <td className="px-4 py-3 text-right">₹0</td>
-                            </tr>
                           </>
                         );
                       }
@@ -679,10 +679,6 @@ const TenantRentPayment = () => {
                               Rent ({formatDate(new Date(selectedReceipt.billingPeriodStart))} - {formatDate(new Date(selectedReceipt.billingPeriodEnd))})
                             </td>
                             <td className="px-4 py-3 text-right">₹{selectedReceipt.amount.toLocaleString()}</td>
-                          </tr>
-                          <tr>
-                            <td className="px-4 py-3">Transaction Fee</td>
-                            <td className="px-4 py-3 text-right">₹0</td>
                           </tr>
                         </>
                       );
@@ -740,11 +736,6 @@ const TenantRentPayment = () => {
                     if (logoBase64) {
                       // Add Logo (top left)
                       doc.addImage(logoBase64, 'PNG', 14, 12, 40, 12);
-                      
-                      // Add Watermark (center)
-                      doc.setGState(new doc.GState({ opacity: 0.08 }));
-                      doc.addImage(logoBase64, 'PNG', 45, 120, 120, 36);
-                      doc.setGState(new doc.GState({ opacity: 1.0 }));
                     } else {
                       doc.setFontSize(22);
                       doc.setTextColor(10, 168, 125);
@@ -752,9 +743,12 @@ const TenantRentPayment = () => {
                       doc.text("Housynest", 14, 20);
                     }
                     
-                    doc.setFontSize(10);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text("Payment Receipt", 14, 26);
+                    // Centered Payment Receipt Title
+                    doc.setFontSize(16);
+                    doc.setTextColor(10, 168, 125);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("PAYMENT RECEIPT", 105, 22, { align: 'center' });
+                    doc.setFont("helvetica", "normal");
                     
                     doc.setFontSize(12);
                     doc.setTextColor(40, 40, 40);
@@ -782,6 +776,7 @@ const TenantRentPayment = () => {
                     doc.setTextColor(100, 100, 100);
                     doc.text(booking?.propertyId?.address || 'N/A', 14, 54);
                     doc.text(`Room ${booking?.roomDetails?.roomName}, ${booking?.roomDetails?.bedName}`, 196, 54, { align: 'right' });
+                    doc.text(`Booking ID: ${booking?.bookingId || booking?._id?.substring(0, 8).toUpperCase()}`, 196, 60, { align: 'right' });
                     
                     // Table Header
                     const startY = 70;
@@ -798,7 +793,7 @@ const TenantRentPayment = () => {
                     doc.setFont("helvetica", "normal");
                     
                     const finalRentAmt = booking?.paymentDetails?.rentAmount || booking?.roomDetails?.rentAmount || (typeof rentAmount !== 'undefined' ? rentAmount : 0);
-                    const stamp = booking?.eStampFees || booking?.paymentDetails?.extraCharges || 0;
+                    let stamp = booking?.eStampFees || booking?.paymentDetails?.extraCharges || 0;
                     const maint = booking?.roomDetails?.maintenanceFees || 0;
                     let secDep = booking?.paymentDetails?.securityDeposit || booking?.roomDetails?.securityDeposit || 0;
                     
@@ -806,13 +801,14 @@ const TenantRentPayment = () => {
                     const isFirstInvoice = sortedInvoices.length > 0 && selectedReceipt && sortedInvoices[0]._id === selectedReceipt._id;
                     
                     let isMoveIn = false;
-                    if (secDep > 0 && selectedReceipt.amount > finalRentAmt + 10) {
+                    if (isFirstInvoice && selectedReceipt.amount > finalRentAmt + 500) {
                       isMoveIn = true;
-                    } else if (isFirstInvoice && selectedReceipt.amount > finalRentAmt + 500) {
+                      if (stamp === 0) stamp = 800;
+                      secDep = selectedReceipt.amount - finalRentAmt - maint - stamp;
+                    } else if (secDep > 0 && selectedReceipt.amount > finalRentAmt + 10) {
                       isMoveIn = true;
-                      if (secDep === 0) {
-                        secDep = selectedReceipt.amount - finalRentAmt - maint - stamp;
-                      }
+                      if (stamp === 0) stamp = 800;
+                      secDep = selectedReceipt.amount - finalRentAmt - maint - stamp;
                     }
                     
                     let currentY = startY + 10;
@@ -824,7 +820,6 @@ const TenantRentPayment = () => {
                       ];
                       if (maint > 0) items.push({ label: 'Maintenance Charges', amount: maint });
                       if (stamp > 0) items.push({ label: 'Extra Charges (Stamp & Agreement)', amount: stamp });
-                      items.push({ label: 'Transaction Fee', amount: 0 });
                       
                       items.forEach(item => {
                         doc.rect(14, currentY, 182, 12);
@@ -837,11 +832,6 @@ const TenantRentPayment = () => {
                       doc.text(`Rent (${formatDate(new Date(selectedReceipt.billingPeriodStart))} - ${formatDate(new Date(selectedReceipt.billingPeriodEnd))})`, 20, currentY + 7);
                       doc.text(`Rs. ${selectedReceipt.amount.toLocaleString('en-IN')}`, 188, currentY + 7, { align: 'right' });
                       currentY += 16;
-                      
-                      doc.rect(14, currentY, 182, 12);
-                      doc.text("Transaction Fee", 20, currentY + 8);
-                      doc.text("Rs. 0", 188, currentY + 8, { align: 'right' });
-                      currentY += 12;
                     }
               
                     const finalY = currentY + 6;
@@ -864,6 +854,13 @@ const TenantRentPayment = () => {
                     doc.text("This payment was successfully processed.", 105, 275, { align: "center" });
                     doc.text("Thank you for using Housynest!", 105, 282, { align: "center" });
               
+                    // Add Watermark (center) over everything so it's not clipped
+                    if (logoBase64) {
+                      doc.setGState(new doc.GState({ opacity: 0.08 }));
+                      doc.addImage(logoBase64, 'PNG', 45, 130, 120, 36);
+                      doc.setGState(new doc.GState({ opacity: 1.0 }));
+                    }
+
                     // Save
                     doc.save(`Receipt_${selectedReceipt._id.substring(selectedReceipt._id.length - 8).toUpperCase()}.pdf`);
                     toast.success('Receipt downloaded successfully!');

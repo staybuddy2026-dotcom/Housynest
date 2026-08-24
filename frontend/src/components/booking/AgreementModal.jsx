@@ -4,10 +4,21 @@ import toast from 'react-hot-toast';
 import html2pdf from 'html2pdf.js';
 import { DEFAULT_CONTRACT_TEXT } from './BookingStepPayment';
 import { translateWithGoogleFreeApi } from '../../lib/translate';
+import { logoBase64 } from '../../assets/logoBase64';
+
 
 const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false }) => {
   const [isAgreementCollapsed, setIsAgreementCollapsed] = useState(false);
   const [agreementLanguage, setAgreementLanguage] = useState('en');
+
+  useEffect(() => {
+    if (booking?.propertyId?.ownerContract) {
+      if (!booking.propertyId.ownerContract.contractTextEn && !booking.propertyId.ownerContract.contractText && booking.propertyId.ownerContract.contractTextGu) {
+        setAgreementLanguage('gu');
+      }
+    }
+  }, [booking]);
+
   const [translatedGujaratiText, setTranslatedGujaratiText] = useState('');
   const [isTranslatingText, setIsTranslatingText] = useState(false);
 
@@ -32,7 +43,8 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
         <head>
           <title>Rental Agreement - ${booking?.propertyId?.pgName || booking?.propertyId?.societyName || 'Housynest'}</title>
           <style>
-            body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; font-size: 14px; }
+            body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; font-size: 14px; position: relative; z-index: 1; }
+            .watermark { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 70%; opacity: 0.08; z-index: -1; pointer-events: none; }
             h1 { text-align: center; color: #062F26; font-size: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }
             h3 { font-size: 15px; font-weight: bold; margin-top: 24px; margin-bottom: 12px; text-transform: uppercase; color: #0f172a; border-top: 1px dashed #cbd5e1; padding-top: 16px; letter-spacing: 0.5px; }
             p { font-size: 13px; margin-bottom: 12px; text-align: justify; }
@@ -41,11 +53,25 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
           </style>
         </head>
         <body>
+          <img src="${logoBase64}" class="watermark" alt="watermark" />
           <div class="header-info">
             Generated on: ${new Date().toLocaleDateString('en-GB')}<br/>
             Ref: ${booking?._id ? booking._id.substring(booking._id.length - 8).toUpperCase() : 'HN-REF'}
           </div>
           ${content.replace(/class="[^"]*"/g, '')}
+          
+          <br/><br/>
+          <div style="break-inside: avoid; color: #0f172a;">
+            <h3 style="font-weight: bold; color: #062F26; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; padding-top: 15px; border-top: 1px dashed #cbd5e1; margin-bottom: 20px;">PARTIES TO THE AGREEMENT</h3>
+            
+            <p style="margin-bottom: 10px; font-size: 13px;"><b>Licensor (Owner/Property Manager):</b> ${booking?.propertyId?.owner?.fullName || '[owner_name]'}</p>
+            <p style="margin-bottom: 30px; font-size: 13px;"><b>Signature:</b> ___________________________</p>
+            
+            <p style="margin-bottom: 10px; font-size: 13px;"><b>Licensee (Tenant):</b> ${booking?.personalInfo?.fullName || '[tenant_name]'}</p>
+            <p style="margin-bottom: 30px; font-size: 13px;"><b>Signature:</b> ___________________________</p>
+            
+            <p style="margin-bottom: 10px; font-size: 13px;"><b>Date:</b> ${new Date().toLocaleDateString('en-GB')}</p>
+          </div>
         </body>
       </html>
     `;
@@ -134,6 +160,13 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
   const injectDynamicValuesIntoText = (rawText) => {
     if (!rawText) return '';
     return rawText
+      .replace(/<(b|strong)>Signature:<\/(b|strong)>\s*_{5,}\s*/gi, '')
+      .replace(/<(b|strong)>Date:<\/(b|strong)>\s*\[agreement_date\]\s*/gi, '')
+      .replace(/<h3[^>]*>PARTIES TO THE AGREEMENT<\/h3>\s*/gi, '')
+      .replace(/<p[^>]*>.*?Licensor \(Owner\/Property Manager\).*?<\/p>\s*/gi, '')
+      .replace(/<p[^>]*>.*?Licensee \(Tenant\).*?<\/p>\s*/gi, '')
+      .replace(/<(b|strong)[^>]*>Licensor \(Owner\/Property Manager\):<\/(b|strong)>.*?\[owner_name\]\s*/gi, '')
+      .replace(/<(b|strong)[^>]*>Licensee \(Tenant\):<\/(b|strong)>.*?\[tenant_full_name\]\s*/gi, '')
       .replace(/\[agreement_date\]/g, todayDateStr)
       .replace(/\[agreement_city\]/g, cityStr)
       .replace(/\[property_name\]/g, booking?.propertyId?.pgName || 'HousyNest Property')
@@ -301,18 +334,44 @@ const AgreementModal = ({ isOpen, onClose, onSubmit, booking, isReadOnly = false
                 className="p-5 max-h-80 overflow-y-auto overscroll-contain bg-white text-xs text-slate-700 leading-relaxed font-sans space-y-4 scroll-smooth border-t border-slate-100"
                 style={{ scrollbarWidth: 'thin', scrollbarColor: '#0AA87D #EAF5F2' }}
               >
-                {agreementLanguage === 'en' ? (
-                  renderFormattedContractLines(DEFAULT_CONTRACT_TEXT)
-                ) : (
-                  isTranslatingText ? (
-                    <div className="flex items-center justify-center py-8 text-slate-500 gap-2 font-semibold">
-                      <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin text-[#0AA87D]" />
-                      <span>Translating agreement into Gujarati via Google Translate...</span>
+                {(() => {
+                  const customEn = booking?.propertyId?.ownerContract?.contractTextEn;
+                  const customGu = booking?.propertyId?.ownerContract?.contractTextGu;
+                  const terms = booking?.propertyId?.ownerContract?.termsAndConditions || [];
+                  
+                  return (
+                    <div className="space-y-4">
+                      {agreementLanguage === 'en' ? (
+                        renderFormattedContractLines(customEn || DEFAULT_CONTRACT_TEXT)
+                      ) : (
+                        isTranslatingText ? (
+                          <div className="flex items-center justify-center py-8 text-slate-500 gap-2 font-semibold">
+                            <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin text-[#0AA87D]" />
+                            <span>Translating agreement into Gujarati via Google Translate...</span>
+                          </div>
+                        ) : (
+                          renderFormattedContractLines(customGu || translatedGujaratiText)
+                        )
+                      )}
+                      
+                      {terms.length > 0 && (
+                        <div className="mt-6 pt-4 border-t border-slate-200">
+                          <h3 className="font-bold text-[#062F26] uppercase text-[11px] tracking-wider mb-3">
+                            {agreementLanguage === 'gu' ? 'નિયમો અને શરતો (Terms & Conditions)' : 'Terms & Conditions'}
+                          </h3>
+                          <ul className="list-decimal pl-4 space-y-2">
+                            {terms.map((term, idx) => (
+                              <li key={idx} className="pl-1">
+                                <strong className="text-slate-800 block mb-0.5">{agreementLanguage === 'en' ? term.titleEn : (term.titleGu || term.titleEn)}</strong>
+                                <span>{agreementLanguage === 'en' ? term.descriptionEn : (term.descriptionGu || term.descriptionEn)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    renderFormattedContractLines(translatedGujaratiText)
-                  )
-                )}
+                  );
+                })()}
               </div>
             )}
           </div>

@@ -19,7 +19,8 @@ import {
   requestBooking,
   acceptBookingRequest,
   rejectBookingRequest,
-  completeBookingDetails
+  completeBookingDetails,
+  downloadAgreement
 } from '../controllers/bookingController.js';
 
 const router = express.Router();
@@ -62,6 +63,9 @@ router.route('/:id/process-checkout')
 
 router.route('/:id/email-agreement')
   .post(protect, emailAgreement);
+
+router.route('/:id/download-agreement')
+  .get(protect, downloadAgreement);
 
 router.route('/:id/consent')
   .put(protect, updateBookingConsent);

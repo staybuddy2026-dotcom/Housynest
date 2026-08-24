@@ -8,18 +8,6 @@ export const DEFAULT_CONTRACT_TEXT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
 
-<h3>PARTIES TO THE AGREEMENT</h3>
-
-<b>Licensor (Owner/Property Manager):</b>
-[property_name], having its premises at [property_address], [property_city]
-(hereinafter referred to as the "Licensor")
-
-<b>Licensee (Tenant):</b>
-[tenant_full_name]
-Contact: [tenant_mobile] | [tenant_email]
-Date of Birth: [tenant_date_of_birth]
-(hereinafter referred to as the "Licensee")
-
 <h3>ACCOMMODATION DETAILS</h3>
 <b>Property:</b> [property_name]
 <b>Address:</b> [property_address], [property_locality], [property_city]

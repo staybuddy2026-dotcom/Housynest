@@ -8,6 +8,119 @@ import puppeteer from 'puppeteer';
 import { getIo } from '../socket.js';
 import { triggerRoomAvailabilityAlerts } from './waitlistController.js';
 import { generateReceiptPdfBuffer } from '../utils/receiptGenerator.js';
+import fs from 'fs';
+import path from 'path';
+
+const getPdfHtmlContent = (booking, tenant, property, actualOwner) => {
+  let logoBase64 = '';
+  try {
+    const logoPath = path.resolve(process.cwd(), '../frontend/src/assets/logo.png');
+    logoBase64 = fs.readFileSync(logoPath, 'base64');
+  } catch (e) {
+    console.error('Could not load logo for PDF', e);
+  }
+
+  const todayDateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  const cityStr = property?.city || 'Mumbai';
+  
+  const customEn = property?.ownerContract?.contractTextEn || '<p style="text-align: center; font-weight: bold;">(11-Month Rental Agreement)</p>\n<h3>Property Details</h3>\n<b>Owner:</b> [property_name]\n<b>Address:</b> [property_address]\n<b>Location:</b> [property_locality], [property_city]\n<h3>Tenant Details</h3>\n<b>Name:</b> [tenant_full_name]\n<b>Phone:</b> [tenant_mobile]\n<b>Email:</b> [tenant_email]\n<b>Date of Birth:</b> [tenant_date_of_birth]\n<h3>Booking Details</h3>\n<b>Room:</b> [room_name]\n<b>Bed:</b> [bed_number]\n<b>Move-in Date:</b> [move_in_date]\n<b>Expected Move-out:</b> [move_out_date]\n<b>Monthly Rent:</b> Rs. [rent_amount]\n<b>Security Deposit:</b> Rs. [deposit_amount]\n<b>Booking Reference:</b> [booking_reference]\n<h3>Emergency Contact</h3>\n<b>Name:</b> [emergency_contact_name]\n<b>Phone:</b> [emergency_contact_phone]\n<b>Relationship:</b> [emergency_contact_relationship]\n<h3>Terms and Conditions</h3>\n1. <b>Rent Payment:</b> Rent must be paid by the 5th of every month.\n2. <b>Security Deposit:</b> The deposit is fully refundable upon vacating the premises, provided there is no damage.\n3. <b>Notice Period:</b> A minimum of 30 days notice is required before vacating.\n4. <b>House Rules:</b> Tenants must abide by the rules set by the PG/Property owner.\n5. <b>Maintenance:</b> Any damage to the property caused by the tenant will be deducted from the security deposit.';
+  
+  let substituted = customEn
+    .replace(/<(b|strong)>Signature:<\/(b|strong)>\s*_{5,}\s*/gi, '')
+    .replace(/<(b|strong)>Date:<\/(b|strong)>\s*\[agreement_date\]\s*/gi, '')
+    .replace(/<h3[^>]*>PARTIES TO THE AGREEMENT<\/h3>\s*/gi, '')
+    .replace(/<p[^>]*>.*?Licensor \(Owner\/Property Manager\).*?<\/p>\s*/gi, '')
+    .replace(/<p[^>]*>.*?Licensee \(Tenant\).*?<\/p>\s*/gi, '')
+    .replace(/<(b|strong)[^>]*>Licensor \(Owner\/Property Manager\):<\/(b|strong)>.*?\[owner_name\]\s*/gi, '')
+    .replace(/<(b|strong)[^>]*>Licensee \(Tenant\):<\/(b|strong)>.*?\[tenant_full_name\]\s*/gi, '')
+    .replace(/\[agreement_date\]/g, todayDateStr)
+    .replace(/\[agreement_city\]/g, cityStr)
+    .replace(/\[property_name\]/g, property?.pgName || property?.societyName || 'HousyNest Property')
+    .replace(/\[property_address\]/g, property?.locality || property?.address || 'Address')
+    .replace(/\[property_locality\]/g, property?.locality || 'Locality')
+    .replace(/\[property_city\]/g, cityStr)
+    .replace(/\[tenant_full_name\]/g, tenant?.fullName || 'Tenant')
+    .replace(/\[tenant_mobile\]/g, booking?.personalInfo?.phone || 'N/A')
+    .replace(/\[tenant_email\]/g, booking?.personalInfo?.email || 'N/A')
+    .replace(/\[tenant_date_of_birth\]/g, booking?.personalInfo?.dob ? new Date(booking.personalInfo.dob).toLocaleDateString('en-GB') : 'N/A')
+    .replace(/\[room_name\]/g, booking?.roomDetails?.roomName || 'Room')
+    .replace(/\[bed_number\]/g, booking?.roomDetails?.bedName || 'Bed')
+    .replace(/\[rent_amount\]/g, Number(booking?.paymentDetails?.amount || property?.monthlyRent?.replace(/\D/g, '') || 12000).toLocaleString('en-IN'))
+    .replace(/\[deposit_amount\]/g, Number(property?.securityAmount?.replace(/\D/g, '') || 12000).toLocaleString('en-IN'))
+    .replace(/\[move_in_date\]/g, booking?.moveInDate ? new Date(booking.moveInDate).toLocaleDateString('en-GB') : 'Move-In')
+    .replace(/\[move_out_date\]/g, booking?.expectedMoveOutDate ? new Date(booking.expectedMoveOutDate).toLocaleDateString('en-GB') : 'Vacation')
+    .replace(/\[booking_reference\]/g, booking?._id ? booking._id.toString().substring(booking._id.toString().length - 8).toUpperCase() : 'HN-REF')
+    .replace(/\[emergency_contact_name\]/g, booking?.emergencyContact?.name || 'N/A')
+    .replace(/\[emergency_contact_phone\]/g, booking?.emergencyContact?.phone || 'N/A')
+    .replace(/\[emergency_contact_relationship\]/g, booking?.emergencyContact?.relationship || 'N/A');
+
+  const lines = substituted.split('\n');
+  const formattedContract = '<div style="font-size: 13px; line-height: 1.6; color: #334155;">' + lines.map(line => {
+    let trimmed = line.trim();
+    if (!trimmed) return '<br/>';
+    if (trimmed.startsWith('<h1>') && trimmed.endsWith('</h1>')) {
+      return `<div style="text-align: center; font-weight: bold; font-size: 18px; color: #062F26; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-top: 15px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">${trimmed.replace(/<\/?h1>/g, '')}</div>`;
+    }
+    if (trimmed.startsWith('<h3>') && trimmed.endsWith('</h3>')) {
+      return `<div style="font-weight: bold; color: #062F26; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; padding-top: 12px; border-top: 1px dashed #cbd5e1; margin-top: 15px; margin-bottom: 10px;">${trimmed.replace(/<\/?h3>/g, '')}</div>`;
+    }
+    const parts = trimmed.split(/(<b>.*?<\/b>)/g);
+    const pContent = parts.map(part => {
+      if (part.startsWith('<b>') && part.endsWith('</b>')) {
+        return `<strong style="color: #0f172a;">${part.slice(3, -4)}</strong>`;
+      }
+      return part;
+    }).join('');
+    return `<p style="margin-bottom: 8px; text-align: justify;">${pContent}</p>`;
+  }).join('') + '</div>';
+
+  const terms = property?.ownerContract?.termsAndConditions || [];
+  const formattedTerms = terms.length > 0 ? `
+    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+      <h3 style="font-weight: bold; color: #062F26; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 15px;">Terms & Conditions</h3>
+      <ol style="padding-left: 20px; color: #334155; font-size: 13px; line-height: 1.6;">
+        ${terms.map(t => `<li style="margin-bottom: 8px;"><strong style="color: #0f172a;">${t.titleEn || 'Term'}</strong>: ${t.descriptionEn || ''}</li>`).join('')}
+      </ol>
+    </div>
+  ` : '';
+
+  return `
+    <html>
+      <head>
+        <title>Rental Agreement - ${property?.pgName || property?.societyName || 'Housynest'}</title>
+        <style>
+          body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; font-size: 14px; position: relative; z-index: 1; }
+          .watermark { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 70%; opacity: 0.06; z-index: -1; pointer-events: none; }
+          .header-info { text-align: right; font-size: 12px; color: #64748b; margin-bottom: 20px; }
+        </style>
+      </head>
+      <body>
+        ${logoBase64 ? `<img src="data:image/png;base64,${logoBase64}" class="watermark" alt="watermark" />` : ''}
+        <div class="header-info">
+          Generated on: ${todayDateStr}<br/>
+          Ref: ${booking?._id ? booking._id.toString().substring(booking._id.toString().length - 8).toUpperCase() : 'HN-REF'}
+        </div>
+        
+        ${formattedContract}
+        ${formattedTerms}
+        
+        <br/><br/>
+        <div style="break-inside: avoid; color: #0f172a;">
+          <h3 style="font-weight: bold; color: #062F26; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; padding-top: 15px; border-top: 1px dashed #cbd5e1; margin-bottom: 20px;">PARTIES TO THE AGREEMENT</h3>
+          
+          <p style="margin-bottom: 10px; font-size: 13px;"><b>Licensor (Owner/Property Manager):</b> ${actualOwner?.fullName || '[owner_name]'}</p>
+          <p style="margin-bottom: 30px; font-size: 13px;"><b>Signature:</b> ___________________________</p>
+          
+          <p style="margin-bottom: 10px; font-size: 13px;"><b>Licensee (Tenant):</b> ${tenant?.fullName || '[tenant_name]'}</p>
+          <p style="margin-bottom: 30px; font-size: 13px;"><b>Signature:</b> ___________________________</p>
+          
+          <p style="margin-bottom: 10px; font-size: 13px;"><b>Date:</b> ${todayDateStr}</p>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
 
 const updateBedStatus = async (propertyId, roomName, bedName) => {
   if (!roomName || !bedName) return;
@@ -1032,8 +1145,10 @@ export const updateBookingConsent = async (req, res) => {
 
     const updatedBooking = await booking.save();
 
-    // Automatically generate and send PDF if tenant just consented
-    if (isTenantConsenting) {
+    const isFullyConsented = updatedBooking.tenantConsentStatus === 'Consented' && updatedBooking.ownerConsentStatus === 'Consented';
+
+    // Automatically generate and send PDF if BOTH have consented
+    if (isFullyConsented) {
       // Run asynchronously so we don't block the API response
       (async () => {
          try {
@@ -1046,34 +1161,7 @@ export const updateBookingConsent = async (req, res) => {
            const actualOwnerId = owner ? owner._id : property.owner;
            const actualOwner = owner ? owner : await User.findById(actualOwnerId);
 
-           const htmlContent = `
-            <html>
-              <body style="font-family: Arial, sans-serif; padding: 40px; color: #333; line-height: 1.6;">
-                <h1 style="text-align: center; color: #0AA87D;">Rental Agreement</h1>
-                <hr style="border: 1px solid #eee; margin-bottom: 20px;"/>
-                <h3 style="color: #475569;">Property Details</h3>
-                <p><strong>Property Name:</strong> ${property.pgName || property.societyName || 'N/A'}</p>
-                <p><strong>Address:</strong> ${property.address || 'N/A'}</p>
-                
-                <h3 style="color: #475569; margin-top: 20px;">Tenant Details</h3>
-                <p><strong>Name:</strong> ${tenant.fullName}</p>
-                <p><strong>Email:</strong> ${tenant.email}</p>
-                
-                <h3 style="color: #475569; margin-top: 20px;">Booking Details</h3>
-                <p><strong>Room:</strong> ${booking.roomDetails?.roomName || 'N/A'}</p>
-                <p><strong>Bed:</strong> ${booking.roomDetails?.bedName || 'N/A'}</p>
-                <p><strong>Move-in Date:</strong> ${new Date(booking.moveInDate).toDateString()}</p>
-                <p><strong>Rent Amount:</strong> ₹${booking.paymentDetails?.amount?.toLocaleString('en-IN') || 'N/A'}</p>
-                
-                <br/><br/>
-                <div style="background-color: #f8fafc; padding: 15px; border-left: 4px solid #0AA87D;">
-                  <p style="margin: 0;"><em>This is a digitally signed agreement. (e-Sign Completed)</em></p>
-                  <p style="margin: 5px 0 0 0;"><strong>e-Stamp ID:</strong> ${booking.eStampId || 'Pending'}</p>
-                  <p style="margin: 5px 0 0 0;"><strong>Date of Signature:</strong> ${new Date().toDateString()}</p>
-                </div>
-              </body>
-            </html>
-           `;
+           const htmlContent = getPdfHtmlContent(booking, tenant, property, actualOwner);
            
            const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
            const page = await browser.newPage();
@@ -1135,6 +1223,55 @@ export const updateBookingConsent = async (req, res) => {
     res.status(500).json({ message: 'Server error updating consent' });
   }
 };
+
+// @desc    Download Agreement PDF
+// @route   GET /api/bookings/:id/download-agreement
+// @access  Private
+export const downloadAgreement = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate('tenantId')
+      .populate('ownerId')
+      .populate('propertyId');
+      
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    
+    // Check if both have consented
+    if (booking.tenantConsentStatus !== 'Consented' || booking.ownerConsentStatus !== 'Consented') {
+      return res.status(400).json({ message: 'Agreement is not fully signed yet.' });
+    }
+
+    const tenant = booking.tenantId;
+    const property = booking.propertyId;
+    const owner = booking.ownerId;
+    const actualOwner = owner ? owner : await User.findById(property.owner);
+
+    const htmlContent = getPdfHtmlContent(booking, tenant, property, actualOwner);
+    
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '20mm', right: '20mm', bottom: '20mm', left: '20mm' }
+    });
+    await browser.close();
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="Rental_Agreement.pdf"',
+      'Content-Length': pdfBuffer.length
+    });
+    
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('Download agreement error:', error);
+    res.status(500).json({ message: 'Server error generating PDF' });
+  }
+};
+
 
 // @desc    Trigger E-Stamp and E-Sign process (simulated)
 // @route   PUT /api/bookings/:id/trigger-estamp

@@ -172,6 +172,7 @@ const OwnerTenants = () => {
                 securityDepositNum: `₹${pricing.deposit.toLocaleString()}`,
                 personalInfo: b.personalInfo || {},
                 emergencyContact: b.emergencyContact || {},
+                rawBooking: b,
               };
             });
           setTenants(activeTenants);

@@ -195,7 +195,22 @@ propertySchema.pre('deleteOne', { document: true, query: false }, async function
     // 4. Delete all reports for this property
     await mongoose.model('Report').deleteMany({ propertyId });
 
-    // 5. Remove property from all users' savedProperties and listedProperties
+    // 5. Delete waitlist entries for this property
+    await mongoose.model('Waitlist').deleteMany({ propertyId });
+
+    // 6. Delete all bookings for this property
+    await mongoose.model('Booking').deleteMany({ propertyId });
+
+    // 7. Delete all rent invoices for this property
+    await mongoose.model('RentInvoice').deleteMany({ propertyId });
+
+    // 8. Delete all maintenance tickets for this property
+    await mongoose.model('MaintenanceTicket').deleteMany({ propertyId });
+
+    // 9. Delete all condition reports for this property
+    await mongoose.model('ConditionReport').deleteMany({ propertyId });
+
+    // 10. Remove property from all users' savedProperties and listedProperties
     await mongoose.model('User').updateMany(
       { savedProperties: propertyId },
       { $pull: { savedProperties: propertyId } }

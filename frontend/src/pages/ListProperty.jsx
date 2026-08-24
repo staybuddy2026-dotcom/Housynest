@@ -201,7 +201,7 @@ const ListProperty = () => {
     const isStepValid = await methods.trigger(fieldsToValidate);
 
     if (isStepValid) {
-      setActiveStep(prev => Math.min(prev + 1, pType === 'Tenant' ? 7 : 9));
+      setActiveStep(prev => Math.min(prev + 1, pType === 'Tenant' ? 8 : 10));
     } else {
       setTimeout(() => {
         // Find all inputs with red borders
@@ -321,10 +321,11 @@ const ListProperty = () => {
 
       // Append owner contract
       if (data.ownerContract) {
-        if (data.ownerContract.mode === 'customize') {
+        if (data.ownerContract.isCustomized || data.ownerContract.mode === 'customize') {
           formData.append('ownerContract_mode', 'customize');
           formData.append('ownerContract_en', data.ownerContract.contractTextEn || '');
           formData.append('ownerContract_gu', data.ownerContract.contractTextGu || '');
+          formData.append('ownerContract_terms', JSON.stringify(data.ownerContract.termsAndConditions || []));
         } else if (data.ownerContract.file) {
           formData.append('ownerContract', data.ownerContract.file);
         }
