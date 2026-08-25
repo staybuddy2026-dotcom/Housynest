@@ -15,6 +15,29 @@ export const getUserProfile = async (req, res) => {
   try {
     const user = req.user;
     if (user) {
+      // Auto-backfill personal details from the latest booking if missing
+      if (!user.dob || !user.gender || !user.emergencyContact?.phone) {
+        const latestBooking = await Booking.findOne({ tenantId: user._id }).sort({ createdAt: -1 });
+        if (latestBooking && latestBooking.personalInfo) {
+          let updated = false;
+          if (!user.dob && latestBooking.personalInfo.dob) {
+            user.dob = latestBooking.personalInfo.dob;
+            updated = true;
+          }
+          if (!user.gender && latestBooking.personalInfo.gender) {
+            user.gender = latestBooking.personalInfo.gender;
+            updated = true;
+          }
+          if ((!user.emergencyContact || !user.emergencyContact.phone) && latestBooking.emergencyContact && latestBooking.emergencyContact.phone) {
+            user.emergencyContact = latestBooking.emergencyContact;
+            updated = true;
+          }
+          if (updated) {
+            await user.save();
+          }
+        }
+      }
+
       res.json({
         id: user._id,
         fullName: user.fullName,

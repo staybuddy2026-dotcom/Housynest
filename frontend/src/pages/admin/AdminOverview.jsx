@@ -25,6 +25,7 @@ const AdminOverview = () => {
 
   const [allProperties, setAllProperties] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [allReports, setAllReports] = useState([]);
   const [chartRange, setChartRange] = useState(6);
   const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false);
   const chartDropdownRef = useRef(null);
@@ -65,6 +66,13 @@ const AdminOverview = () => {
         }
       });
 
+      allReports.forEach(r => {
+        const date = new Date(r.createdAt);
+        if (date.getMonth() === d.getMonth() && date.getFullYear() === d.getFullYear()) {
+          reportData[i]++;
+        }
+      });
+
       d.setMonth(d.getMonth() + 1);
     }
 
@@ -75,41 +83,49 @@ const AdminOverview = () => {
       { name: 'Users', data: userData },
       { name: 'Reports', data: reportData }
     ]);
-  }, [chartRange, allProperties, allUsers]);
+  }, [chartRange, allProperties, allUsers, allReports]);
 
   const fetchData = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const [propRes, userRes, statsRes] = await Promise.all([
+      const [propRes, userRes, statsRes, reportsRes] = await Promise.all([
         fetch('/api/properties/admin/all', { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch('/api/users/admin/all', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/invoices/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch('/api/invoices/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/reports', { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       if (propRes.ok && userRes.ok) {
         const properties = await propRes.json();
         const users = await userRes.json();
         const invoiceStats = statsRes.ok ? await statsRes.json() : null;
+        const reports = reportsRes.ok ? await reportsRes.json() : { reports: [] };
         
         const totalRent = invoiceStats?.stats?.current?.collected || 0;
+        
+        // Ensure reports is an array
+        const reportList = Array.isArray(reports) ? reports : (reports.reports || []);
 
         // Compute Stats
         const verifiedProps = properties.filter(p => p.isVerified).length;
         const landlords = users.filter(u => u.role === 'owner').length;
         const renters = users.filter(u => u.role === 'tenant').length;
-        const lawyers = users.filter(u => u.role === 'lawyer').length;
+        
+        const pendingReportsCount = reportList.filter(r => r.status === 'Open' || r.status === 'In Progress').length;
+        const pendingReportsLabel = pendingReportsCount > 0 ? `${pendingReportsCount} action required` : 'No action required';
 
         setAdminStats([
           { title: 'Total Property Listed', value: properties.length.toString(), subtitle: `${verifiedProps} verified properties`, icon: 'lucide:home', color: 'bg-emerald-50', iconColor: 'text-emerald-600' },
           { title: 'Total Users', value: users.length.toString(), subtitle: `${landlords} Owners • ${renters} Tenants`, icon: 'lucide:users', color: 'bg-blue-50', iconColor: 'text-blue-600' },
-          { title: 'Pending Reports', value: '0', subtitle: 'No action required', icon: 'lucide:clipboard-list', color: 'bg-amber-50', iconColor: 'text-amber-500' },
+          { title: 'Pending Reports', value: pendingReportsCount.toString(), subtitle: pendingReportsLabel, icon: 'lucide:clipboard-list', color: 'bg-amber-50', iconColor: 'text-amber-500' },
           { title: 'Rent Collected', value: `₹${totalRent.toLocaleString()}`, subtitle: 'This month', icon: 'lucide:indian-rupee', color: 'bg-purple-50', iconColor: 'text-purple-600' }
         ]);
 
         setAllProperties(properties);
         setAllUsers(users);
+        setAllReports(reportList);
 
         // Compute Recent Activities
         const allActivities = [];

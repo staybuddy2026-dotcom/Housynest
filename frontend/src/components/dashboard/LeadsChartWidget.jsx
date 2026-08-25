@@ -74,7 +74,7 @@ const LeadsChartWidget = () => {
       }
     },
     labels: ['New', 'Contacted', 'Site Visit', 'Booked', 'Cancelled'],
-    colors: ['#0aa87d', '#3b82f6', '#f59e0b', '#10b981', '#ef4444'],
+    colors: ['#8b5cf6', '#3b82f6', '#f59e0b', '#0aa87d', '#ef4444'],
     plotOptions: {
       pie: {
         expandOnClick: true,

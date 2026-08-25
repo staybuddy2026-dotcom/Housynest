@@ -31,7 +31,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import cron from 'node-cron';
 import { sendVisitReminders } from './controllers/visitController.js';
 import { generateMonthlyInvoices, sendAutoRentReminders } from './controllers/invoiceController.js';
-import { autoActivateBookings } from './controllers/bookingController.js';
+import { autoActivateBookings, autoDisburseBookings } from './controllers/bookingController.js';
 
 // Load env vars
 dotenv.config();
@@ -107,6 +107,12 @@ cron.schedule('0 9 * * *', () => {
 cron.schedule('0 0 * * *', () => {
   console.log('Running daily booking auto-activation check...');
   autoActivateBookings();
+});
+
+// Cron Job for Auto-Disbursing Escrow Funds (2 days after Move-In Date)
+cron.schedule('0 0 * * *', () => {
+  console.log('Running daily booking auto-disbursement check...');
+  autoDisburseBookings();
 });
 
 app.get('/', (req, res) => {

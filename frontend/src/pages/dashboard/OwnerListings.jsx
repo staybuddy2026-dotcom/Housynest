@@ -252,20 +252,20 @@ const OwnerListings = () => {
                     <div className="flex justify-between items-start mb-1.5">
                       <span className="text-[10px] font-bold text-brand-teal uppercase tracking-wider">{type}</span>
                     </div>
-                    <h3 className="text-[15px] font-bold text-[#062F26] mb-1 line-clamp-1 group-hover:text-brand-teal transition-colors">
+                    <h3 className="text-[15px] font-bold text-[#062F26] mb-1 line-clamp-1 group-hover:text-brand-teal transition-colors capitalize">
                       {title}
                     </h3>
                     <div className="flex flex-col gap-1.5 text-slate-500 mb-2.5">
                       {rawListing.address && (
                         <div className="flex items-start gap-1.5">
                           <Icon icon="lucide:map" className="w-3.5 h-3.5 shrink-0 mt-0.5 text-brand-teal/70" />
-                          <p className="text-xs font-medium line-clamp-1" title={rawListing.address}>{rawListing.address}</p>
+                          <p className="text-xs font-medium line-clamp-1 capitalize" title={rawListing.address}>{rawListing.address}</p>
                         </div>
                       )}
                       {location && (
                         <div className="flex items-start gap-1.5">
                           <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                          <p className="text-xs font-medium line-clamp-1" title={location}>{location}</p>
+                          <p className="text-xs font-medium line-clamp-1 capitalize" title={location}>{location}</p>
                         </div>
                       )}
                       {!rawListing.address && !location && (
@@ -369,20 +369,20 @@ const OwnerListings = () => {
 
                   <div className="flex-1 min-w-0">
                     <span className="text-[9px] font-bold text-brand-teal uppercase tracking-wider mb-0.5 block">{type}</span>
-                    <h3 className="text-[15px] font-bold text-[#062F26] mb-1 truncate group-hover:text-brand-teal transition-colors">
+                    <h3 className="text-[15px] font-bold text-[#062F26] mb-1 truncate group-hover:text-brand-teal transition-colors capitalize">
                       {title}
                     </h3>
                     <div className="flex flex-col gap-1.5 text-slate-500 mt-1.5">
                       {rawListing.address && (
                         <div className="flex items-start gap-1.5">
                           <Icon icon="lucide:map" className="w-3.5 h-3.5 shrink-0 mt-0.5 text-brand-teal/70" />
-                          <p className="text-xs font-medium line-clamp-1" title={rawListing.address}>{rawListing.address}</p>
+                          <p className="text-xs font-medium line-clamp-1 capitalize" title={rawListing.address}>{rawListing.address}</p>
                         </div>
                       )}
                       {location && (
                         <div className="flex items-start gap-1.5">
                           <Icon icon="lucide:map-pin" className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                          <p className="text-xs font-medium line-clamp-1" title={location}>{location}</p>
+                          <p className="text-xs font-medium line-clamp-1 capitalize" title={location}>{location}</p>
                         </div>
                       )}
                       {!rawListing.address && !location && (

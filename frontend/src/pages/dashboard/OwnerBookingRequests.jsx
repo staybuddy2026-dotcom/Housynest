@@ -57,7 +57,8 @@ const OwnerBookingRequests = () => {
 
   const getStatusMapping = (dbStatus) => {
     if (dbStatus === 'Pending Request') return 'PENDING APPROVAL';
-    if (dbStatus === 'Pending Payment' || dbStatus === 'Confirmed' || dbStatus === 'Reserved' || dbStatus === 'Completed') return 'APPROVED';
+    if (dbStatus === 'Completed') return 'CLOSED';
+    if (dbStatus === 'Pending Payment' || dbStatus === 'Confirmed' || dbStatus === 'Reserved') return 'APPROVED';
     if (dbStatus === 'Rejected' || dbStatus === 'Cancelled') return 'REJECTED';
     return typeof dbStatus === 'string' ? dbStatus.toUpperCase() : dbStatus;
   };
@@ -205,7 +206,7 @@ const OwnerBookingRequests = () => {
           <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
         </div>
       );
-    } else if (['REJECTED'].includes(status)) {
+    } else if (['REJECTED', 'CLOSED'].includes(status)) {
       return (
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full shadow-sm hover:bg-rose-100 transition-colors">
           <Icon icon="lucide:x-circle" className="w-3.5 h-3.5 text-rose-500" />

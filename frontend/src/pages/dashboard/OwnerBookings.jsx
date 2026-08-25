@@ -101,24 +101,35 @@ const OwnerBookings = () => {
         filterStatus = 'ACTIVE';
       }
 
-      return {
-        _id: b._id,
-        id: b._id.substring(b._id.length - 8).toUpperCase(),
-        date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
-        tenant: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
-        phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
-        email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
-        property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
-        propertyType: b.propertyId?.propertyType || 'N/A',
-        bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
-        moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
-        movedOut: b.expectedMoveOutDate ? new Date(b.expectedMoveOutDate).toISOString().split('T')[0] : null,
-        rent: rentAmt,
-        token: tokenAmt,
-        paid: paidAmt,
-        due: dueAmt,
-        isTokenPaid: paidAmt > 0 && paidAmt < totalAmount,
-        isFullPaid: paidAmt > 0 && paidAmt >= totalAmount,
+        const paymentStatus = b.paymentDetails?.status || 'Pending';
+        const isFullPaid = paymentStatus === 'Paid';
+        const isTokenPaid = paymentStatus === 'Partial';
+        let totalExpected = 0;
+        if (b.paymentDetails?.rentAmount || b.paymentDetails?.securityDeposit) {
+          totalExpected = (b.paymentDetails.rentAmount || 0) + (b.paymentDetails.securityDeposit || 0) + (b.paymentDetails.extraCharges || 0);
+        } else {
+          totalExpected = totalAmount; // the one calculated above
+        }
+        const calculatedDue = isFullPaid ? 0 : Math.max(totalExpected - paidAmt, 0);
+
+        return {
+          _id: b._id,
+          id: b._id.substring(b._id.length - 8).toUpperCase(),
+          date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
+          tenant: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
+          phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
+          email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
+          property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
+          propertyType: b.propertyId?.propertyType || 'N/A',
+          bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
+          moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
+          movedOut: b.expectedMoveOutDate ? new Date(b.expectedMoveOutDate).toISOString().split('T')[0] : null,
+          rent: rentAmt,
+          token: tokenAmt,
+          paid: paidAmt,
+          due: calculatedDue,
+          isTokenPaid: isTokenPaid,
+          isFullPaid: isFullPaid,
         status: rawStatus,
         filterStatus: filterStatus,
         source: b.propertyId?.bookingType === 'Direct Booking' ? 'DIRECT' : 'REQUEST',

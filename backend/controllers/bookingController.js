@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import Property from '../models/Property.js';
 import User from '../models/User.js';
+import MaintenanceTicket from '../models/MaintenanceTicket.js';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { sendGenericEmail } from '../utils/emailService.js';
@@ -234,6 +235,31 @@ export const createBooking = async (req, res) => {
     });
 
     const savedBooking = await booking.save();
+
+    // Update user profile with personal details entered during booking
+    try {
+      const userToUpdate = await User.findById(req.user._id);
+      if (userToUpdate) {
+        let updated = false;
+        if (personalInfo?.dob && !userToUpdate.dob) {
+          userToUpdate.dob = personalInfo.dob;
+          updated = true;
+        }
+        if (personalInfo?.gender && !userToUpdate.gender) {
+          userToUpdate.gender = personalInfo.gender;
+          updated = true;
+        }
+        if (emergencyContact && (!userToUpdate.emergencyContact || !userToUpdate.emergencyContact.phone)) {
+          userToUpdate.emergencyContact = emergencyContact;
+          updated = true;
+        }
+        if (updated) {
+          await userToUpdate.save();
+        }
+      }
+    } catch (profileErr) {
+      console.error('Error updating user profile during booking:', profileErr);
+    }
 
     // Update bed status based on the initial booking status
     if (savedBooking.roomDetails?.roomName && savedBooking.roomDetails?.bedName) {
@@ -729,6 +755,38 @@ export const autoActivateBookings = async () => {
   }
 };
 
+// @desc    Auto-disburse bookings 2 days after move-in date if not confirmed
+// @route   N/A (Cron Job)
+// @access  Internal
+export const autoDisburseBookings = async () => {
+  try {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setHours(0, 0, 0, 0);
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+    const bookings = await Booking.find({
+      status: 'Active',
+      tenantConfirmedMoveIn: false,
+      moveInDate: { $lte: twoDaysAgo }
+    })
+    .populate('tenantId')
+    .populate('ownerId')
+    .populate('propertyId');
+
+    for (const booking of bookings) {
+      if (booking.payoutStatus !== 'Paid') {
+        await processBookingPayout(booking, true);
+      }
+    }
+
+    if (bookings.length > 0) {
+      console.log(`[Cron] Auto-disbursed ${bookings.length} bookings successfully.`);
+    }
+  } catch (error) {
+    console.error('[Cron] Error auto-disbursing bookings:', error);
+  }
+};
+
 // @desc    Get all bookings for admin
 // @route   GET /api/bookings/admin/all
 // @access  Private (Admin)
@@ -744,6 +802,118 @@ export const getAdminBookings = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch admin bookings', error: error.message });
   }
+};
+
+const processBookingPayout = async (booking, isAutoConfirmed = false) => {
+  // Payout Calculation
+  const rentAmount = booking.paymentDetails?.rentAmount || 0;
+  const securityDeposit = booking.paymentDetails?.securityDeposit || 0;
+  
+  // 4% commission on rent only
+  const housynestCommission = rentAmount * 0.04;
+  const rentPayout = rentAmount - housynestCommission;
+  const totalPayoutAmount = securityDeposit + rentPayout;
+
+  if (!booking.paymentDetails.housynestFee) {
+      booking.paymentDetails.housynestFee = housynestCommission;
+  }
+
+  const ownerAccountId = booking.ownerId?.bankDetails?.razorpayLinkedAccountId;
+  let payoutStatusStr = 'Paid';
+
+  if (totalPayoutAmount > 0) {
+    if (!ownerAccountId) {
+      console.warn(`Move-in confirmed but no Razorpay Linked Account ID for owner ${booking.ownerId._id}`);
+      payoutStatusStr = 'Pending';
+    } else {
+      try {
+        const razorpay = new Razorpay({
+          key_id: process.env.RAZORPAY_KEY_ID,
+          key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+
+        await razorpay.transfers.create({
+          account: ownerAccountId,
+          amount: Math.round(totalPayoutAmount * 100), // in paise
+          currency: 'INR',
+          notes: {
+            bookingId: booking._id.toString(),
+            purpose: isAutoConfirmed ? 'Auto Move-in Payout' : 'Move-in Payout'
+          }
+        });
+
+        payoutStatusStr = 'Paid';
+      } catch (transferErr) {
+        console.error('Razorpay Route Transfer Error:', transferErr);
+        payoutStatusStr = 'Pending';
+      }
+    }
+  }
+
+  // Set confirmation and trigger payout
+  booking.tenantConfirmedMoveIn = true;
+  booking.moveInConfirmedAt = new Date();
+  booking.payoutStatus = payoutStatusStr;
+  booking.status = 'Active'; // Change status to Active upon move-in confirmation
+
+  // Mark modified since paymentDetails is a nested object
+  booking.markModified('paymentDetails');
+
+  const updatedBooking = await booking.save();
+
+  // Send emails
+  try {
+    const propertyName = booking.propertyId?.pgName || booking.propertyId?.societyName || 'Property';
+
+    // Email to Owner
+    if (booking.ownerId && booking.ownerId.email) {
+      const ownerSubject = `Move-in Confirmed & Payout Initiated - ${propertyName}`;
+      const amountString = totalPayoutAmount > 0 ? `Total Payout Amount: ₹${totalPayoutAmount.toLocaleString('en-IN')} (Security Deposit + Rent minus 4% Housynest commission)` : '';
+      const autoConfirmedNote = isAutoConfirmed ? `\nNote: This move-in was auto-confirmed by the system as 2 days have passed since the move-in date.\n` : '';
+      
+      const ownerContent = `
+        Hello ${booking.ownerId.fullName},
+
+        Great news! The move-in for your tenant, ${booking.tenantId.fullName}, at ${propertyName} has been confirmed.
+        ${autoConfirmedNote}
+        The rent and security deposit collected by Housynest have now been released from Escrow and the payout has been initiated to your registered bank account.
+        
+        Booking Details:
+        - Property: ${propertyName}
+        - Tenant: ${booking.tenantId.fullName}
+        - Move-in Date: ${new Date(booking.moveInDate).toDateString()}
+        - Payout Status: ${payoutStatusStr === 'Paid' ? 'Released' : 'Processing/Pending (Please check your bank details)'}
+        ${amountString ? `- ${amountString}` : ''}
+
+        Thank you for choosing Housynest!
+      `;
+      await sendGenericEmail(booking.ownerId.email, ownerSubject, ownerContent, null);
+    }
+
+    // Email to Tenant
+    if (booking.tenantId && booking.tenantId.email) {
+      const tenantSubject = `Move-in Confirmation Successful - ${propertyName}`;
+      const autoConfirmedNote = isAutoConfirmed ? `\nNote: This move-in was automatically confirmed by the system since 2 days have passed since your scheduled move-in date.\n` : '';
+
+      const tenantContent = `
+        Hello ${booking.tenantId.fullName},
+
+        Thank you for choosing Housynest! The move-in at ${propertyName} is now confirmed.
+        ${autoConfirmedNote}
+        Your initial rent and security deposit have now been released from Escrow and transferred to the owner.
+        We hope you have a wonderful stay!
+        
+        If you face any issues, feel free to contact Housynest support.
+
+        Thank you for choosing Housynest!
+      `;
+      await sendGenericEmail(booking.tenantId.email, tenantSubject, tenantContent, null);
+    }
+  } catch (emailErr) {
+    console.error('Error sending move-in confirmation emails:', emailErr);
+  }
+
+  return updatedBooking;
 };
 
 // @desc    Confirm move-in by tenant and trigger payout
@@ -768,60 +938,7 @@ export const confirmMoveIn = async (req, res) => {
       return res.status(400).json({ message: 'Move-in already confirmed' });
     }
 
-    // Set confirmation and trigger payout
-    booking.tenantConfirmedMoveIn = true;
-    booking.moveInConfirmedAt = new Date();
-    booking.payoutStatus = 'Paid'; // Escrow payout simulated as Paid immediately
-    booking.status = 'Active'; // Change status to Active upon move-in confirmation
-
-    const updatedBooking = await booking.save();
-
-    // Send emails
-    try {
-      const propertyName = booking.propertyId?.pgName || booking.propertyId?.societyName || 'Property';
-
-      // Email to Owner
-      if (booking.ownerId && booking.ownerId.email) {
-        const ownerSubject = `Move-in Confirmed & Payout Initiated - ${propertyName}`;
-        const ownerContent = `
-          Hello ${booking.ownerId.fullName},
-
-          Great news! Your tenant, ${booking.tenantId.fullName}, has successfully confirmed their move-in for ${propertyName}.
-          
-          The rent and security deposit collected by Housynest have now been released from Escrow and the payout has been initiated to your registered bank account.
-          
-          Booking Details:
-          - Property: ${propertyName}
-          - Tenant: ${booking.tenantId.fullName}
-          - Move-in Date: ${new Date(booking.moveInDate).toDateString()}
-          - Payout Status: Released
-
-          Thank you for choosing Housynest!
-        `;
-        await sendGenericEmail(booking.ownerId.email, ownerSubject, ownerContent, null);
-      }
-
-      // Email to Tenant
-      if (booking.tenantId && booking.tenantId.email) {
-        const tenantSubject = `Move-in Confirmation Successful - ${propertyName}`;
-        const tenantContent = `
-          Hello ${booking.tenantId.fullName},
-
-          Thank you for confirming your move-in at ${propertyName}.
-          
-          Your initial rent and security deposit have now been released from Escrow and transferred to the owner.
-          We hope you have a wonderful stay!
-          
-          If you face any issues, feel free to contact Housynest support.
-
-          Thank you for choosing Housynest!
-        `;
-        await sendGenericEmail(booking.tenantId.email, tenantSubject, tenantContent, null);
-      }
-    } catch (emailErr) {
-      console.error('Error sending move-in confirmation emails:', emailErr);
-    }
-
+    const updatedBooking = await processBookingPayout(booking, false);
     res.json(updatedBooking);
   } catch (error) {
     console.error('Confirm move-in error:', error);
@@ -995,6 +1112,18 @@ export const processCheckout = async (req, res) => {
     if (updatedBooking.roomDetails?.roomName && updatedBooking.roomDetails?.bedName) {
       await updateBedStatus(updatedBooking.propertyId, updatedBooking.roomDetails.roomName, updatedBooking.roomDetails.bedName);
     }
+
+    // Auto-close open maintenance tickets
+    await MaintenanceTicket.updateMany(
+      { 
+        tenantId: booking.tenantId._id, 
+        propertyId: booking.propertyId._id, 
+        status: { $in: ['Pending', 'In-Progress'] } 
+      },
+      { 
+        $set: { status: 'Closed' } 
+      }
+    );
 
     // Send email to tenant
     if (booking.tenantId && booking.tenantId.email) {

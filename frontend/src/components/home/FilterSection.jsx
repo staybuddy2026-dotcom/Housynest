@@ -46,7 +46,7 @@ const FilterSection = () => {
   return (
     <>
       {/* Search Filter Bar */}
-      <div className="max-w-[1300px] mx-auto w-full px-4 -mt-8 sm:-mt-10 lg:mt-[-60px] relative z-30 mb-20">
+      <div className="max-w-[1300px] 3xl:max-w-380 mx-auto w-full px-4 -mt-8 sm:-mt-10 lg:mt-[-60px] relative z-30 mb-20">
         <div className="bg-[#062F26] rounded-2xl px-3 py-2 lg:py-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col lg:flex-row items-stretch lg:items-center justify-between border border-[#13463a]">
 
           {/* Property Type Dropdown */}
@@ -168,14 +168,14 @@ const FilterSection = () => {
           <div className="flex flex-row items-center gap-3 px-3 lg:px-0 lg:pl-6 lg:pr-1 py-4 lg:py-0 shrink-0 w-full lg:w-auto mt-1 lg:mt-0">
             <button
               onClick={(e) => { e.stopPropagation(); setIsDrawerOpen(true); }}
-              className="flex items-center justify-center flex-[1.2] sm:flex-1 lg:flex-none cursor-pointer gap-1.5 sm:gap-2 px-2 sm:px-5 py-3.5 rounded-[14px] border border-[#13463a] text-[#a1b8b2] font-semibold text-xs sm:text-sm hover:border-brand-yellow hover:text-brand-yellow hover:bg-[#13463a]/50 transition-all bg-white/5"
+              className="flex items-center justify-center flex-[1.2] sm:flex-1 lg:flex-none cursor-pointer gap-1.5 sm:gap-2 px-2 sm:px-5 py-3.5 rounded-lg border border-[#13463a] text-[#a1b8b2] font-semibold text-xs sm:text-sm hover:border-brand-yellow hover:text-brand-yellow hover:bg-[#13463a]/50 transition-all bg-white/5"
             >
               <Icon icon="lucide:sliders-horizontal" width="18" className="shrink-0" />
               Filters
             </button>
             <button
               onClick={handleSearch}
-              className="flex items-center justify-center flex-[2] lg:flex-none cursor-pointer gap-2 px-2 sm:px-8 py-3.5 rounded-[14px] bg-brand-yellow hover:bg-brand-yellow-hover text-slate-900 font-bold text-sm sm:text-sm shadow-[0_8px_20px_rgba(255,184,0,0.15)] hover:shadow-[0_8px_25px_rgba(255,184,0,0.25)] transition-all duration-300">
+              className="flex items-center justify-center flex-[2] lg:flex-none cursor-pointer gap-2 px-2 sm:px-8 py-3.5 rounded-lg bg-brand-yellow hover:bg-brand-yellow-hover text-slate-900 font-bold text-sm sm:text-sm shadow-[0_8px_20px_rgba(255,184,0,0.15)] hover:shadow-[0_8px_25px_rgba(255,184,0,0.25)] transition-all duration-300">
               <Icon icon="lucide:search" width="18" className="shrink-0 sm:w-5 sm:h-5" />
               Search PG
             </button>

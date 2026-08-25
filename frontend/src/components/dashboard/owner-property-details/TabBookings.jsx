@@ -145,9 +145,18 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
               const pricing = getPricing(booking);
               const rentAmount = pricing.rent;
               const paidAmount = booking.paymentDetails?.amount || 0;
-              const dueAmount = Math.max(rentAmount - paidAmount, 0);
-              const isTokenPaid = paidAmount > 0 && paidAmount < rentAmount;
-              const isFullPaid = paidAmount > 0 && paidAmount >= rentAmount;
+              const paymentStatus = booking.paymentDetails?.status || 'Pending';
+              const isFullPaid = paymentStatus === 'Paid';
+              const isTokenPaid = paymentStatus === 'Partial';
+              
+              // Calculate total expected amount based on booking or pricing
+              let totalExpected = 0;
+              if (booking.paymentDetails?.rentAmount || booking.paymentDetails?.securityDeposit) {
+                totalExpected = (booking.paymentDetails.rentAmount || 0) + (booking.paymentDetails.securityDeposit || 0) + (booking.paymentDetails.extraCharges || 0);
+              } else {
+                totalExpected = rentAmount + (pricing.deposit || 0) + 800; // default stamp fee
+              }
+              const dueAmount = isFullPaid ? 0 : Math.max(totalExpected - paidAmount, 0);
               const paymentMethod = booking.paymentDetails?.paymentMethod || '-';
 
               return (

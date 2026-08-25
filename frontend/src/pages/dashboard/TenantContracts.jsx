@@ -10,6 +10,8 @@ const STATUS = {
 
 const TenantContracts = () => {
   const [contracts, setContracts] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
 
@@ -59,6 +61,22 @@ const TenantContracts = () => {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchContracts();
+
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch('/api/bookings/tenant', { headers });
+        if (response.ok) {
+          const data = await response.json();
+          // Filter bookings to only show signed agreements
+          setBookings(data.filter(b => b.eSignStatus === 'Completed'));
+        }
+      } catch (err) {
+        console.error('Failed to load bookings');
+      } finally {
+        setLoadingBookings(false);
+      }
+    };
+    fetchBookings();
 
     // Mark as read
     fetch('/api/contracts/tenant/mark-read', { method: 'PUT', headers }).catch(() => { });
@@ -346,53 +364,114 @@ const TenantContracts = () => {
           {contracts.filter(c => c.status === "PENDING_TENANT_REVIEW").length} awaiting your signature
         </div>
       )}
-      {loading ? (
+      {loading || loadingBookings ? (
         <div className="flex items-center justify-center py-24">
           <Icon icon="lucide:loader-2" className="w-8 h-8 animate-spin text-brand-teal" />
         </div>
-      ) : contracts.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-slate-200 p-12 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mb-4">
-            <Icon icon="lucide:file-text" className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-2">No contracts yet</h3>
-          <p className="text-slate-500 text-sm font-medium max-w-md">Once the property owner signs, the contract will appear here for you.</p>
-        </div>
       ) : (
-        <div className="space-y-3">
-          {contracts.map(c => {
-            const cfg = STATUS[c.status] ?? STATUS.PENDING_TENANT_REVIEW;
-            const needsAction = c.status === "PENDING_TENANT_REVIEW";
-            return (
-              <div key={c._id} onClick={() => openContract(c)} className={`bg-white border rounded-xl p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:shadow-md transition-all group ${needsAction ? 'border-amber-300 bg-amber-50/30 hover:border-amber-400' : 'border-slate-200 hover:border-brand-teal/30'}`}>
-                <div className="flex items-center gap-4 sm:gap-5">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-colors ${needsAction ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-brand-teal/5 group-hover:text-brand-teal'}`}>
-                    <Icon icon="lucide:file-text" className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3 mb-1">
-                      <h3 className="font-bold text-[15px] sm:text-base text-slate-800">Contract for {c.propertyAddress ? c.propertyAddress.split(',')[0] : 'Property'}</h3>
-                      <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${cfg.light}`}>
-                        <Icon icon={cfg.icon} className="w-3.5 h-3.5" /> {cfg.label}
-                      </span>
-                      {needsAction && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white animate-pulse shadow-sm">
-                          Action Required
-                        </span>
-                      )}
+        <div className="space-y-8">
+          {/* Custom Lawyer Contracts */}
+          {contracts.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-[#062F26] mb-3">Custom Lawyer Contracts</h3>
+              {contracts.map(c => {
+                const cfg = STATUS[c.status] ?? STATUS.PENDING_TENANT_REVIEW;
+                const needsAction = c.status === "PENDING_TENANT_REVIEW";
+                return (
+                  <div key={c._id} onClick={() => openContract(c)} className={`bg-white border rounded-xl p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:shadow-md transition-all group ${needsAction ? 'border-amber-300 bg-amber-50/30 hover:border-amber-400' : 'border-slate-200 hover:border-brand-teal/30'}`}>
+                    <div className="flex items-center gap-4 sm:gap-5">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-colors ${needsAction ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-brand-teal/5 group-hover:text-brand-teal'}`}>
+                        <Icon icon="lucide:file-signature" className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-3 mb-1">
+                          <h3 className="font-bold text-[15px] sm:text-base text-slate-800">Contract for {c.propertyAddress ? c.propertyAddress.split(',')[0] : 'Property'}</h3>
+                          <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${cfg.light}`}>
+                            <Icon icon={cfg.icon} className="w-3.5 h-3.5" /> {cfg.label}
+                          </span>
+                          {needsAction && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white animate-pulse shadow-sm">
+                              Action Required
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 font-medium">
+                          {c.ownerId && <span className="flex items-center gap-1.5"><Icon icon="lucide:user" className="w-3.5 h-3.5" />Owner: {c.ownerId.fullName}</span>}
+                          {c.monthlyRent > 0 && <span className="flex items-center gap-1.5"><Icon icon="lucide:indian-rupee" className="w-3.5 h-3.5" />{c.monthlyRent.toLocaleString('en-IN')}/mo</span>}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 font-medium">
-                      {c.ownerId && <span className="flex items-center gap-1.5"><Icon icon="lucide:user" className="w-3.5 h-3.5" />Owner: {c.ownerId.fullName}</span>}
-                      {c.monthlyRent > 0 && <span className="flex items-center gap-1.5"><Icon icon="lucide:indian-rupee" className="w-3.5 h-3.5" />{c.monthlyRent.toLocaleString('en-IN')}/mo</span>}
-                    </div>
+                    <Icon icon="lucide:chevron-right" className={`w-5 h-5 transition-colors shrink-0 ${needsAction ? 'text-amber-400 group-hover:text-amber-600' : 'text-slate-300 group-hover:text-brand-teal'}`} />
                   </div>
-                </div>
-                <Icon icon="lucide:chevron-right" className={`w-5 h-5 transition-colors shrink-0 ${needsAction ? 'text-amber-400 group-hover:text-amber-600' : 'text-slate-300 group-hover:text-brand-teal'}`} />
+                );
+              })}
+            </div>
+          )}
+
+          {/* Standard PG/Rental Agreements */}
+          {bookings.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-[#062F26] mb-3 mt-4">Standard Rental Agreements</h3>
+              {bookings.map(b => {
+                const propertyName = b.propertyId?.pgName || b.propertyId?.societyName || 'Property';
+                const isSigned = b.eSignStatus === 'Completed';
+                const needsAction = !isSigned && (b.status === 'Confirmed' || b.status === 'Active');
+                
+                return (
+                  <div key={b._id} onClick={() => {
+                    const isFullPaid = b.status === 'Confirmed' || b.status === 'Active';
+                    if (!isFullPaid) {
+                      toast.error('First complete the full payment to view/sign agreement');
+                      return;
+                    }
+                    if (b.ownerConsentStatus !== 'Consented') {
+                      toast.error('Pending Owner Signature. Please check back later.');
+                      return;
+                    }
+                    window.open(`/api/bookings/${b._id}/download-agreement?token=${localStorage.getItem('accessToken')}`, '_blank');
+                  }} className={`bg-white border rounded-xl p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:shadow-md transition-all group ${needsAction ? 'border-amber-300 bg-amber-50/30 hover:border-amber-400' : 'border-slate-200 hover:border-brand-teal/30'}`}>
+                    <div className="flex items-center gap-4 sm:gap-5">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-colors ${needsAction ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-brand-teal/5 group-hover:text-brand-teal'}`}>
+                        <Icon icon="lucide:file-text" className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-3 mb-1">
+                          <h3 className="font-bold text-[15px] sm:text-base text-slate-800">Agreement for {propertyName}</h3>
+                          <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${isSigned ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                            <Icon icon={isSigned ? "lucide:check-circle" : "lucide:clock"} className="w-3.5 h-3.5" /> 
+                            {isSigned ? 'Fully Executed' : 'Awaiting Signature'}
+                          </span>
+                          {needsAction && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white animate-pulse shadow-sm">
+                              Action Required
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 font-medium">
+                          {b.ownerId && <span className="flex items-center gap-1.5"><Icon icon="lucide:user" className="w-3.5 h-3.5" />Owner: {b.ownerId.fullName}</span>}
+                          {b.monthlyRent > 0 && <span className="flex items-center gap-1.5"><Icon icon="lucide:indian-rupee" className="w-3.5 h-3.5" />{b.monthlyRent.toLocaleString('en-IN')}/mo</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <Icon icon="lucide:chevron-right" className={`w-5 h-5 transition-colors shrink-0 ${needsAction ? 'text-amber-400 group-hover:text-amber-600' : 'text-slate-300 group-hover:text-brand-teal'}`} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {contracts.length === 0 && bookings.length === 0 && (
+            <div className="bg-white rounded-xl border border-dashed border-slate-200 p-12 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mb-4">
+                <Icon icon="lucide:file-text" className="w-8 h-8 text-slate-400" />
               </div>
-            );
-          })}
+              <h3 className="text-lg font-bold text-slate-800 mb-2">No contracts yet</h3>
+              <p className="text-slate-500 text-sm font-medium max-w-md">Once the property owner signs, the contract will appear here for you.</p>
+            </div>
+          )}
         </div>
       )}
+
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import aboutmain from '../assets/aboutmain.png';
 import about1 from '../assets/about1.png';
-
+import FAQ from '../components/FAQ';
 const benefits = [
   { icon: 'lucide:shield-check', title: 'Verified Listings', desc: 'Every property is verified for your safety.' },
   { icon: 'lucide:badge-percent', title: 'Zero Brokerage', desc: 'Book directly with owners & save more.' },
@@ -130,9 +130,20 @@ const About = () => {
             <p className="text-slate-600 text-sm lg:text-sm font-medium leading-relaxed mb-8 pr-4">
               A passionate team of real estate, technology and customer experience experts working together to make renting simple and reliable for everyone.
             </p>
-            <button className="flex items-center gap-2 border border-[#062F26] text-[#062F26] px-5 py-2.5 rounded text-sm font-bold hover:bg-[#062F26] hover:text-white transition-colors group">
-              Join Our Team
-              <Icon icon="lucide:arrow-right" className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <button className="group relative overflow-hidden flex items-center justify-center cursor-pointer border border-[#062F26] text-[#062F26] px-6 py-2.5 rounded text-sm font-bold hover:bg-[#062F26] hover:text-white transition-all shadow-sm w-fit">
+              <Icon
+                icon="lucide:arrow-right"
+                width="16"
+                className="absolute left-4 -translate-x-[150%] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500 ease-out"
+              />
+              <span className="transform group-hover:translate-x-5 transition-transform duration-500 ease-out">
+                Join Our Team
+              </span>
+              <Icon
+                icon="lucide:arrow-right"
+                width="16"
+                className="ml-2 transform group-hover:translate-x-[150%] group-hover:opacity-0 transition-all duration-500 ease-out"
+              />
             </button>
           </div>
 
@@ -184,6 +195,8 @@ const About = () => {
 
         </div>
       </div>
+
+      <FAQ />
 
     </div>
   );

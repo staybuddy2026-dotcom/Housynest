@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import loginImg from '../assets/loginimg.png';
+import contactImg from '../assets/contact.png';
 
 const contactInfoData = [
   {
@@ -123,37 +124,50 @@ const Contact = () => {
               Have questions or need assistance? Reach out to us and our team will get back to you as soon as possible.
             </p>
 
-            {/* Features list */}
-            <div className="space-y-4 sm:space-y-5 bg-white/80 p-4 rounded-xl border border-slate-200 w-full max-w-full sm:max-w-xs text-left mx-auto lg:mx-0">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
-                  <Icon icon="lucide:clock" className="text-brand-teal w-5 h-5" />
+            {/* Features list and Contact Image */}
+            {/* Features list and Contact Image */}
+            <div className="w-full lg:w-auto mt-4 max-w-full">
+              <div className="flex flex-col sm:flex-row items-center gap-6 bg-white/90 backdrop-blur-md p-4 sm:p-5 lg:py-8 rounded-xl border border-slate-200 shadow-sm text-left sm:w-fit mx-auto lg:mx-0">
+
+                {/* Features list */}
+                <div className="space-y-4 sm:space-y-5 w-full sm:w-[420px]">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
+                      <Icon icon="lucide:clock" className="text-brand-teal w-5 h-5" />
+                    </div>
+                    <div className="pt-0.5">
+                      <h4 className="text-[15px] font-bold text-slate-900 mb-0.5">Quick Response</h4>
+                      <p className="text-xs font-medium text-slate-500">We reply within 24 hours</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
+                      <Icon icon="lucide:shield-check" className="text-brand-teal w-5 h-5" />
+                    </div>
+                    <div className="pt-0.5">
+                      <h4 className="text-[15px] font-bold text-slate-900 mb-0.5">Trusted Support</h4>
+                      <p className="text-xs font-medium text-slate-500">From our verified HousyNest team</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
+                      <Icon icon="lucide:map-pin" className="text-brand-teal w-5 h-5" />
+                    </div>
+                    <div className="pt-0.5">
+                      <h4 className="text-[15px] font-bold text-slate-900 mb-0.5">Here for You</h4>
+                      <p className="text-xs font-medium text-slate-500">Every step of your journey</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="pt-0.5">
-                  <h4 className="text-[15px] font-bold text-slate-900 mb-0.5">Quick Response</h4>
-                  <p className="text-xs font-medium text-slate-500">We reply within 24 hours</p>
+
+                {/* Image beside the Box */}
+                <div className="hidden sm:flex items-center justify-center absolute -bottom-1 right-0 opacity-60">
+                  <img src={contactImg} alt="Contact Support" className="w-[140px] lg:w-[180px] xl:w-[200px] h-auto object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.15)] hover:-translate-y-2 hover:drop-shadow-[0_20px_20px_rgba(0,0,0,0.2)] transition-all duration-500" />
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
-                  <Icon icon="lucide:shield-check" className="text-brand-teal w-5 h-5" />
-                </div>
-                <div className="pt-0.5">
-                  <h4 className="text-[15px] font-bold text-slate-900 mb-0.5">Trusted Support</h4>
-                  <p className="text-xs font-medium text-slate-500">From our verified HousyNest team</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
-                  <Icon icon="lucide:map-pin" className="text-brand-teal w-5 h-5" />
-                </div>
-                <div className="pt-0.5">
-                  <h4 className="text-[15px] font-bold text-slate-900 mb-0.5">Here for You</h4>
-                  <p className="text-xs font-medium text-slate-500">Every step of your journey</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -266,8 +280,8 @@ const Contact = () => {
       </div>
 
       {/* Map Section */}
-      <div className="w-full px-4 sm:px-6 xl:px-8 mb-8 lg:mb-12">
-        <div className="relative w-full h-75 sm:h-100 bg-slate-200 max-w-340 3xl:max-w-420 mx-auto rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] overflow-hidden">
+      <div className="w-full px-4 sm:px-6 xl:px-8 mb-0 sm:mb-4">
+        <div className="relative w-full h-60 sm:h-100 bg-slate-200 max-w-340 3xl:max-w-420 mx-auto rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] overflow-hidden">
           <iframe
             src="https://maps.google.com/maps?q=Koramangala,%20Bengaluru&t=&z=13&ie=UTF8&iwloc=&output=embed"
             width="100%"
@@ -276,7 +290,7 @@ const Contact = () => {
             allowFullScreen=""
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="rounded-2xl"
+            className="rounded-xl"
           ></iframe>
 
           <div className="absolute bottom-4 sm:bottom-8 lg:bottom-12 left-4 right-4 sm:right-auto sm:left-8 lg:left-[calc(50%-680px)] z-10">
