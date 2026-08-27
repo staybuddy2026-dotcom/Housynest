@@ -1,6 +1,7 @@
 import { Icon } from '@iconify/react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import CustomDropdown from '../list-property/CustomDropdown';
 
 const PropertyTabContent = ({
   activeTab,
@@ -48,7 +49,7 @@ const PropertyTabContent = ({
     if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
     return a.localeCompare(b);
   });
-  
+
   const filterTabs = ['All Rooms', ...sortedSharingTypes];
 
   const handleSubscribeWaitlist = async (roomId, sharingType, bedKey) => {
@@ -129,11 +130,11 @@ const PropertyTabContent = ({
 
       {activeTab === 'Rooms & Beds' && (
         <div className="animate-in fade-in duration-300">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold text-[#062F26]">Rooms & Beds</h3>
             <button
               onClick={() => setViewMode(prev => prev === 'list' ? 'plan' : 'list')}
-              className="px-5 py-2 text-sm font-bold text-brand-teal border-2 border-brand-teal/20 rounded-xl hover:bg-[#EAF5F2] hover:border-brand-teal/40 transition-all flex items-center gap-2"
+              className="px-5 py-2 text-sm font-bold text-brand-teal border-2 border-brand-teal/20 rounded-lg hover:bg-[#EAF5F2] hover:border-brand-teal/40 transition-all flex items-center gap-2"
             >
               <Icon icon={viewMode === 'list' ? "lucide:map" : "lucide:list"} className="w-4 h-4" />
               {viewMode === 'list' ? 'View Floor Plan' : 'View Rooms List'}
@@ -246,42 +247,14 @@ const PropertyTabContent = ({
                   })}
                 </div>
 
-                <div className="relative shrink-0 w-full sm:w-48 mb-3 sm:mb-2 z-20">
-                  <div
-                    onClick={() => setIsFloorDropdownOpen(!isFloorDropdownOpen)}
-                    className="appearance-none pl-5 pr-5 py-3 border border-slate-200 rounded-xl text-[13.5px] font-bold text-[#062F26] bg-white cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:border-brand-teal/40 hover:shadow-md transition-all w-full flex items-center justify-between group"
-                  >
-                    {selectedFloorFilter}
-                    <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-brand-teal transition-transform duration-300 group-hover:scale-110 ${isFloorDropdownOpen ? 'rotate-180' : ''}`} />
-                  </div>
-
-                  {isFloorDropdownOpen && (
-                    <>
-                      {/* Overlay to close when clicking outside */}
-                      <div className="fixed inset-0 z-10" onClick={() => setIsFloorDropdownOpen(false)}></div>
-
-                      <div className="absolute top-full left-0 mt-2 w-full bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div
-                          onClick={() => { setSelectedFloorFilter("All Floors"); setIsFloorDropdownOpen(false); }}
-                          className={`px-5 py-3 text-[13.5px] font-bold cursor-pointer transition-colors flex items-center justify-between ${selectedFloorFilter === "All Floors" ? 'bg-[#062F26] text-white' : 'text-slate-600 hover:bg-[#F4F9F8] hover:text-[#062F26]'}`}
-                        >
-                          All Floors
-                          {selectedFloorFilter === "All Floors" && <Icon icon="lucide:check" className="w-4 h-4 text-white" />}
-                        </div>
-                        {property.floors?.map((f, i) => (
-                          <div
-                            key={i}
-                            onClick={() => { setSelectedFloorFilter(f.floorName); setIsFloorDropdownOpen(false); }}
-                            className={`px-5 py-3 text-[13.5px] font-bold cursor-pointer transition-colors flex items-center justify-between ${selectedFloorFilter === f.floorName ? 'bg-[#062F26] text-white' : 'text-slate-600 hover:bg-[#F4F9F8] hover:text-[#062F26]'}`}
-                          >
-                            {f.floorName}
-                            {selectedFloorFilter === f.floorName && <Icon icon="lucide:check" className="w-4 h-4 text-white" />}
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
+                <CustomDropdown
+                  options={["All Floors", ...(property.floors || []).map(f => f.floorName)]}
+                  value={selectedFloorFilter === "All Floors" ? null : selectedFloorFilter}
+                  onChange={(val) => setSelectedFloorFilter(val || "All Floors")}
+                  placeholder="All Floors"
+                  containerClassName="relative shrink-0 w-full sm:w-48 mb-3 sm:mb-2 z-20"
+                  buttonClassName="!py-3 !pl-5 !pr-5 !rounded-lg !text-[13.5px] !font-bold !text-[#062F26] shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:!border-brand-teal/40 hover:!shadow-md transition-all"
+                />
               </div>
 
               {propertyType === 'PG' && (
@@ -513,15 +486,63 @@ const PropertyTabContent = ({
 
       {activeTab === 'Amenities & Services' && (
         <div className="animate-in fade-in duration-300">
-          <h3 className="text-lg font-bold text-[#062F26] mb-8">Amenities & Services</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-8 gap-x-4">
-            {property.amenities.map((amenityName, idx) => (
-              <div key={idx} className="group flex items-center gap-3 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                <span className="w-2 h-2 rounded-full bg-brand-teal/40 group-hover:bg-brand-teal transition-colors"></span>
-                <span className="text-sm font-bold text-[#062F26]">{amenityName}</span>
+          {property.amenities && property.amenities.length > 0 && (
+            <div className="mb-10">
+              <h3 className="text-lg font-bold text-[#062F26] mb-6 flex items-center gap-2">
+                <Icon icon="lucide:layout-list" className="w-5 h-5 text-brand-teal" />
+                Amenities
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {property.amenities.map((amenityName, idx) => (
+                  <div key={idx} className="group flex items-center gap-2.5 px-4 py-2.5 bg-white border border-slate-200 rounded-full hover:border-brand-teal/40 hover:bg-[#EAF5F2] hover:shadow-sm transition-all cursor-default">
+                    <Icon icon="lucide:check-circle-2" className="w-4.5 h-4.5 text-brand-teal group-hover:scale-110 transition-transform" />
+                    <span className="text-[13px] font-bold text-slate-700 group-hover:text-[#062F26]">{amenityName}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {property.services && property.services.length > 0 && (
+            <div>
+              <h3 className="text-lg font-bold text-[#062F26] mb-6 flex items-center gap-2">
+                <Icon icon="lucide:sparkles" className="w-5 h-5 text-brand-teal" />
+                Services
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {property.services.map((serviceName, idx) => {
+                  let serviceIcon = "lucide:check-square";
+                  const lowerName = serviceName.toLowerCase();
+                  if (lowerName.includes('water') || lowerName.includes('ro')) serviceIcon = "lucide:droplets";
+                  else if (lowerName.includes('securit') || lowerName.includes('guard')) serviceIcon = "lucide:shield-check";
+                  else if (lowerName.includes('cctv') || lowerName.includes('camera')) serviceIcon = "lucide:cctv";
+                  else if (lowerName.includes('fire') || lowerName.includes('extinguisher')) serviceIcon = "lucide:flame";
+                  else if (lowerName.includes('clean') || lowerName.includes('housekeep') || lowerName.includes('maid')) serviceIcon = "lucide:sparkles";
+                  else if (lowerName.includes('laundry') || lowerName.includes('wash')) serviceIcon = "lucide:shirt";
+                  else if (lowerName.includes('food') || lowerName.includes('meal') || lowerName.includes('breakfast')) serviceIcon = "lucide:utensils";
+                  else if (lowerName.includes('wifi') || lowerName.includes('internet')) serviceIcon = "lucide:wifi";
+                  else if (lowerName.includes('power') || lowerName.includes('backup') || lowerName.includes('electric')) serviceIcon = "lucide:zap";
+                  else if (lowerName.includes('parking')) serviceIcon = "lucide:parking-circle";
+
+                  return (
+                    <div key={idx} className="group flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-white hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-brand-teal/20 transition-all cursor-default">
+                      <div className="w-10 h-10 rounded-xl bg-[#EAF5F2] flex items-center justify-center shrink-0 group-hover:bg-brand-teal transition-colors duration-300">
+                        <Icon icon={serviceIcon} className="w-5 h-5 text-brand-teal group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <span className="text-[14px] font-bold text-[#062F26]">{serviceName}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {(!property.amenities || property.amenities.length === 0) && (!property.services || property.services.length === 0) && (
+            <div className="py-12 flex flex-col items-center justify-center text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+              <Icon icon="lucide:ghost" className="w-12 h-12 text-slate-300 mb-3" />
+              <p className="text-sm text-slate-500 font-bold">No amenities or services listed for this property.</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -579,7 +600,7 @@ const PropertyTabContent = ({
                   <Icon icon="lucide:users" className="w-5 h-5 text-brand-teal mt-0.5 stroke-[2.5] group-hover:scale-110 transition-transform duration-300" />
                   <div>
                     <p className="text-xs font-bold text-slate-500 mb-1">Visitors Allowed</p>
-                    <p className="text-sm font-bold text-[#062F26]">{property.pgRules?.includes('No Visitors') ? 'No' : 'Yes'}</p>
+                    <p className="text-sm font-bold text-[#062F26]">{(property.pgRules?.includes('No Visitors') || property.pgRules?.includes('Guardian not allowed')) ? 'No' : 'Yes'}</p>
                   </div>
                 </div>
               </>
@@ -595,21 +616,21 @@ const PropertyTabContent = ({
               <Icon icon="lucide:cigarette-off" className="w-5 h-5 text-brand-teal mt-0.5 stroke-[2.5] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300" />
               <div>
                 <p className="text-xs font-bold text-slate-500 mb-1">Smoking</p>
-                <p className="text-sm font-bold text-[#062F26]">{property.pgRules?.includes('No Smoking') ? 'Not Allowed' : 'Allowed'}</p>
+                <p className="text-sm font-bold text-[#062F26]">{(property.pgRules?.includes('No Smoking') || property.pgRules?.includes('Smoking not allowed')) ? 'Not Allowed' : 'Allowed'}</p>
               </div>
             </div>
             <div className="group flex gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
               <Icon icon="lucide:wine-off" className="w-5 h-5 text-brand-teal mt-0.5 stroke-[2.5] group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300" />
               <div>
                 <p className="text-xs font-bold text-slate-500 mb-1">Drinking</p>
-                <p className="text-sm font-bold text-[#062F26]">{property.pgRules?.includes('No Drinking') ? 'Not Allowed' : 'Allowed'}</p>
+                <p className="text-sm font-bold text-[#062F26]">{(property.pgRules?.includes('No Drinking') || property.pgRules?.includes('Alcohol not allowed')) ? 'Not Allowed' : 'Allowed'}</p>
               </div>
             </div>
             <div className="group flex gap-4 p-3 -ml-3 border-b border-slate-200 hover:bg-slate-50 transition-colors">
               <Icon icon="lucide:dog" className="w-5 h-5 text-brand-teal mt-0.5 stroke-[2.5] group-hover:scale-110 transition-transform duration-300" />
               <div>
                 <p className="text-xs font-bold text-slate-500 mb-1">Pets</p>
-                <p className="text-sm font-bold text-[#062F26]">{property.pgRules?.includes('No Pets') ? 'Not Allowed' : (propertyType === 'PG' ? 'Not Allowed' : 'Allowed')}</p>
+                <p className="text-sm font-bold text-[#062F26]">{(property.pgRules?.includes('No Pets') || property.pgRules?.includes('Pets not allowed')) ? 'Not Allowed' : (propertyType === 'PG' ? 'Not Allowed' : 'Allowed')}</p>
               </div>
             </div>
           </div>

@@ -230,7 +230,9 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
             floorName: currentRoom?.floorName,
             roomName: currentRoom?.roomName,
             bedName: selectedBedName,
-            sharingType: currentRoom?.sharingType
+            sharingType: currentRoom?.sharingType,
+            rent: currentRoom?.rent,
+            deposit: currentRoom?.deposit
           } : {}
         })
       });

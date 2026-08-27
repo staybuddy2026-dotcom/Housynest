@@ -1,21 +1,63 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import CustomDropdown from '../list-property/CustomDropdown';
 
 const FilterSection = () => {
   const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
-  const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedType, setSelectedType] = useState('PG');
   const [selectedPrice, setSelectedPrice] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [pgFor, setPgFor] = useState('');
   const [preferredTenants, setPreferredTenants] = useState('');
   const [occupancy, setOccupancy] = useState('');
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
 
-  const typeDropdownRef = useRef(null);
-  const priceDropdownRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  useEffect(() => {
+    if (searchQuery.trim().length < 3) {
+      setCitySuggestions([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(() => {
+      setIsFetchingSuggestions(true);
+      
+      // Use Photon API (Komoot) which properly supports partial string autocomplete
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(searchQuery)}&limit=5&lat=20.5937&lon=78.9629`; // Center near India
+      
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.features && Array.isArray(data.features)) {
+            const formatted = data.features
+              // Filter to mostly cities/towns/states in India if possible
+              .filter(f => f.properties.countrycode === 'IN' || f.properties.country === 'India')
+              .map(item => {
+                const props = item.properties;
+                const parts = [props.name, props.city, props.state].filter(Boolean);
+                // Remove duplicates in parts like "Ahmedabad, Ahmedabad, Gujarat"
+                return [...new Set(parts)].join(', ');
+              })
+              .filter(name => name.length > 0);
+              
+            setCitySuggestions([...new Set(formatted)]);
+          } else {
+            setCitySuggestions([]);
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching cities", err);
+          setCitySuggestions([]);
+        })
+        .finally(() => setIsFetchingSuggestions(false));
+    }, 400);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -32,11 +74,8 @@ const FilterSection = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target)) {
-        setIsTypeDropdownOpen(false);
-      }
-      if (priceDropdownRef.current && !priceDropdownRef.current.contains(event.target)) {
-        setIsPriceDropdownOpen(false);
+      if (searchInputRef.current && !searchInputRef.current.contains(event.target)) {
+        setShowSuggestions(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -50,56 +89,34 @@ const FilterSection = () => {
         <div className="bg-[#062F26] rounded-2xl px-3 py-2 lg:py-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col lg:flex-row items-stretch lg:items-center justify-between border border-[#13463a]">
 
           {/* Property Type Dropdown */}
-          <div
-            ref={typeDropdownRef}
-            className="w-full lg:w-[200px] flex flex-col gap-1 px-4 lg:px-6 py-3 lg:py-0 lg:border-r border-[#13463a] relative shrink-0 cursor-pointer group"
-            onClick={() => {
-              const willOpen = !isTypeDropdownOpen;
-              setIsTypeDropdownOpen(willOpen);
-              if (willOpen) {
-                setIsPriceDropdownOpen(false);
-                setTimeout(() => {
-                  const bottomEl = document.getElementById('type-dropdown-bottom');
-                  if (bottomEl) {
-                    bottomEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                  }
-                }, 50);
-              }
-            }}
-          >
-            <span className="text-xs font-semibold text-[#a1b8b2] mb-1">Property Type</span>
-            <div className="flex items-center justify-between w-full border-b border-[#13463a] pb-1.5 group-hover:border-brand-yellow transition-colors">
-              <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                <Icon icon={selectedType === 'Tenant' ? "lucide:user-check" : "lucide:user"} className="text-brand-yellow" width="16" />
-                <span className="truncate">{selectedType}</span>
-              </div>
-              <Icon icon="lucide:chevron-down" className="text-[#a1b8b2] group-hover:text-white transition-colors shrink-0" width="18" />
-            </div>
-
-            {/* Dropdown Menu */}
-            {isTypeDropdownOpen && (
-              <div className="absolute top-[100%] lg:top-[120%] left-0 w-full lg:w-[240px] bg-[#0B3D32] rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] border border-[#13463a] p-2 z-50 animate-in fade-in slide-in-from-top-2">
-                <button
-                  className="w-full cursor-pointer flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#a1b8b2] hover:bg-[#13463a] hover:text-white transition-colors"
-                  onClick={(e) => { e.stopPropagation(); setSelectedType('PG'); setIsTypeDropdownOpen(false); }}
-                >
-                  <Icon icon="lucide:user" className="text-brand-yellow" width="18" />
-                  PG
-                </button>
-                <button
-                  className="w-full cursor-pointer flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#a1b8b2] hover:bg-[#13463a] hover:text-white transition-colors"
-                  onClick={(e) => { e.stopPropagation(); setSelectedType('Tenant'); setIsTypeDropdownOpen(false); }}
-                >
-                  <Icon icon="lucide:user-check" className="text-brand-yellow" width="18" />
-                  Tenant
-                </button>
-                <div id="type-dropdown-bottom" className="h-1" />
-              </div>
-            )}
+          <div className="w-full lg:w-[200px] px-4 lg:px-6 py-3 lg:py-0 lg:border-r border-[#13463a] shrink-0 group relative z-20">
+            <CustomDropdown
+              label="Property Type"
+              options={[
+                { label: 'PG', value: 'PG' },
+                { label: 'Tenant', value: 'Tenant' }
+              ]}
+              value={selectedType}
+              onChange={setSelectedType}
+              icon={selectedType === 'Tenant' ? "lucide:user-check" : "lucide:user"}
+              containerClassName="flex flex-col gap-1 w-full"
+              variant="dark-inline"
+              dropdownId="type-dropdown"
+              onToggle={(isOpen) => {
+                if (isOpen) {
+                  setTimeout(() => {
+                    const bottomEl = document.getElementById('type-dropdown-bottom');
+                    if (bottomEl) {
+                      bottomEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                  }, 320);
+                }
+              }}
+            />
           </div>
 
           {/* Location / Name Input */}
-          <div className="flex-1 flex flex-col gap-1 px-4 lg:px-6 py-3 lg:py-0 lg:border-r border-[#13463a] group">
+          <div ref={searchInputRef} className="flex-1 flex flex-col gap-1 px-4 lg:px-6 py-3 lg:py-0 lg:border-r border-[#13463a] group relative">
             <span className="text-xs font-semibold text-[#a1b8b2] mb-1">Search Name / City</span>
             <div className="flex items-center gap-2 w-full border-b border-[#13463a] pb-1.5 group-focus-within:border-brand-yellow group-hover:border-brand-yellow transition-colors">
               <Icon icon="lucide:map-pin" className="text-brand-yellow shrink-0" width="17" />
@@ -108,60 +125,76 @@ const FilterSection = () => {
                 placeholder="e.g. Koramangala, Bangalore"
                 className="w-full text-sm font-semibold text-white placeholder:text-[#a1b8b2]/70 outline-none bg-transparent"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
+            
+            {/* Suggestions Dropdown */}
+            {showSuggestions && searchQuery.trim().length > 0 && (
+              <div className="absolute top-[100%] lg:top-[120%] left-0 w-full lg:w-[120%] bg-[#0B3D32] rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] border border-[#13463a] p-2 z-50 animate-in fade-in slide-in-from-top-2 mt-2 lg:mt-0">
+                {isFetchingSuggestions ? (
+                  <div className="px-4 py-3 text-sm font-medium text-[#a1b8b2] flex items-center justify-center gap-2">
+                    <Icon icon="lucide:loader-2" className="animate-spin text-brand-yellow" width="16" />
+                    Searching...
+                  </div>
+                ) : citySuggestions.length > 0 ? (
+                  citySuggestions.map((city, idx) => (
+                    <button
+                      key={idx}
+                      className="w-full text-left cursor-pointer flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-[#a1b8b2] hover:bg-[#13463a] hover:text-white transition-colors"
+                      onClick={() => {
+                        setSearchQuery(city);
+                        setShowSuggestions(false);
+                      }}
+                    >
+                      <Icon icon="lucide:map-pin" className="text-brand-yellow shrink-0" width="16" />
+                      {city}
+                    </button>
+                  ))
+                ) : searchQuery.trim().length >= 3 ? (
+                  <div className="px-4 py-3 text-sm font-medium text-[#a1b8b2] text-center">No cities found</div>
+                ) : (
+                  <div className="px-4 py-3 text-sm font-medium text-[#a1b8b2] text-center">Type at least 3 characters...</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Price Range Input */}
-          <div
-            ref={priceDropdownRef}
-            className="w-full lg:w-[250px] flex flex-col gap-1 px-4 lg:px-6 py-3 lg:py-0 lg:border-r border-[#13463a] relative shrink-0 cursor-pointer group"
-            onClick={() => {
-              const willOpen = !isPriceDropdownOpen;
-              setIsPriceDropdownOpen(willOpen);
-              if (willOpen) {
-                setIsTypeDropdownOpen(false);
-                setTimeout(() => {
-                  const bottomEl = document.getElementById('price-dropdown-bottom');
-                  if (bottomEl) {
-                    bottomEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                  }
-                }, 50);
-              }
-            }}
-          >
-            <span className="text-xs font-semibold text-[#a1b8b2] mb-1">Price Range</span>
-            <div className="flex items-center justify-between w-full border-b border-[#13463a] pb-1.5 group-hover:border-brand-yellow transition-colors">
-              <div className="flex items-center gap-2">
-                <Icon icon="lucide:wallet" className="text-brand-yellow" width="16" />
-                <span className={`text-sm font-semibold transition-colors ${selectedPrice ? 'text-white' : 'text-[#a1b8b2] group-hover:text-white'}`}>
-                  {selectedPrice || 'Select Price'}
-                </span>
-              </div>
-              <Icon icon="lucide:chevron-down" className="text-[#a1b8b2] group-hover:text-white transition-colors shrink-0" width="18" />
-            </div>
-
-            {/* Dropdown Menu */}
-            {isPriceDropdownOpen && (
-              <div className="absolute top-[100%] lg:top-[120%] left-0 w-full lg:w-[260px] bg-[#0B3D32] rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] border border-[#13463a] p-2 z-50 animate-in fade-in slide-in-from-top-2">
-                {['Any Price', 'Under ₹5,000', '₹5,000 - ₹10,000', '₹10,000 - ₹15,000', '₹15,000 - ₹20,000', 'Above ₹20,000'].map((price) => (
-                  <button
-                    key={price}
-                    className="w-full flex items-center cursor-pointer px-4 py-3 rounded-xl text-sm font-semibold text-[#a1b8b2] hover:bg-[#13463a] hover:text-white transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedPrice(price === 'Any Price' ? '' : price);
-                      setIsPriceDropdownOpen(false);
-                    }}
-                  >
-                    {price}
-                  </button>
-                ))}
-                <div id="price-dropdown-bottom" className="h-1" />
-              </div>
-            )}
+          <div className="w-full lg:w-[250px] px-4 lg:px-6 py-3 lg:py-0 lg:border-r border-[#13463a] shrink-0 group relative z-10">
+            <CustomDropdown
+              label="Price Range"
+              options={[
+                { label: 'Any Price', value: '' },
+                { label: 'Under ₹5,000', value: 'Under ₹5,000' },
+                { label: '₹5,000 - ₹10,000', value: '₹5,000 - ₹10,000' },
+                { label: '₹10,000 - ₹15,000', value: '₹10,000 - ₹15,000' },
+                { label: '₹15,000 - ₹20,000', value: '₹15,000 - ₹20,000' },
+                { label: 'Above ₹20,000', value: 'Above ₹20,000' }
+              ]}
+              value={selectedPrice}
+              onChange={setSelectedPrice}
+              placeholder="Select Price"
+              icon="lucide:wallet"
+              containerClassName="flex flex-col gap-1 w-full"
+              variant="dark-inline"
+              dropdownId="price-dropdown"
+              onToggle={(isOpen) => {
+                if (isOpen) {
+                  setTimeout(() => {
+                    const bottomEl = document.getElementById('price-dropdown-bottom');
+                    if (bottomEl) {
+                      bottomEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                  }, 320);
+                }
+              }}
+            />
           </div>
 
           {/* Actions: More Filters + Search */}

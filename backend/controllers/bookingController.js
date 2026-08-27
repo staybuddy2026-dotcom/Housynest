@@ -85,6 +85,48 @@ const getPdfHtmlContent = (booking, tenant, property, actualOwner) => {
     </div>
   ` : '';
 
+  const bookingRef = booking?._id ? booking._id.toString().substring(booking._id.toString().length - 8).toUpperCase() : 'HN-REF';
+  const moveIn = booking?.moveInDate ? new Date(booking.moveInDate).toLocaleDateString('en-GB') : 'Move-In';
+  const moveOut = booking?.expectedMoveOutDate ? new Date(booking.expectedMoveOutDate).toLocaleDateString('en-GB') : 'Vacation';
+  const rentAmt = Number(booking?.paymentDetails?.amount || property?.monthlyRent?.replace(/\D/g, '') || 12000).toLocaleString('en-IN');
+  const depositAmt = Number(property?.securityAmount?.replace(/\D/g, '') || 12000).toLocaleString('en-IN');
+
+  const detailsBox = `
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+      <h3 style="margin-top: 0; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; color: #062F26; font-size: 15px; text-transform: uppercase;">Accommodation & Financial Details</h3>
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155;">
+        <tr>
+          <td style="padding: 6px 0; width: 50%;"><b>Property:</b> ${property?.pgName || property?.societyName || 'HousyNest Property'}</td>
+          <td style="padding: 6px 0; width: 50%;"><b>Booking Ref:</b> ${bookingRef}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0;" colspan="2"><b>Address:</b> ${property?.locality || property?.address || 'Address'}, ${cityStr}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0;"><b>Room / Unit:</b> ${booking?.roomDetails?.roomName || 'Room'}</td>
+          <td style="padding: 6px 0;"><b>Bed Number:</b> ${booking?.roomDetails?.bedName || 'Bed'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0;"><b>Monthly Rent:</b> ₹${rentAmt}</td>
+          <td style="padding: 6px 0;"><b>Security Deposit:</b> ₹${depositAmt}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0;"><b>Commencement Date:</b> ${moveIn}</td>
+          <td style="padding: 6px 0;"><b>Vacation Date:</b> ${moveOut}</td>
+        </tr>
+      </table>
+
+      <h4 style="margin-top: 15px; margin-bottom: 8px; color: #062F26; font-size: 14px; text-transform: uppercase;">Emergency Contact</h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155;">
+        <tr>
+          <td style="padding: 4px 0; width: 33%;"><b>Name:</b> ${booking?.emergencyContact?.name || 'N/A'}</td>
+          <td style="padding: 4px 0; width: 33%;"><b>Phone:</b> ${booking?.emergencyContact?.phone || 'N/A'}</td>
+          <td style="padding: 4px 0; width: 33%;"><b>Relationship:</b> ${booking?.emergencyContact?.relationship || 'N/A'}</td>
+        </tr>
+      </table>
+    </div>
+  `;
+
   return `
     <html>
       <head>
@@ -99,8 +141,10 @@ const getPdfHtmlContent = (booking, tenant, property, actualOwner) => {
         ${logoBase64 ? `<img src="data:image/png;base64,${logoBase64}" class="watermark" alt="watermark" />` : ''}
         <div class="header-info">
           Generated on: ${todayDateStr}<br/>
-          Ref: ${booking?._id ? booking._id.toString().substring(booking._id.toString().length - 8).toUpperCase() : 'HN-REF'}
+          Ref: ${bookingRef}
         </div>
+        
+        ${detailsBox}
         
         ${formattedContract}
         ${formattedTerms}
@@ -368,22 +412,43 @@ export const updateBookingStatus = async (req, res) => {
           ? 'pay the Token amount to reserve your bed.'
           : 'pay the Full amount to confirm your booking.';
 
-        const content = `
-          Hello ${tenant.fullName},
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const dashboardUrl = `${frontendUrl}/dashboard/tenant`;
 
-          Great news! Your request for ${property.pgName || property.societyName || 'Property'} has been approved by the owner.
-          
-          To secure this, please log in to your Housynest dashboard and ${actionText}
-          
-          Booking Details:
-          - Property: ${property.pgName || property.societyName || 'Property'}
-          - Room: ${booking.roomDetails?.roomName || 'N/A'}
-          - Bed: ${booking.roomDetails?.bedName || 'N/A'}
-          - Move In Date: ${new Date(booking.moveInDate).toDateString()}
+        const textContent = `Hello ${tenant.fullName},\n\nGreat news! Your request for ${property.pgName || property.societyName || 'Property'} has been approved by the owner.\n\nTo secure this, please log in to your Housynest dashboard and ${actionText}\n\nBooking Details:\n- Property: ${property.pgName || property.societyName || 'Property'}\n- Room: ${booking.roomDetails?.roomName || 'N/A'}\n- Bed: ${booking.roomDetails?.bedName || 'N/A'}\n- Move In Date: ${new Date(booking.moveInDate).toDateString()}\n\nThank you for choosing Housynest!`;
 
-          Thank you for choosing Housynest!
+        const htmlContent = `
+          <p style="font-size: 16px; color: #334155;">Hello <strong>${tenant.fullName}</strong>,</p>
+          <p style="font-size: 16px; color: #334155; margin-top: 16px;">Great news! Your booking request for <strong style="color: #062F26;">${property.pgName || property.societyName || 'Property'}</strong> has been approved by the owner.</p>
+          
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; margin: 24px 0; border-radius: 8px;">
+            <h3 style="margin-top: 0; color: #062F26; font-size: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">Booking Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; width: 120px;">Room:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: 500;">${booking.roomDetails?.roomName || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b;">Bed:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: 500;">${booking.roomDetails?.bedName || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b;">Move-In Date:</td>
+                <td style="padding: 6px 0; color: #0f172a; font-weight: 500;">${new Date(booking.moveInDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+              </tr>
+            </table>
+          </div>
+
+          <p style="font-size: 16px; color: #334155;">To secure this booking, please log in to your Housynest dashboard and <strong>${actionText}</strong></p>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${dashboardUrl}" style="background-color: #0AA87D; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; display: inline-block; font-family: sans-serif;">Go to My Dashboard to Pay</a>
+          </div>
+          
+          <p style="font-size: 16px; color: #334155; margin-top: 24px;">Thank you for choosing Housynest!</p>
         `;
-        await sendGenericEmail(tenant.email, subject, content, null);
+        
+        await sendGenericEmail(tenant.email, subject, textContent, htmlContent);
       }
     }
 
@@ -460,22 +525,44 @@ export const processPayment = async (req, res) => {
     if (tenant && tenant.email && property) {
       const isToken = booking.paymentDetails.paymentMethod === 'Token Amount' || booking.paymentDetails.paymentMethod === 'Token (40%)';
       const subject = isToken ? 'Bed Reserved Successfully!' : 'Room Booked Successfully!';
-      const content = `
-        Hello ${tenant.fullName},
+      const htmlContent = `
+        <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
+          <p>Hi <b>${tenant.fullName}</b>,</p>
+          <p>Great news! Your ${isToken ? 'reservation' : 'booking'} for <b>${property.pgName || property.societyName || 'Property'}</b> has been successfully confirmed. We are thrilled to welcome you to the Housynest family!</p>
+          <p>Here are your confirmed details:</p>
+          
+          <h3 style="color: #062F26; border-bottom: 1px solid #eee; padding-bottom: 8px;">Booking Summary</h3>
+          <ul style="list-style-type: none; padding-left: 0;">
+            <li style="margin-bottom: 4px;"><b>Booking ID:</b> #${booking._id.toString().substring(booking._id.toString().length - 8).toUpperCase()}</li>
+            <li style="margin-bottom: 4px;"><b>Property:</b> ${property.pgName || property.societyName || 'Property'}</li>
+            <li style="margin-bottom: 4px;"><b>Room:</b> ${booking.roomDetails?.roomName || 'N/A'}</li>
+            <li style="margin-bottom: 4px;"><b>Bed:</b> ${booking.roomDetails?.bedName || 'N/A'}</li>
+            <li style="margin-bottom: 4px;"><b>Location:</b> ${[property.address, property.locality, property.city, property.state].filter(Boolean).join(', ')}</li>
+            <li style="margin-bottom: 4px;"><b>Move-in Date:</b> ${new Date(booking.moveInDate).toLocaleDateString('en-GB')}</li>
+          </ul>
 
-        Congratulations! Your payment of ₹${booking.paymentDetails.amount?.toLocaleString('en-IN')} was successful.
-        ${isToken ? 'Your bed is now successfully reserved.' : 'Your room is now successfully booked.'}
-        
-        Booking Details:
-        - Property: ${property.pgName || property.societyName || 'Property'}
-        - Room: ${booking.roomDetails?.roomName || 'N/A'}
-        - Bed: ${booking.roomDetails?.bedName || 'N/A'}
-        - Move In Date: ${new Date(booking.moveInDate).toDateString()}
-        - Payment Status: Paid (${booking.paymentDetails.paymentMethod})
+          <h3 style="color: #062F26; border-bottom: 1px solid #eee; padding-bottom: 8px;">Payment Details</h3>
+          <ul style="list-style-type: none; padding-left: 0;">
+            <li style="margin-bottom: 4px;"><b>Monthly Rent:</b> ₹${Number((property.monthlyRent || '0').toString().replace(/\D/g, '')).toLocaleString('en-IN')}</li>
+            <li style="margin-bottom: 4px;"><b>Security Deposit:</b> ₹${Number((property.securityAmount || '0').toString().replace(/\D/g, '')).toLocaleString('en-IN')} (To be paid during move-in)</li>
+            <li style="margin-bottom: 4px;"><b>Amount Paid Now:</b> ₹${booking.paymentDetails.amount?.toLocaleString('en-IN')}</li>
+            <li style="margin-bottom: 4px;"><b>Payment Status:</b> ${booking.paymentDetails?.status || 'Paid'} (${booking.paymentDetails?.paymentMethod || 'N/A'})</li>
+          </ul>
 
-        Thank you for choosing Housynest!
+          <h3 style="color: #062F26; border-bottom: 1px solid #eee; padding-bottom: 8px;">What happens next?</h3>
+          <ol style="padding-left: 16px;">
+            <li style="margin-bottom: 6px;"><b>Contact the Owner:</b> The property owner is expecting you. You can reach them via your Housynest dashboard to discuss the move-in time.</li>
+            <li style="margin-bottom: 6px;"><b>Documentation:</b> Please keep your Aadhar Card, PAN Card, and a passport-size photo ready for the rental agreement and verification.</li>
+            <li style="margin-bottom: 6px;"><b>Move-in:</b> Pack your bags and get ready to move into your new home on <b>${new Date(booking.moveInDate).toLocaleDateString('en-GB')}</b>!</li>
+          </ol>
+
+          <p style="margin-top: 24px;">If you have any questions or need assistance, our support team is always here to help. Just reply to this email or contact us at support@housynest.com.</p>
+          <p>Welcome home!</p>
+          <br>
+          <p>Warm regards,<br><b style="color: #062F26;">The Housynest Team</b></p>
+        </div>
       `;
-      await sendGenericEmail(tenant.email, subject, content, null);
+      await sendGenericEmail(tenant.email, subject, 'Your booking has been confirmed! Please view this email in an HTML compatible client.', htmlContent);
 
       // --- Notify Owner ---
       const owner = await User.findById(property.owner);
@@ -567,23 +654,44 @@ export const payBalance = async (req, res) => {
 
     if (tenant && tenant.email && property) {
       const subject = 'Full Balance Paid - Room Confirmed!';
-      const content = `
-        Hello ${tenant.fullName},
+      const htmlContent = `
+        <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
+          <p>Hi <b>${tenant.fullName}</b>,</p>
+          <p>Great news! Your payment of ₹${remainingAmount.toLocaleString('en-IN')} for the remaining balance was successful. Your room at <b>${property.pgName || property.societyName || 'Property'}</b> is now fully booked and confirmed. We are thrilled to welcome you to the Housynest family!</p>
+          <p>Here are your confirmed details:</p>
+          
+          <h3 style="color: #062F26; border-bottom: 1px solid #eee; padding-bottom: 8px;">Booking Summary</h3>
+          <ul style="list-style-type: none; padding-left: 0;">
+            <li style="margin-bottom: 4px;"><b>Booking ID:</b> #${booking._id.toString().substring(booking._id.toString().length - 8).toUpperCase()}</li>
+            <li style="margin-bottom: 4px;"><b>Property:</b> ${property.pgName || property.societyName || 'Property'}</li>
+            <li style="margin-bottom: 4px;"><b>Room:</b> ${booking.roomDetails?.roomName || 'N/A'}</li>
+            <li style="margin-bottom: 4px;"><b>Bed:</b> ${booking.roomDetails?.bedName || 'N/A'}</li>
+            <li style="margin-bottom: 4px;"><b>Location:</b> ${[property.address, property.locality, property.city, property.state].filter(Boolean).join(', ')}</li>
+            <li style="margin-bottom: 4px;"><b>Move-in Date:</b> ${new Date(booking.moveInDate).toLocaleDateString('en-GB')}</li>
+          </ul>
 
-        Congratulations! Your payment of ₹${remainingAmount.toLocaleString('en-IN')} for the remaining balance was successful.
-        Your room is now fully booked and confirmed.
-        
-        Booking Details:
-        - Property: ${property.pgName || property.societyName || 'Property'}
-        - Room: ${booking.roomDetails?.roomName || 'N/A'}
-        - Bed: ${booking.roomDetails?.bedName || 'N/A'}
-        - Move In Date: ${new Date(booking.moveInDate).toDateString()}
-        - Total Paid: ₹${booking.paymentDetails.amount?.toLocaleString('en-IN')}
-        - Payment Status: Paid (Full Payment)
+          <h3 style="color: #062F26; border-bottom: 1px solid #eee; padding-bottom: 8px;">Payment Details</h3>
+          <ul style="list-style-type: none; padding-left: 0;">
+            <li style="margin-bottom: 4px;"><b>Monthly Rent:</b> ₹${Number((property.monthlyRent || '0').toString().replace(/\D/g, '')).toLocaleString('en-IN')}</li>
+            <li style="margin-bottom: 4px;"><b>Security Deposit:</b> ₹${Number((property.securityAmount || '0').toString().replace(/\D/g, '')).toLocaleString('en-IN')} (To be paid during move-in)</li>
+            <li style="margin-bottom: 4px;"><b>Total Paid:</b> ₹${booking.paymentDetails.amount?.toLocaleString('en-IN')}</li>
+            <li style="margin-bottom: 4px;"><b>Payment Status:</b> ${booking.paymentDetails?.status || 'Paid'} (${booking.paymentDetails?.paymentMethod || 'N/A'})</li>
+          </ul>
 
-        Thank you for choosing Housynest!
+          <h3 style="color: #062F26; border-bottom: 1px solid #eee; padding-bottom: 8px;">What happens next?</h3>
+          <ol style="padding-left: 16px;">
+            <li style="margin-bottom: 6px;"><b>Contact the Owner:</b> The property owner is expecting you. You can reach them via your Housynest dashboard to discuss the move-in time.</li>
+            <li style="margin-bottom: 6px;"><b>Documentation:</b> Please keep your Aadhar Card, PAN Card, and a passport-size photo ready for the rental agreement and verification.</li>
+            <li style="margin-bottom: 6px;"><b>Move-in:</b> Pack your bags and get ready to move into your new home on <b>${new Date(booking.moveInDate).toLocaleDateString('en-GB')}</b>!</li>
+          </ol>
+
+          <p style="margin-top: 24px;">If you have any questions or need assistance, our support team is always here to help. Just reply to this email or contact us at support@housynest.com.</p>
+          <p>Welcome home!</p>
+          <br>
+          <p>Warm regards,<br><b style="color: #062F26;">The Housynest Team</b></p>
+        </div>
       `;
-      await sendGenericEmail(tenant.email, subject, content, null);
+      await sendGenericEmail(tenant.email, subject, 'Your full balance has been paid and your booking is confirmed! Please view this email in an HTML compatible client.', htmlContent);
 
       // --- Notify Owner ---
       const owner = await User.findById(property.owner);
@@ -1305,38 +1413,42 @@ export const updateBookingConsent = async (req, res) => {
            const propertyName = property.pgName || property.societyName || 'Property';
            const subject = `Your Rental Agreement - ${propertyName}`;
            
-           const textContentTenant = `
-             Hello ${tenant.fullName},
-       
-             Congratulations on completing your e-Sign!
-             Please find attached the PDF copy of your finalized rental agreement for ${propertyName}.
-       
-             Thank you for choosing Housynest!
-           `;
-           
-           const textContentOwner = `
-             Hello ${actualOwner.fullName},
-       
-             Great news! The tenant ${tenant.fullName} has successfully completed the e-Sign for ${propertyName}.
-             Please find attached the PDF copy of the finalized rental agreement.
-       
-             Thank you for choosing Housynest!
-           `;
+            const textContentTenant = `Hello ${tenant.fullName},\n\nCongratulations! The e-Sign process for your rental agreement at ${propertyName} has been successfully completed by both parties.\n\nYour finalized, legally-binding rental agreement is attached to this email as a PDF document for your records.\n\nWelcome to your new home!\n\nBest regards,\nHousynest Team`;
+            const htmlContentTenant = `
+              <p style="font-size: 16px; color: #334155;">Hello <strong>${tenant.fullName}</strong>,</p>
+              <p style="font-size: 16px; color: #334155; margin-top: 16px;">Congratulations! The e-Sign process for your rental agreement at <strong style="color: #062F26;">${propertyName}</strong> has been successfully completed by both parties.</p>
+              <div style="background-color: #f8fafc; border-left: 4px solid #0AA87D; padding: 16px; margin: 24px 0; border-radius: 4px;">
+                <p style="margin: 0; color: #062F26; font-weight: 500;">Your finalized, legally-binding rental agreement is securely attached to this email as a PDF document for your records.</p>
+              </div>
+              <p style="font-size: 16px; color: #334155;">Please keep this document safe. We wish you a wonderful stay!</p>
+              <p style="font-size: 16px; color: #334155; margin-top: 24px;">Welcome to your new home!<br/><br/>Best regards,<br/><strong>Housynest Team</strong></p>
+            `;
+            
+            const textContentOwner = `Hello ${actualOwner.fullName},\n\nGreat news! The rental agreement for your property ${propertyName} has been successfully signed by both you and the tenant, ${tenant.fullName}.\n\nYour finalized, legally-binding rental agreement is attached to this email as a PDF document for your records.\n\nThank you for hosting with Housynest!\n\nBest regards,\nHousynest Team`;
+            const htmlContentOwner = `
+              <p style="font-size: 16px; color: #334155;">Hello <strong>${actualOwner.fullName}</strong>,</p>
+              <p style="font-size: 16px; color: #334155; margin-top: 16px;">Great news! The rental agreement for your property <strong style="color: #062F26;">${propertyName}</strong> has been successfully signed by both you and your tenant, <strong>${tenant.fullName}</strong>.</p>
+              <div style="background-color: #f8fafc; border-left: 4px solid #0AA87D; padding: 16px; margin: 24px 0; border-radius: 4px;">
+                <p style="margin: 0; color: #062F26; font-weight: 500;">The finalized, legally-binding rental agreement is securely attached to this email as a PDF document for your records.</p>
+              </div>
+              <p style="font-size: 16px; color: #334155;">Thank you for hosting with Housynest!</p>
+              <p style="font-size: 16px; color: #334155; margin-top: 24px;">Best regards,<br/><strong>Housynest Team</strong></p>
+            `;
 
-           const attachments = [{
-             filename: 'Rental_Agreement.pdf',
-             content: pdfBuffer,
-             contentType: 'application/pdf'
-           }];
+            const attachments = [{
+              filename: 'Rental_Agreement.pdf',
+              content: pdfBuffer,
+              contentType: 'application/pdf'
+            }];
 
-           // Send emails in parallel
-           const emailPromises = [];
-           if (tenant.email) {
-             emailPromises.push(sendGenericEmail(tenant.email, subject, textContentTenant, null, attachments));
-           }
-           if (actualOwner && actualOwner.email) {
-             emailPromises.push(sendGenericEmail(actualOwner.email, subject, textContentOwner, null, attachments));
-           }
+            // Send emails in parallel
+            const emailPromises = [];
+            if (tenant.email) {
+              emailPromises.push(sendGenericEmail(tenant.email, subject, textContentTenant, htmlContentTenant, attachments));
+            }
+            if (actualOwner && actualOwner.email) {
+              emailPromises.push(sendGenericEmail(actualOwner.email, subject, textContentOwner, htmlContentOwner, attachments));
+            }
            
            await Promise.all(emailPromises);
 
@@ -1474,6 +1586,8 @@ export const requestBooking = async (req, res) => {
       emergencyContact: {}, // To be filled later
       paymentDetails: {
         amount: 0,
+        rentAmount: roomDetails?.rent || 0,
+        securityDeposit: roomDetails?.deposit || 0,
         status: 'Pending'
       }
     });
@@ -1636,7 +1750,16 @@ export const completeBookingDetails = async (req, res) => {
           
           const propName = property?.societyName || property?.pgName || property?.propertyCategory || 'Property';
           const subject = `Payment Receipt for ${propName}`;
-          const text = `Hello ${tenant.name},\n\nThank you for your payment! Please find your official payment receipt attached to this email.\n\nBest regards,\nHousynest Team`;
+          const text = `Hello ${tenant.fullName || 'Tenant'},\n\nThank you for your payment! Please find your official payment receipt attached to this email.\n\nBest regards,\nHousynest Team`;
+          const htmlContent = `
+            <p style="font-size: 16px; color: #334155;">Hello <strong>${tenant.fullName || 'Tenant'}</strong>,</p>
+            <p style="font-size: 16px; color: #334155; margin-top: 16px;">Thank you for your payment towards your booking at <strong style="color: #062F26;">${propName}</strong>.</p>
+            <div style="background-color: #f8fafc; border-left: 4px solid #0AA87D; padding: 16px; margin: 24px 0; border-radius: 4px;">
+              <p style="margin: 0; color: #062F26; font-weight: 500;">Your official payment receipt is securely attached to this email as a PDF document for your records.</p>
+            </div>
+            <p style="font-size: 16px; color: #334155;">If you have any questions about this payment, please don't hesitate to contact support.</p>
+            <p style="font-size: 16px; color: #334155; margin-top: 24px;">Best regards,<br/><strong>Housynest Team</strong></p>
+          `;
           
           const attachments = [{
             filename: `Receipt-${updatedBooking.bookingId || updatedBooking._id}.pdf`,
@@ -1644,7 +1767,7 @@ export const completeBookingDetails = async (req, res) => {
             contentType: 'application/pdf'
           }];
           
-          await sendGenericEmail(tenant.email, subject, text, null, attachments);
+          await sendGenericEmail(tenant.email, subject, text, htmlContent, attachments);
         } catch (err) {
           console.error('Failed to generate/send receipt:', err);
         }

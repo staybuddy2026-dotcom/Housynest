@@ -173,7 +173,7 @@ const PrivacyPolicy = () => {
         <div className="absolute inset-0 bg-linear-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#FAF6F0]"></div>
 
         <div className="absolute inset-0 pt-10 px-4 xl:px-20">
-          <div className="max-w-340 3xl:max-w-420 mx-auto ml-1 xl:ml-3">
+          <div className="max-w-340 3xl:max-w-420 mx-auto ml-1 xl:ml-3 3xl:px-8">
             <div className="flex items-center text-xs font-semibold text-brand-teal mb-4">
               <Link to="/" className="hover:underline cursor-pointer">Home</Link>
               <Icon icon="lucide:chevron-right" className="mx-1 w-3 h-3 text-slate-400" />
@@ -185,8 +185,8 @@ const PrivacyPolicy = () => {
         </div>
       </div>
 
-      <div className="max-w-340 3xl:max-w-420 mx-auto px-4 -mt-10 lg:-mt-16 relative z-10">
-        
+      <div className="max-w-340 3xl:max-w-420 mx-auto px-4 -mt-10 lg:-mt-22 relative z-10">
+
         {/* Table of Contents */}
         <div className="bg-white rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-100 p-8 mb-8">
           <h2 className="text-xl font-bold text-[#062F26] mb-6 flex items-center gap-2">
@@ -195,7 +195,7 @@ const PrivacyPolicy = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
             {privacyData.map((section) => (
-              <button 
+              <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
                 className="text-left text-sm font-semibold text-slate-600 hover:text-brand-teal transition-colors flex items-center gap-2 group"
@@ -210,8 +210,8 @@ const PrivacyPolicy = () => {
         {/* Content Sections */}
         <div className="flex flex-col gap-6">
           {privacyData.map((section) => (
-            <div 
-              key={section.id} 
+            <div
+              key={section.id}
               id={section.id}
               className="bg-white rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-100 p-8 transition-all duration-300 hover:shadow-md hover:border-brand-teal/20"
             >
@@ -231,8 +231,8 @@ const PrivacyPolicy = () => {
           <div className="relative z-10">
             <h3 className="text-2xl font-bold mb-3">Questions about your privacy?</h3>
             <p className="text-[#a1b8b2] mb-8 font-medium">Contact our team for any questions regarding this policy.</p>
-            <Link 
-              to="/contact" 
+            <Link
+              to="/contact"
               className="inline-flex items-center gap-2 bg-brand-teal text-white px-8 py-3.5 rounded-xl font-bold text-[15px] hover:bg-white hover:text-[#062F26] transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-lg shadow-brand-teal/30"
             >
               <Icon icon="lucide:mail" width="18" />

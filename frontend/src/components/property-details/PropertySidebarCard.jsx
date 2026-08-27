@@ -231,7 +231,7 @@ const PropertySidebarCard = ({
               {userBooking ? (
                 userBooking.status === 'Pending Payment' ? (
                   <button
-                    onClick={() => navigate(`/properties/${property.id}/book`, { state: { bookingId: userBooking._id, property: property } })}
+                    onClick={() => navigate(`/properties/${property.id}/book`, { state: { bookingId: userBooking._id, property: property, userBooking: userBooking } })}
                     className="w-full cursor-pointer bg-gradient-to-r from-[#062F26] via-[#08483B] to-[#0AA87D] hover:from-[#08483B] hover:to-[#098b68] text-white py-3.5 px-4 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 flex justify-center items-center gap-2.5 shadow-[0_8px_25px_rgba(10,168,125,0.25)] hover:shadow-[0_12px_30px_rgba(10,168,125,0.35)] transform hover:-translate-y-0.5 active:scale-[0.98]"
                   >
                     <Icon icon="lucide:zap" className="w-4.5 h-4.5 text-emerald-300" />

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import Lenis from 'lenis';
 
-const CustomDropdown = ({ label, required, subtitle, options, value, onChange, error, placeholder = "Select", icon, buttonClassName = "", containerClassName = "flex flex-col gap-1 sm:gap-1.5" }) => {
+const CustomDropdown = ({ label, required, subtitle, options, value, onChange, error, placeholder = "Select", icon, buttonClassName = "", containerClassName = "flex flex-col gap-1 sm:gap-1.5", variant = "light", onToggle, dropdownId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -12,11 +12,12 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
+        if (onToggle && isOpen) onToggle(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isOpen, onToggle]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -48,28 +49,44 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
     return selected ? (selected?.label !== undefined ? selected.label : selected) : value;
   }, [value, options]);
 
+  const isDark = variant === 'dark-inline';
+
   return (
     <div className={`${containerClassName}`} ref={dropdownRef}>
       {label && (
-        <label className="text-xs sm:text-sm font-bold text-[#062F26]">
+        <label className={`text-xs sm:text-sm font-semibold ${isDark ? 'text-[#a1b8b2]' : 'font-bold text-[#062F26]'}`}>
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
-      <div className="relative">
+      <div className="relative group">
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={`w-full px-3 sm:px-4 py-2.5 cursor-pointer bg-white border ${error ? 'border-red-500' : (isOpen ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-200')} rounded-lg text-sm sm:text-sm font-medium focus:outline-none transition-all duration-200 focus:shadow-sm hover:border-slate-300 flex justify-between items-center text-left ${buttonClassName}`}
+          onClick={() => {
+            const nextState = !isOpen;
+            setIsOpen(nextState);
+            if (onToggle) onToggle(nextState);
+          }}
+          className={`w-full cursor-pointer flex justify-between items-center text-left transition-colors duration-200 focus:outline-none ${
+            isDark 
+              ? `bg-transparent border-b pb-1.5 pt-0 px-0 rounded-none ${isOpen ? 'border-brand-yellow' : 'border-[#13463a] group-hover:border-brand-yellow'}`
+              : `bg-white border rounded-lg px-3 sm:px-4 py-2.5 ${error ? 'border-red-500' : (isOpen ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-200')} hover:border-slate-300 focus:shadow-sm`
+          } ${buttonClassName}`}
         >
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            {icon && <Icon icon={icon} className="w-4 h-4 text-slate-400 shrink-0" />}
-            <span className={`truncate ${value ? 'text-slate-800' : 'text-slate-400'}`}>{selectedLabel || placeholder}</span>
+            {icon && <Icon icon={icon} className={`w-4 h-4 shrink-0 ${isDark ? (value ? 'text-brand-yellow' : 'text-brand-yellow') : 'text-slate-400'}`} />}
+            <span className={`truncate text-sm sm:text-sm font-semibold ${
+              isDark 
+                ? (value ? 'text-white' : 'text-[#a1b8b2]') 
+                : (value ? 'text-slate-800' : 'text-slate-400')
+            }`}>{selectedLabel || placeholder}</span>
           </div>
-          <Icon icon="lucide:chevron-down" className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+          <Icon icon="lucide:chevron-down" className={`w-4 h-4 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''} ${isDark ? 'text-[#a1b8b2] group-hover:text-white' : 'text-slate-400'}`} />
         </button>
 
         <div
-          className={`absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top ease-in-out ${isOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 pointer-events-none'}`}
+          className={`absolute z-50 w-full mt-2 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 origin-top ease-in-out ${isOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 pointer-events-none'} ${
+            isDark ? 'bg-[#0B3D32] border border-[#13463a] shadow-[0_20px_40px_rgba(0,0,0,0.4)] p-2' : 'bg-white border border-slate-100'
+          }`}
         >
           <div className="max-h-60 overflow-y-auto py-1" ref={wrapperRef} data-lenis-prevent>
             <div ref={contentRef}>
@@ -84,8 +101,13 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
                     onClick={() => {
                       onChange(optValue);
                       setIsOpen(false);
+                      if (onToggle) onToggle(false);
                     }}
-                    className={`w-full px-4 py-2.5 text-left text-sm font-medium transition-colors hover:bg-slate-50 ${(value === optValue) ? 'bg-[#EAF5F2] text-brand-teal font-bold' : 'text-slate-600'}`}
+                    className={`w-full text-left text-sm font-medium transition-colors ${
+                      isDark 
+                        ? `px-4 py-3 rounded-xl hover:bg-[#13463a] hover:text-white ${(value === optValue) ? 'bg-[#13463a] text-brand-yellow' : 'text-[#a1b8b2]'}`
+                        : `px-4 py-2.5 hover:bg-slate-50 ${(value === optValue) ? 'bg-[#EAF5F2] text-brand-teal font-bold' : 'text-slate-600'}`
+                    }`}
                   >
                     {optLabel}
                   </button>
@@ -93,6 +115,7 @@ const CustomDropdown = ({ label, required, subtitle, options, value, onChange, e
               })}
             </div>
           </div>
+          {dropdownId && <div id={`${dropdownId}-bottom`} className="h-1 w-full shrink-0" />}
         </div>
       </div>
       {subtitle && (

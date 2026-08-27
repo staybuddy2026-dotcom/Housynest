@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useBlocker } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
 import { useLenis } from 'lenis/react';
@@ -30,16 +30,36 @@ const PropertyBooking = () => {
   const [currentStep, setCurrentStep] = useState(1);
 
   // Room & Bed Selection
-  const [selectedRoom, setSelectedRoom] = useState(stateData.selectedRoom || null);
-  const [selectedBedName, setSelectedBedName] = useState(stateData.selectedBedName || '');
+  const [selectedRoom, setSelectedRoom] = useState(
+    stateData.selectedRoom || 
+    (stateData.userBooking?.roomDetails ? {
+      roomName: stateData.userBooking.roomDetails.roomName,
+      sharingType: stateData.userBooking.roomDetails.sharingType,
+      rent: stateData.userBooking.paymentDetails?.rentAmount || 0,
+      deposit: stateData.userBooking.paymentDetails?.securityDeposit || 0
+    } : null)
+  );
+  const [selectedBedName, setSelectedBedName] = useState(stateData.selectedBedName || stateData.userBooking?.roomDetails?.bedName || '');
 
   // Booking Info
   const defaultMoveIn = new Date();
   defaultMoveIn.setDate(defaultMoveIn.getDate() + 1);
   const formattedDefaultMoveIn = defaultMoveIn.toISOString().split('T')[0];
 
-  const [moveInDate, setMoveInDate] = useState(formattedDefaultMoveIn);
-  const [moveOutDate, setMoveOutDate] = useState('');
+  // Helper to load from local storage
+  const getInitialState = (key, defaultVal) => {
+    try {
+      const saved = localStorage.getItem(`bookingDraft_${id}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed[key] !== undefined) return parsed[key];
+      }
+    } catch(e) {}
+    return defaultVal;
+  };
+
+  const [moveInDate, setMoveInDate] = useState(() => getInitialState('moveInDate', formattedDefaultMoveIn));
+  const [moveOutDate, setMoveOutDate] = useState(() => getInitialState('moveOutDate', ''));
 
   // User Profile Info
   const userStr = localStorage.getItem('user');
@@ -48,20 +68,22 @@ const PropertyBooking = () => {
   const nameParts = (user.fullName || user.name || '').trim().split(' ');
   const defaultFirstName = nameParts[0] || 'Khush';
   const defaultLastName = nameParts.slice(1).join(' ') || 'Prajapati';
+  
+  const userDob = user.dob ? new Date(user.dob).toISOString().split('T')[0] : '';
 
-  const [firstName, setFirstName] = useState(defaultFirstName);
-  const [lastName, setLastName] = useState(defaultLastName);
-  const [dob, setDob] = useState('');
-  const [gender, setGender] = useState(user.gender || 'Male');
-  const [mobileNumber, setMobileNumber] = useState(user.phone || user.mobile || '9824970199');
-  const [whatsappNumber, setWhatsappNumber] = useState(user.phone || user.mobile || '9824970199');
-  const [email, setEmail] = useState(user.email || '');
-  const [institutionName, setInstitutionName] = useState('');
+  const [firstName, setFirstName] = useState(() => getInitialState('firstName', defaultFirstName));
+  const [lastName, setLastName] = useState(() => getInitialState('lastName', defaultLastName));
+  const [dob, setDob] = useState(() => getInitialState('dob', userDob));
+  const [gender, setGender] = useState(() => getInitialState('gender', user.gender || 'Male'));
+  const [mobileNumber, setMobileNumber] = useState(() => getInitialState('mobileNumber', user.phone || user.mobile || '9824970199'));
+  const [whatsappNumber, setWhatsappNumber] = useState(() => getInitialState('whatsappNumber', user.phone || user.mobile || '9824970199'));
+  const [email, setEmail] = useState(() => getInitialState('email', user.email || ''));
+  const [institutionName, setInstitutionName] = useState(() => getInitialState('institutionName', ''));
 
   // Emergency Contact
-  const [emergencyName, setEmergencyName] = useState('');
-  const [emergencyPhone, setEmergencyPhone] = useState('');
-  const [emergencyRelationship, setEmergencyRelationship] = useState('Father');
+  const [emergencyName, setEmergencyName] = useState(() => getInitialState('emergencyName', ''));
+  const [emergencyPhone, setEmergencyPhone] = useState(() => getInitialState('emergencyPhone', ''));
+  const [emergencyRelationship, setEmergencyRelationship] = useState(() => getInitialState('emergencyRelationship', 'Father'));
 
   // Payment Selection ('token' or 'full')
   const initialIsPG = stateData.property ? (stateData.property.type === 'PG' || stateData.property.propertyType === 'PG') : true;
@@ -107,6 +129,51 @@ const PropertyBooking = () => {
       window.scrollTo(0, 0);
     }
   }, [currentStep, lenis]);
+
+  // Persist form draft to local storage
+  useEffect(() => {
+    if (bookingSuccess) {
+      localStorage.removeItem(`bookingDraft_${id}`);
+      return;
+    }
+    const draft = {
+      moveInDate, moveOutDate, firstName, lastName, dob, gender, mobileNumber, whatsappNumber, 
+      email, institutionName, emergencyName, emergencyPhone, emergencyRelationship
+    };
+    localStorage.setItem(`bookingDraft_${id}`, JSON.stringify(draft));
+  }, [
+    moveInDate, moveOutDate, firstName, lastName, dob, gender, mobileNumber, whatsappNumber, 
+    email, institutionName, emergencyName, emergencyPhone, emergencyRelationship, bookingSuccess, id
+  ]);
+
+  // Block navigation and show warning popup
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      !bookingSuccess && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      const confirmLeave = window.confirm("Are you sure you want to leave? Your booking progress has been saved as a draft.");
+      if (confirmLeave) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
+
+  // Block page refresh/close
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!bookingSuccess) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [bookingSuccess]);
 
   // Fetch property if missing from location state
   useEffect(() => {
@@ -323,6 +390,9 @@ const PropertyBooking = () => {
         },
         paymentDetails: {
           amount: payNowAmount,
+          rentAmount: baseRent,
+          securityDeposit: deposit,
+          extraCharges: stampFees + maintenance,
           status: paymentStatus,
           paymentMethod: paymentType === 'token' ? 'Token Amount' : 'Full Payment'
         }
@@ -385,7 +455,14 @@ const PropertyBooking = () => {
         <div className="flex items-center justify-between pb-1">
           <button
             type="button"
-            onClick={() => navigate(`/properties/${id}`)}
+            onClick={() => {
+              if (!bookingSuccess) {
+                const confirmLeave = window.confirm("Are you sure you want to leave? Your booking progress has been saved as a draft.");
+                if (confirmLeave) navigate(`/properties/${id}`);
+              } else {
+                navigate(`/properties/${id}`);
+              }
+            }}
             className="flex items-center gap-2 text-slate-700 hover:text-[#062F26] font-bold text-xs sm:text-sm transition-colors cursor-pointer"
           >
             <Icon icon="lucide:arrow-left" className="w-4 h-4 text-slate-600" />

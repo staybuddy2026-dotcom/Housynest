@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useFormContext } from 'react-hook-form';
+import CustomDropdown from './CustomDropdown';
 
 const PgServices = ({ onNext, onPrev }) => {
   const { watch, setValue } = useFormContext();
@@ -149,6 +150,95 @@ const PgServices = ({ onNext, onPrev }) => {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 mt-4">
+          <div className="flex-1 h-px bg-slate-100"></div>
+          <span className="text-xs font-bold text-brand-teal uppercase tracking-wider">Food Details</span>
+          <div className="flex-1 h-px bg-slate-100"></div>
+        </div>
+
+        {/* Food Options */}
+        <div className="flex flex-col gap-2 p-1 sm:p-2 bg-white rounded-2xl border border-slate-200 shadow-sm transition-all duration-500 hover:shadow-md hover:border-brand-teal/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-full bg-[#EAF5F2] flex items-center justify-center text-brand-teal shrink-0 transition-transform duration-300 group-hover:scale-110">
+                <Icon icon="lucide:utensils-crossed" className="w-5.5 h-5.5" strokeWidth="2.5" />
+              </div>
+              <div>
+                <label className="text-[15px] font-bold text-[#062F26]">Is Food Provided?</label>
+                <p className="text-[13px] text-slate-500 font-medium mt-0.5">Include meal plans for your tenants</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center bg-slate-100/80 p-1.5 rounded-xl shrink-0 border border-slate-200/60">
+              <button
+                type="button"
+                onClick={() => handleUpdate('foodProvided', true)}
+                className={`px-7 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 ${watch('foodProvided') === true ? 'bg-white text-brand-teal shadow-[0_2px_8px_rgba(0,0,0,0.06)]' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                {watch('foodProvided') === true && <Icon icon="lucide:check" className="w-4 h-4 animate-in zoom-in" />}
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => { handleUpdate('foodProvided', false); handleUpdate('foodCharges', ''); handleUpdate('meals', []); handleUpdate('vegNonVeg', 'Both'); }}
+                className={`px-7 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 ${watch('foodProvided') === false ? 'bg-white text-slate-800 shadow-[0_2px_8px_rgba(0,0,0,0.06)]' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                {watch('foodProvided') === false && <Icon icon="lucide:x" className="w-4 h-4 animate-in zoom-in" />}
+                No
+              </button>
+            </div>
+          </div>
+
+          <div className={`grid transition-[grid-template-rows,opacity,margin] duration-500 ease-in-out ${watch('foodProvided') ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+            <div className="overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 pt-5 mx-2 mb-2 bg-[#FAFAFA] rounded-xl border border-slate-100/80">
+                
+                <div className="flex flex-col gap-1.5 relative group">
+                  <label className="text-[13px] font-bold text-[#062F26]">Food Charges</label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-4 text-slate-400 font-bold group-focus-within:text-brand-teal transition-colors duration-300">₹</span>
+                    <input type="text" value={watch('foodCharges') || ''} onChange={e => handleUpdate('foodCharges', e.target.value)} placeholder="Included in Rent" className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 transition-all duration-300 shadow-sm" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5 relative group">
+                  <CustomDropdown
+                    label="Veg / Non-Veg"
+                    options={['Both', 'Veg Only', 'Non-Veg Only']}
+                    value={watch('vegNonVeg') || 'Both'}
+                    onChange={(val) => handleUpdate('vegNonVeg', val)}
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-2.5 md:col-span-2 pt-2 border-t border-slate-200/60 mt-1">
+                  <label className="text-[13px] font-bold text-[#062F26]">Meals Included</label>
+                  <div className="flex flex-wrap items-center gap-3.5">
+                    {['Breakfast', 'Lunch', 'Dinner'].map(meal => {
+                      const currentMeals = watch('meals') || [];
+                      const isSelected = currentMeals.includes(meal);
+                      return (
+                        <button
+                          key={meal}
+                          type="button"
+                          onClick={() => {
+                            const updated = isSelected ? currentMeals.filter(m => m !== meal) : [...currentMeals, meal];
+                            handleUpdate('meals', updated);
+                          }}
+                          className={`px-5 py-2.5 rounded-xl text-[14px] font-bold tracking-wide transition-all duration-300 border-2 flex items-center gap-2 ${isSelected ? 'bg-[#EAF5F2] border-brand-teal text-brand-teal shadow-[0_4px_15px_rgba(10,168,125,0.15)] -translate-y-0.5 scale-[1.02]' : 'bg-white border-slate-200 text-slate-500 hover:border-brand-teal/40 hover:bg-slate-50 hover:text-slate-700 shadow-sm'}`}
+                        >
+                          {isSelected && <Icon icon="lucide:check-circle-2" className="w-4 h-4 animate-in zoom-in duration-300" />}
+                          {meal}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>

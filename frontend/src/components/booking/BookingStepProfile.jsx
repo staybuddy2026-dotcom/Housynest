@@ -58,6 +58,7 @@ const BookingStepProfile = ({
             <input
               type="date"
               value={moveInDate}
+              min={new Date().toISOString().split('T')[0]}
               onChange={(e) => setMoveInDate(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all"
             />
@@ -72,6 +73,7 @@ const BookingStepProfile = ({
               type="date"
               value={moveOutDate}
               placeholder="DD/MM/YYYY"
+              min={moveInDate || new Date().toISOString().split('T')[0]}
               onChange={(e) => setMoveOutDate(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#0AA87D] focus:ring-3 focus:ring-[#0AA87D]/10 outline-none text-sm font-semibold text-[#062F26] bg-white transition-all placeholder:text-slate-400"
             />

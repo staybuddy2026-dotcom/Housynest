@@ -163,8 +163,8 @@ const Contact = () => {
                 </div>
 
                 {/* Image beside the Box */}
-                <div className="hidden sm:flex items-center justify-center absolute -bottom-1 right-0 opacity-60">
-                  <img src={contactImg} alt="Contact Support" className="w-[140px] lg:w-[180px] xl:w-[200px] h-auto object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.15)] hover:-translate-y-2 hover:drop-shadow-[0_20px_20px_rgba(0,0,0,0.2)] transition-all duration-500" />
+                <div className="flex items-center justify-center absolute sm:-bottom-1 right-0 opacity-30 sm:opacity-60">
+                  <img src={contactImg} alt="Contact Support" className="w-50 sm:w-[140px] lg:w-[180px] xl:w-[200px] h-auto object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.15)] hover:-translate-y-2 hover:drop-shadow-[0_20px_20px_rgba(0,0,0,0.2)] transition-all duration-500" />
                 </div>
               </div>
 

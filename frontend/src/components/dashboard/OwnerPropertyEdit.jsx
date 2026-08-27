@@ -116,6 +116,12 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
             existingImages: data.images || [],
             existingDocs: data.verificationDocs || [],
             ownerContract: data.ownerContract || null,
+            bankDetails: {
+              accountHolderName: data.bankDetails?.accountHolderName || 'N/A',
+              accountNumber: data.bankDetails?.accountNumber || 'N/A',
+              ifscCode: data.bankDetails?.ifscCode || 'N/A',
+              bankName: data.bankDetails?.bankName || 'N/A'
+            },
             photos: [],
             verificationDocs: [],
             removeImages: [],

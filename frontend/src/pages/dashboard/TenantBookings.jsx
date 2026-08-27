@@ -123,7 +123,8 @@ const TenantBookings = () => {
     navigate(`/properties/${booking.propertyId._id || booking.propertyId}/book`, {
       state: {
         bookingId: booking._id,
-        property: booking.propertyId
+        property: booking.propertyId,
+        userBooking: booking
       }
     });
   };
@@ -368,7 +369,11 @@ const TenantBookings = () => {
                     </td>
                     <td className="p-4">
                       <p className="text-sm font-bold text-slate-700">
-                        {booking.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (booking.roomDetails?.roomName || 'N/A')}
+                        {booking.propertyId?.propertyType === 'Tenant' 
+                          ? 'Entire Property' 
+                          : (booking.roomDetails?.roomName 
+                              ? `${booking.roomDetails.roomName} ${booking.roomDetails.bedName ? `• ${booking.roomDetails.bedName}` : ''}` 
+                              : 'N/A')}
                       </p>
                     </td>
                     <td className="p-4">
@@ -388,7 +393,7 @@ const TenantBookings = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/properties/${booking.propertyId._id}/book`, {
-                                state: { bookingId: booking._id, property: booking.propertyId }
+                                state: { bookingId: booking._id, property: booking.propertyId, userBooking: booking }
                               });
                             }}
                             className="text-white px-3 py-2 rounded-lg cursor-pointer bg-[#062F26] hover:bg-[#08483B] transition-colors flex items-center justify-center shadow-sm whitespace-nowrap"
@@ -527,7 +532,7 @@ const TenantBookings = () => {
             const btmStats = [
               { icon: 'lucide:calendar-clock', label: 'Move In Date', value: moveInDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) },
               { icon: 'lucide:calendar-days', label: 'Duration', value: durationStr },
-              { icon: 'lucide:shield-check', label: 'Amount Paid', value: `₹${booking.paymentDetails?.amount?.toLocaleString() || 0}` },
+              { icon: 'lucide:shield-check', label: 'Amount Paid', value: `₹${(booking.paymentDetails?.status === 'Pending' || booking.status === 'Pending Payment') ? 0 : (booking.paymentDetails?.amount?.toLocaleString() || 0)}` },
               { icon: 'lucide:credit-card', label: 'Payment Type', value: booking.paymentDetails?.paymentMethod || 'N/A' }
             ];
 
@@ -694,7 +699,7 @@ const TenantBookings = () => {
                           <div className="flex items-center justify-between w-full sm:w-auto gap-8 sm:gap-6">
                             <div>
                               <p className="text-[13px] text-slate-500 font-medium mb-0.5">Amount Due</p>
-                              <p className="text-[15px] font-bold text-[#062F26]">₹{booking.status === 'Pending Payment' ? (booking.paymentDetails?.amount?.toLocaleString() || booking.propertyId?.monthlyRent || 0) : (isTokenPaid ? remainingAmount.toLocaleString() : '0')}</p>
+                              <p className="text-[15px] font-bold text-[#062F26]">₹{booking.status === 'Pending Payment' ? ((booking.paymentDetails?.amount && booking.paymentDetails.amount > 0) ? booking.paymentDetails.amount.toLocaleString() : (['Token Amount', 'Token (40%)'].includes(booking.paymentDetails?.paymentMethod) ? Math.round(fullAmount * 0.4).toLocaleString() : fullAmount.toLocaleString())) : (isTokenPaid ? remainingAmount.toLocaleString() : '0')}</p>
                             </div>
 
                             <div className="hidden sm:block w-px h-10 bg-emerald-200/50 shrink-0"></div>

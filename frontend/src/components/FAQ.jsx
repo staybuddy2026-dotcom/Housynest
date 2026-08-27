@@ -38,7 +38,7 @@ const FAQ = () => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] lg:w-[380px] lg:h-[380px] bg-brand-teal/30 z-0 rounded-full blur-3xl"></div>
           <div className="absolute top-[40%] left-[45%] -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] lg:w-[320px] lg:h-[320px] bg-[#062F26]/15 z-0 blur-2xl rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] animate-pulse duration-[4000ms]"></div>
 
-          <img src={faqImg} alt="Frequently Asked Questions" className="w-full max-w-[320px] lg:max-w-[400px] h-auto object-contain drop-shadow-sm relative z-10" />
+          <img src={faqImg} alt="Frequently Asked Questions" className="w-full max-w-[320px] lg:max-w-[400px] h-auto object-contain drop-shadow-sm relative z-10 opacity-88" />
         </div>
 
         {/* FAQ Content */}

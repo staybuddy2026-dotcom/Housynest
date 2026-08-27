@@ -46,7 +46,7 @@ const TenantSavedProperties = () => {
             type: property.propertyType,
             category: property.propertyCategory,
             societyName: property.societyName,
-            location: [property.address, property.locality, property.city].filter(Boolean).join(', '),
+            location: [property.address, property.locality, property.city, property.state].filter(Boolean).join(', ') + (property.pincode ? ` - ${property.pincode}` : ''),
             price: (property.monthlyRent || '0').toString(),
             image: property.images && property.images.length > 0 ? property.images[0].url : null,
             images: property.images && property.images.length > 0 ? property.images.map(img => img.url) : [],

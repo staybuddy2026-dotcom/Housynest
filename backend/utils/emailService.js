@@ -110,20 +110,30 @@ export const sendRoomAvailabilityEmail = async (toEmail, tenantName, propertyNam
   const propertyUrl = `${appUrl}/property/${propertyId}`;
 
   const html = `
-    <div style="font-size: 15px; color: #334155; line-height: 1.6;">
-      <p style="font-size: 16px; font-weight: bold; color: #062F26;">Hello ${tenantName || 'Tenant'},</p>
-      <p>Great news! A room you were waiting for at <strong style="color: #062F26;">${propertyName}</strong> ${sharingType ? `(${sharingType})` : ''} has just opened up and is now available for booking!</p>
-      
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center;">
-        <h3 style="color: #166534; margin: 0 0 8px 0; font-size: 18px;">Bed / Room Now Available</h3>
-        <p style="color: #15803d; margin: 0 0 16px 0; font-size: 14px;">Book now before someone else reserves it!</p>
-        <a href="${propertyUrl}" style="display: inline-block; background-color: #062F26; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 14px;">
-          View Property & Book Now
-        </a>
-      </div>
+<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333333;">
+    <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 25px;">
+        Hi ${tenantName || 'Tenant'}, good news! A room you were waiting for has just become available. These spots fill up fast, so check it out before it's gone!
+    </p>
+    
+    <!-- Details Box -->
+    <table width="100%" cellpadding="20" cellspacing="0" style="background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; margin-bottom: 30px;">
+        <tr>
+            <td>
+                <h3 style="margin: 0 0 12px 0; color: #065F46; font-size: 18px;">${propertyName}</h3>
+                <p style="margin: 6px 0; color: #047857; font-size: 15px;"><strong>Status:</strong> <span style="color: #10B981; font-weight: bold;">Now Available</span></p>
+                ${sharingType ? `<p style="margin: 6px 0; color: #047857; font-size: 15px;"><strong>Occupancy Type:</strong> ${sharingType}</p>` : ''}
+            </td>
+        </tr>
+    </table>
 
-      <p style="font-size: 13px; color: #64748b;">You received this email because you set a room availability alert on Housynest.</p>
+    <div style="text-align: center;">
+        <a href="${propertyUrl}" style="display: inline-block; background-color: #10B981; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; font-size: 16px;">Book Now</a>
     </div>
+
+    <p style="font-size: 13px; color: #64748b; margin-top: 30px; text-align: center;">
+        You received this email because you set a room availability alert on Housynest.
+    </p>
+</div>
   `;
 
   await sendGenericEmail(toEmail, subject, `A room in ${propertyName} is now available! Book now: ${propertyUrl}`, html);

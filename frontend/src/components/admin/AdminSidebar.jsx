@@ -143,7 +143,7 @@ const AdminSidebar = ({ isMobile }) => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
     window.dispatchEvent(new Event('auth-change'));
-    navigate('/control/login');
+    window.location.href = '/control/login';
   };
 
   if (isMobile) {

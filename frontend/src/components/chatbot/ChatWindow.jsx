@@ -201,7 +201,7 @@ const ChatWindow = ({ onClose }) => {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 20 }}
       transition={{ duration: 0.2 }}
-      className="fixed bottom-0 right-0 w-full h-dvh md:h-162.5 md:max-h-[calc(100vh-48px)] md:w-100 md:bottom-6 md:right-6 bg-slate-50 flex flex-col md:rounded-2xl shadow-2xl overflow-hidden z-9999 border border-slate-100"
+      className="fixed bottom-0 right-0 w-full h-dvh md:h-[650px] md:max-h-[calc(100vh-48px)] md:w-[400px] md:bottom-6 md:right-6 bg-slate-50 flex flex-col md:rounded-2xl shadow-2xl overflow-hidden z-[9999] border border-slate-100"
     >
       {/* Header */}
       <div className="bg-[#0D5C63] p-4 flex items-center justify-between shrink-0">

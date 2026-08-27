@@ -178,7 +178,7 @@ const TermsConditions = () => {
         <div className="absolute inset-0 bg-linear-to-b from-[#F8F9FA]/5 via-[#F8F9FA]/10 to-[#FAF6F0]"></div>
 
         <div className="absolute inset-0 pt-10 px-4 xl:px-20">
-          <div className="max-w-340 3xl:max-w-420 mx-auto ml-1 xl:ml-3">
+          <div className="max-w-340 3xl:max-w-420 mx-auto ml-1 xl:ml-3 3xl:px-8">
             <div className="flex items-center text-xs font-semibold text-brand-teal mb-4">
               <Link to="/" className="hover:underline cursor-pointer">Home</Link>
               <Icon icon="lucide:chevron-right" className="mx-1 w-3 h-3 text-slate-400" />
@@ -190,7 +190,7 @@ const TermsConditions = () => {
         </div>
       </div>
 
-      <div className="max-w-340 3xl:max-w-420 mx-auto px-4 -mt-10 lg:-mt-16 relative z-10">
+      <div className="max-w-340 3xl:max-w-420 mx-auto px-4 -mt-10 lg:-mt-22 relative z-10">
 
         {/* Table of Contents */}
         <div className="bg-white rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-slate-100 p-8 mb-8">

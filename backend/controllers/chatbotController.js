@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Property from '../models/Property.js';
 import { housyNestKnowledgeBase } from '../utils/knowledgeBase.js';
+import Review from '../models/Review.js';
 
 // Setup Gemini client
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -166,6 +167,16 @@ export const handleChat = async (req, res) => {
           .limit(30)
           .select('pgName societyName propertyType city locality address monthlyRent preferredGender status bhkType rooms pgPricing societyAmenities commonAmenities');
         
+        const propertyIds = rawProperties.map(p => p._id);
+        const reviewsAggregation = await Review.aggregate([
+          { $match: { property: { $in: propertyIds } } },
+          { $group: { _id: '$property', avgRating: { $avg: '$rating' } } }
+        ]);
+        const reviewsMap = {};
+        reviewsAggregation.forEach(r => {
+          reviewsMap[r._id.toString()] = r.avgRating;
+        });
+
         let filteredProps = rawProperties.map(p => {
             let pgPrices = [];
             if (p.pgPricing) {
@@ -201,12 +212,16 @@ export const handleChat = async (req, res) => {
               minPrice,
               maxPrice,
               amenities: p.societyAmenities?.length > 0 ? p.societyAmenities : (p.commonAmenities || []),
+              rating: Number((reviewsMap[p._id.toString()] || 0).toFixed(1))
             };
         });
 
         if (args.maxRent) {
             filteredProps = filteredProps.filter(p => p.minPrice <= args.maxRent);
         }
+        
+        // Sort by rating descending
+        filteredProps.sort((a, b) => b.rating - a.rating);
         
         // Take top 5 to avoid overloading the prompt context
         filteredProps = filteredProps.slice(0, 5);

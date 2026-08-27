@@ -248,7 +248,7 @@ const Sidebar = ({ onClose, isMobile }) => {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('user');
       window.dispatchEvent(new Event('auth-change'));
-      navigate('/login');
+      window.location.href = '/login';
     }
   };
 

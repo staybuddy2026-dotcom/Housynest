@@ -26,7 +26,7 @@ const FeaturedProperties = () => {
             type: p.propertyType,
             bhkType: p.bhkType,
             societyName: p.societyName,
-            location: [p.address, p.locality, p.city].filter(Boolean).join(', '),
+            location: [p.address, p.locality, p.city, p.state].filter(Boolean).join(', ') + (p.pincode ? ` - ${p.pincode}` : ''),
             price: (p.monthlyRent || '0').toString(),
             gender: p.preferredGender || 'Anyone',
             roomType: p.rooms && p.rooms.length > 0 ? p.rooms[0].sharingType : '',

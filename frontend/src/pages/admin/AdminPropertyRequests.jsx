@@ -161,7 +161,7 @@ const AdminPropertyRequests = () => {
           ownerPhone: p.owner?.phone || 'N/A',
           address: p.address || '',
           localityCity: [p.locality, p.city].filter(Boolean).join(', ') || 'Unknown Location',
-          location: [p.address, p.locality, p.city].filter(Boolean).join(', ') || 'Unknown Location',
+          location: [p.address, p.locality, p.city, p.state].filter(Boolean).join(', ') + (p.pincode ? ` - ${p.pincode}` : '') || 'Unknown Location',
           priceInfo: formatPropertyPrice(p),
           status: p.status || 'Pending',
           verified: p.isVerified || false,

@@ -154,7 +154,13 @@ const ListProperty = () => {
   // Scroll to top when step changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const formContainer = document.getElementById('form-container');
+      if (formContainer) {
+        formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        const scrollContainer = document.querySelector('.overflow-y-auto') || window;
+        scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }, 100);
     return () => clearTimeout(timer);
   }, [activeStep]);
@@ -191,11 +197,11 @@ const ListProperty = () => {
       else fieldsToValidate = ['societyAmenities'];
     } else if (activeStep === 6) {
       if (pType === 'PG') fieldsToValidate = ['services', 'extraServices', 'foodProvided', 'meals', 'vegNonVeg', 'foodCharges'];
-      else fieldsToValidate = ['virtualTour'];
+      else fieldsToValidate = ['virtualTour', 'photos'];
     } else if (activeStep === 7) {
       if (pType === 'PG') fieldsToValidate = ['pgRules', 'extraRules', 'nearbyPlaces'];
     } else if (activeStep === 8) {
-      if (pType === 'PG') fieldsToValidate = ['virtualTour'];
+      if (pType === 'PG') fieldsToValidate = ['virtualTour', 'photos'];
     }
 
     const isStepValid = await methods.trigger(fieldsToValidate);

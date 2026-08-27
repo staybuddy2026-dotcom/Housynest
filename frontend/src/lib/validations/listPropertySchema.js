@@ -171,4 +171,17 @@ export const listPropertySchema = z.discriminatedUnion("propertyType", [
       path: ["verificationDocs"],
     });
   }
+
+  const numNewPhotos = Array.isArray(data.photos) ? data.photos.length : 0;
+  const numExistingPhotos = Array.isArray(data.existingImages) ? data.existingImages.length : 0;
+  const numRemovedPhotos = Array.isArray(data.removeImages) ? data.removeImages.length : 0;
+  const totalPhotos = numNewPhotos + (numExistingPhotos - numRemovedPhotos);
+
+  if (totalPhotos < 2) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "At least 2 property images are required",
+      path: ["photos"],
+    });
+  }
 });

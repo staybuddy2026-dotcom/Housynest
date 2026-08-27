@@ -306,7 +306,7 @@ const AdminListings = () => {
           propertyName: p.pgName || p.societyName || p.propertyCategory || 'Property',
           address: p.address || '',
           localityCity: [p.locality, p.city].filter(Boolean).join(', ') || 'Unknown Location',
-          location: [p.address, p.locality, p.city].filter(Boolean).join(', ') || 'Unknown',
+          location: [p.address, p.locality, p.city, p.state].filter(Boolean).join(', ') + (p.pincode ? ` - ${p.pincode}` : '') || 'Unknown',
           owner: p.owner?.fullName || 'Unknown',
           email: p.owner?.email || 'N/A',
           phone: p.owner?.phone || 'N/A',

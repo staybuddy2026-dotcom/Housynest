@@ -45,8 +45,8 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting, isEditMode }) => {
     }
 
     const newImages = Array.from(files).map(file => {
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`${file.name} exceeds the 5MB limit.`);
+      if (file.size > 2 * 1024 * 1024) {
+        alert(`${file.name} exceeds the 2MB limit.`);
         return null;
       }
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
@@ -205,8 +205,11 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting, isEditMode }) => {
 
         {/* Photos */}
         <div>
-          <h3 className="text-sm sm:text-sm font-bold text-[#062F26] mb-1">Property Images</h3>
-          <p className="text-[10px] sm:text-xs text-slate-500 mb-4 sm:mb-5">Upload clear and high-quality images of your property. You can add up to 30 images.</p>
+          <div className="flex flex-col gap-1 mb-4 sm:mb-5">
+            <h3 className="text-sm sm:text-sm font-bold text-[#062F26] mb-1">Property Images <span className="text-red-500">*</span></h3>
+            <p className="text-[10px] sm:text-xs text-slate-500">Upload clear and high-quality images of your property. Minimum 2 images required. You can add up to 30 images.</p>
+            {errors.photos && <p className="text-red-500 text-[10px] sm:text-xs font-bold mt-1">{errors.photos.message}</p>}
+          </div>
 
           <input
             type="file"
@@ -221,8 +224,13 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting, isEditMode }) => {
             onDragLeave={onDragLeave}
             onDrop={onDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`w-full p-8 sm:p-10 rounded-2xl border-2 border-dashed transition-all duration-300 mb-6 cursor-pointer flex flex-col items-center justify-center gap-4 group ${isDragging ? 'border-brand-teal bg-brand-teal/5 scale-[0.99]' : 'border-slate-300 bg-slate-50 hover:border-brand-teal hover:bg-[#EAF5F2]/50'
-              }`}
+            className={`w-full p-8 sm:p-10 rounded-2xl border-2 border-dashed transition-all duration-300 mb-6 cursor-pointer flex flex-col items-center justify-center gap-4 group ${
+              errors.photos 
+                ? 'border-red-500 bg-red-50' 
+                : isDragging 
+                  ? 'border-brand-teal bg-brand-teal/5 scale-[0.99]' 
+                  : 'border-slate-300 bg-slate-50 hover:border-brand-teal hover:bg-[#EAF5F2]/50'
+            }`}
           >
             <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors duration-300 ${isDragging ? 'bg-brand-teal text-white' : 'bg-white shadow-sm border border-slate-100 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'}`}>
               <Icon icon="lucide:image-plus" className="w-7 h-7" strokeWidth="2" />
@@ -231,7 +239,7 @@ const PgPhotos = ({ onNext, onPrev, isSubmitting, isEditMode }) => {
               <p className="text-[15px] font-bold text-[#062F26]">
                 <span className="text-brand-teal hover:underline decoration-2 underline-offset-2">Click to upload</span> or drag and drop
               </p>
-              <p className="text-xs font-medium text-slate-500">JPG, PNG or WebP (max. 5MB per image)</p>
+              <p className="text-xs font-medium text-slate-500">JPG, PNG or WebP (max. 2MB per image)</p>
             </div>
           </div>
 

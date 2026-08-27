@@ -82,6 +82,10 @@ export const createProperty = async (req, res) => {
       ownerContract: ownerContractData
     });
 
+    if (!property.images || property.images.length < 2) {
+      return res.status(400).json({ message: 'Validation Error', error: 'Minimum 2 images are required.' });
+    }
+
     const createdProperty = await property.save();
 
     // Push the property ID to the owner's listedProperties
@@ -102,15 +106,37 @@ export const createProperty = async (req, res) => {
       if (subscribers.length > 0) {
         const title = createdProperty.pgName || createdProperty.propertyCategory || 'New Property';
         const location = createdProperty.city ? `${createdProperty.locality || ''}, ${createdProperty.city}` : 'a great location';
+        const price = createdProperty.pgPricing?.monthlyRent || createdProperty.rentAmount || 'Contact for price';
+        const appUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const propertyLink = `${appUrl}/property/${createdProperty._id}`;
+        
+        // Extract amenities (if any)
+        const amenity1 = (createdProperty.commonAmenities && createdProperty.commonAmenities.length > 0) ? createdProperty.commonAmenities[0] : 'Fully Furnished';
+        const amenity2 = (createdProperty.commonAmenities && createdProperty.commonAmenities.length > 1) ? createdProperty.commonAmenities[1] : 'Prime Location';
+
         const subject = `New Property Alert: ${title} in ${location}!`;
         const html = `
-          <h2>New Property Available on Housynest!</h2>
-          <p>We are excited to announce a new property listing that matches our premium standards.</p>
-          <h3>${title}</h3>
-          <p><strong>Location:</strong> ${location}</p>
-          <p>Check out our latest listings to find your perfect home before it gets booked!</p>
-          <br>
-          <p>Thanks,<br>The Housynest Team</p>
+<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333333;">
+    <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 25px;">
+        Great news! We've just listed a brand new property that we think you'll love. Don't miss out on the chance to make it yours.
+    </p>
+    
+    <!-- Property Card -->
+    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background-color: #f9fafb; margin-bottom: 30px;">
+        <h3 style="margin-top: 0; color: #111827; font-size: 18px;">${title}</h3>
+        <p style="margin: 5px 0; color: #6b7280; font-size: 14px;">📍 ${location}</p>
+        <p style="margin: 15px 0 0 0; color: #4F46E5; font-size: 20px; font-weight: bold;">₹${price} / month</p>
+        <ul style="padding-left: 20px; color: #4b5563; font-size: 14px; line-height: 1.6;">
+            <li>${amenity1}</li>
+            <li>${amenity2}</li>
+            <li>Ready to move in</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center;">
+        <a href="${propertyLink}" style="display: inline-block; background-color: #4F46E5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; font-size: 16px;">View Property Details</a>
+    </div>
+</div>
         `;
 
         // Blast emails (asynchronous, don't wait for all to finish to prevent slow response)
@@ -244,6 +270,11 @@ export const updateProperty = async (req, res) => {
         }
     }
 
+    const totalImages = (propertyData.images ? propertyData.images.length : property.images.length);
+    if (totalImages < 2) {
+      return res.status(400).json({ message: 'Validation Error', error: 'Minimum 2 images are required.' });
+    }
+
     // Update property
     const updatedProperty = await Property.findByIdAndUpdate(
       propertyId,
@@ -355,7 +386,7 @@ export const getOwnerProperties = async (req, res) => {
     const propertiesWithCounts = await Promise.all(properties.map(async (prop) => {
       const [leadCount, bookingCount] = await Promise.all([
         Lead.countDocuments({ propertyId: prop._id }),
-        Booking.countDocuments({ propertyId: prop._id, status: { $nin: ['Rejected', 'Cancelled'] } })
+        Booking.countDocuments({ propertyId: prop._id, status: { $nin: ['Rejected', 'Cancelled', 'Completed'] } })
       ]);
       return { ...prop, leads: leadCount, bookings: bookingCount };
     }));
@@ -502,16 +533,64 @@ export const getAdminProperties = async (req, res) => {
 export const updatePropertyStatus = async (req, res) => {
   try {
     const { status, isVerified } = req.body;
-    const property = await Property.findById(req.params.id);
+    // Populate owner so we can send an email if approved
+    const property = await Property.findById(req.params.id).populate('owner', 'fullName email');
 
     if (!property) {
       return res.status(404).json({ message: 'Property not found' });
     }
 
+    const previousStatus = property.status;
+
     if (status !== undefined) property.status = status;
     if (isVerified !== undefined) property.isVerified = isVerified;
 
     const updatedProperty = await property.save();
+
+    // Send email to owner if property was just approved
+    if (status === 'Approved' && previousStatus !== 'Approved') {
+      const ownerEmail = property.owner?.email;
+      if (ownerEmail) {
+        const ownerName = property.owner?.fullName || 'Property Owner';
+        const propName = property.pgName || property.societyName || property.propertyCategory || 'Property';
+        const locationStr = [property.locality, property.city].filter(Boolean).join(', ');
+        
+        // Ensure you have frontend URL configured
+        const appUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const dashboardUrl = `${appUrl}/dashboard/owner/listings`;
+
+        const subject = '🎉 Congratulations! Your property listing is now Live on Housynest';
+        const htmlContent = `
+          <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
+            <p>Hi <b>${ownerName}</b>,</p>
+            <p>Great news! Your property listing for <b>${propName}</b> has been successfully reviewed and approved by our admin team.</p>
+            <p>It is now live on Housynest and visible to thousands of potential tenants searching for their perfect home!</p>
+            
+            <h3 style="color: #062F26; border-bottom: 1px solid #eee; padding-bottom: 8px;">Listing Details</h3>
+            <ul style="list-style-type: none; padding-left: 0;">
+              <li style="margin-bottom: 4px;"><b>Property Name:</b> ${propName}</li>
+              <li style="margin-bottom: 4px;"><b>Location:</b> ${locationStr}</li>
+              <li style="margin-bottom: 4px;"><b>Status:</b> <span style="color: #16a34a; font-weight: bold;">Active & Live</span></li>
+            </ul>
+
+            <p style="margin-top: 20px;">To get the most out of your listing, make sure your photos are up to date and your availability is correctly marked. You can view your live property and manage your dashboard anytime by clicking the button below.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${dashboardUrl}" style="display: inline-block; background-color: #062F26; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                View & Manage Your Property
+              </a>
+            </div>
+
+            <p>If you need any assistance managing your property or bookings, our support team is just a click away.</p>
+            <p>Welcome to the Housynest Owner Community! 🚀</p>
+            <br>
+            <p>Warm regards,<br><b style="color: #062F26;">The Housynest Admin Team</b></p>
+          </div>
+        `;
+
+        await sendGenericEmail(ownerEmail, subject, 'Your property is now approved and live on Housynest. Please view this email in an HTML client.', htmlContent);
+      }
+    }
 
     // Emit event to update pending counts
     try {
@@ -523,6 +602,7 @@ export const updatePropertyStatus = async (req, res) => {
 
     res.json(updatedProperty);
   } catch (error) {
+    console.error('Error updating property status:', error);
     res.status(500).json({ message: 'Failed to update property status' });
   }
 };

@@ -189,6 +189,7 @@ const Navbar = () => {
                           window.dispatchEvent(new Event('auth-change'));
                           setIsProfileDropdownOpen(false);
                           toast.success('Logged out successfully', { duration: 3000 });
+                          window.location.href = '/login';
                         }}
                         className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-red-600 rounded-lg hover:bg-red-50 transition-colors group/item"
                       >

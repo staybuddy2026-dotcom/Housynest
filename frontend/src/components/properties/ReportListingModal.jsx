@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
+import CustomDropdown from '../list-property/CustomDropdown';
 
 const ReportListingModal = ({ isOpen, onClose, propertyId }) => {
   const [reason, setReason] = useState('');
@@ -75,7 +76,7 @@ const ReportListingModal = ({ isOpen, onClose, propertyId }) => {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+            className="w-8 h-8 flex items-center justify-center cursor-pointer rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
           >
             <Icon icon="lucide:x" className="w-4 h-4" />
           </button>
@@ -92,17 +93,13 @@ const ReportListingModal = ({ isOpen, onClose, propertyId }) => {
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Reason for reporting <span className="text-red-500">*</span>
               </label>
-              <select
+              <CustomDropdown
+                options={reportReasons}
                 value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                required
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal transition-all appearance-none cursor-pointer"
-              >
-                <option value="" disabled>Select a reason...</option>
-                {reportReasons.map((r, i) => (
-                  <option key={i} value={r}>{r}</option>
-                ))}
-              </select>
+                onChange={setReason}
+                placeholder="Select a reason..."
+                buttonClassName="bg-slate-50 border-slate-200 rounded-lg px-4 py-3"
+              />
             </div>
 
             <div>
@@ -114,23 +111,23 @@ const ReportListingModal = ({ isOpen, onClose, propertyId }) => {
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Please provide more context about the issue..."
                 rows="4"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal transition-all resize-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal transition-all resize-none"
               ></textarea>
             </div>
           </div>
 
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-2 mt-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl font-bold text-sm text-slate-600 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="flex-1 py-3 rounded-lg font-bold text-sm text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-lg font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? <Icon icon="eos-icons:loading" className="w-4 h-4" /> : null}
               Submit Report

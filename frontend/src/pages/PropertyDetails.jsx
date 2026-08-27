@@ -99,7 +99,7 @@ const PropertyDetails = () => {
               type: data.propertyType,
               category: data.propertyCategory,
               societyName: data.societyName,
-              location: [data.address, data.locality, data.city].filter(Boolean).join(', '),
+              location: [data.address, data.locality, data.city, data.pincode].filter(Boolean).join(', '),
               price: (data.monthlyRent || '0').toString(),
               gender: data.preferredGender || 'Anyone',
               roomType: data.rooms && data.rooms.length > 0 ? data.rooms[0].sharingType : '',
@@ -107,11 +107,11 @@ const PropertyDetails = () => {
               reviews: data.reviewCount || 0,
               image: data.images && data.images.length > 0 ? data.images[0].url : home1,
               images: data.images && data.images.length > 0 ? data.images.map(img => img.url) : [home1, home2, hero1, heroImg],
-              amenities: [
+              amenities: Array.from(new Set([
                 ...(data.societyAmenities || []),
-                ...(data.commonAmenities || []),
-                ...(data.services || [])
-              ],
+                ...(data.commonAmenities || [])
+              ])),
+              services: data.services || [],
               isVerified: data.isVerified || false,
               description: data.description,
               uspText: data.uspText,
@@ -191,17 +191,17 @@ const PropertyDetails = () => {
               category: p.propertyCategory,
               bhkType: p.bhkType,
               societyName: p.societyName,
-              location: [p.address, p.locality, p.city].filter(Boolean).join(', '),
+              location: [p.address, p.locality, p.city, p.state].filter(Boolean).join(', ') + (p.pincode ? ` - ${p.pincode}` : ''),
               price: (p.monthlyRent || '0').toString(),
               rating: p.rating || '0',
               reviews: p.reviewCount || 0,
               image: p.images && p.images.length > 0 ? p.images[0].url : home1,
               images: p.images && p.images.length > 0 ? p.images.map(img => img.url) : [home1, home2, hero1, heroImg],
-              amenities: [
+              amenities: Array.from(new Set([
                 ...(p.societyAmenities || []),
-                ...(p.commonAmenities || []),
-                ...(p.services || [])
-              ],
+                ...(p.commonAmenities || [])
+              ])),
+              services: p.services || [],
               rooms: p.rooms || [],
               pgPricing: p.pgPricing || {},
               floors: p.floors || [],
