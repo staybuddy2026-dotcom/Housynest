@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { MOCK_PROPERTIES } from '../../data/mockProperties';
 import PropertyListingCard from '../../components/properties/PropertyListingCard';
+import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const TenantSavedProperties = () => {
   const [activeFilter, setActiveFilter] = useState('All Properties');
@@ -10,15 +11,7 @@ const TenantSavedProperties = () => {
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [sortOption, setSortOption] = useState('Recently Saved');
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.sort-dropdown')) {
-        setIsSortDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
 
   useEffect(() => {
     const updateSavedProperties = async () => {
@@ -94,9 +87,18 @@ const TenantSavedProperties = () => {
     { name: 'Tenant', count: savedPropertiesList.filter(p => p.type?.toLowerCase() !== 'pg').length },
   ];
 
-  const displayedProperties = activeFilter === 'All Properties'
+  const sortOptions = ['Recently Saved', 'Price: Low to High', 'Price: High to Low'];
+
+  let displayedProperties = activeFilter === 'All Properties'
     ? savedPropertiesList
     : savedPropertiesList.filter(p => activeFilter === 'PG' ? p.type?.toLowerCase() === 'pg' : p.type?.toLowerCase() !== 'pg');
+
+  if (sortOption === 'Price: Low to High') {
+    displayedProperties.sort((a, b) => Number(a.price) - Number(b.price));
+  } else if (sortOption === 'Price: High to Low') {
+    displayedProperties.sort((a, b) => Number(b.price) - Number(a.price));
+  }
+
 
   return (
     <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10">
@@ -114,42 +116,17 @@ const TenantSavedProperties = () => {
 
         <div className="flex items-center gap-3">
           {/* Custom Sort Dropdown */}
-          <div className="relative sort-dropdown">
-            <button
-              onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-bold transition-all shadow-sm ${isSortDropdownOpen ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
-                }`}
-            >
-              <Icon icon="lucide:arrow-down-up" className="w-3.5 h-3.5 text-slate-400" />
-              {sortOption}
-              <Icon icon="lucide:chevron-down" className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isSortDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-100 rounded-md shadow-lg py-1.5 z-20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                {['Recently Saved', 'Price: Low to High', 'Price: High to Low'].map(opt => (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                      setSortOption(opt);
-                      setIsSortDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center px-4 py-2 text-xs font-bold transition-colors text-left ${sortOption === opt
-                      ? 'bg-[#062F26]/5 text-[#062F26]'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                      }`}
-                  >
-                    {sortOption === opt && <Icon icon="lucide:check" className="w-3.5 h-3.5 mr-2 text-[#062F26]" />}
-                    <span className={sortOption === opt ? '' : 'ml-5'}>{opt}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="w-48 relative shrink-0">
+            <CustomDropdown
+              icon="lucide:arrow-down-up"
+              placeholder="Recently Saved"
+              value={sortOption}
+              options={sortOptions}
+              onChange={(val) => setSortOption(val)}
+              containerClassName="w-full"
+              buttonClassName="py-2 !border-slate-200 hover:!border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold shadow-sm"
+            />
           </div>
-
-          <button className="flex items-center justify-center w-9 h-9 border border-slate-200 rounded-xl text-slate-400 bg-white hover:bg-slate-50 hover:text-brand-teal transition-all shadow-sm">
-            <Icon icon="lucide:sliders-horizontal" className="w-4 h-4" />
-          </button>
         </div>
       </div>
 

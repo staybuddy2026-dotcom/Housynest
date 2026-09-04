@@ -31,6 +31,9 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent lg:hidden"></div>
         <div className="absolute inset-y-0 left-0 w-[100px] sm:w-[250px] lg:w-[400px] bg-gradient-to-r from-white via-white/90 to-transparent"></div>
 
+        {/* Gradient fade to blend into the white background at the bottom (behind search bar) */}
+        <div className="absolute inset-x-0 bottom-0 h-[65px] bg-gradient-to-t from-white via-white/50 to-transparent"></div>
+
         {/* Highlighted 3 Cards */}
         <div className="hidden lg:flex absolute left-[4%] top-1/3 -translate-y-1/2 flex-col gap-5 z-20 pointer-events-auto">
           {heroCards.map((card) => (

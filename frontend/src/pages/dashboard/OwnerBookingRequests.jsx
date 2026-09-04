@@ -44,20 +44,39 @@ const OwnerBookingRequests = () => {
     const handleRefresh = () => {
       fetchBookings();
     };
+
+    const handleNewBooking = (e) => {
+      if (e.detail && e.detail.booking) {
+        setBookings(prev => [e.detail.booking, ...prev]);
+        window.dispatchEvent(new Event('refreshCounts'));
+      } else {
+        fetchBookings();
+      }
+    };
+
+    const handleStatusUpdate = (e) => {
+      if (e.detail && e.detail.bookingId && e.detail.status) {
+        setBookings(prev => prev.map(b => b._id === e.detail.bookingId ? { ...b, status: e.detail.status } : b));
+        window.dispatchEvent(new Event('refreshCounts'));
+      } else {
+        fetchBookings();
+      }
+    };
+
     window.addEventListener('refreshBookingsList', handleRefresh);
-    window.addEventListener('globalNewBookingRequest', handleRefresh);
-    window.addEventListener('globalBookingStatusUpdated', handleRefresh);
+    window.addEventListener('globalNewBookingRequest', handleNewBooking);
+    window.addEventListener('globalBookingStatusUpdated', handleStatusUpdate);
 
     return () => {
       window.removeEventListener('refreshBookingsList', handleRefresh);
-      window.removeEventListener('globalNewBookingRequest', handleRefresh);
-      window.removeEventListener('globalBookingStatusUpdated', handleRefresh);
+      window.removeEventListener('globalNewBookingRequest', handleNewBooking);
+      window.removeEventListener('globalBookingStatusUpdated', handleStatusUpdate);
     };
   }, []);
 
   const getStatusMapping = (dbStatus) => {
     if (dbStatus === 'Pending Request') return 'PENDING APPROVAL';
-    if (dbStatus === 'Completed') return 'CLOSED';
+    if (dbStatus === 'Moved Out') return 'CLOSED';
     if (dbStatus === 'Pending Payment' || dbStatus === 'Confirmed' || dbStatus === 'Reserved') return 'APPROVED';
     if (dbStatus === 'Rejected' || dbStatus === 'Cancelled') return 'REJECTED';
     return typeof dbStatus === 'string' ? dbStatus.toUpperCase() : dbStatus;
@@ -137,6 +156,7 @@ const OwnerBookingRequests = () => {
         id: b._id.substring(b._id.length - 8).toUpperCase(),
         date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
         customer: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
+        profilePic: b.tenantId?.profilePic || b.personalInfo?.profilePic || null,
         phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
         email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
         property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
@@ -170,7 +190,7 @@ const OwnerBookingRequests = () => {
   const filteredRequests = requests.filter(req => {
     let matchesTabLogic = true;
     if (activeTab === 'Pending Approval') matchesTabLogic = req.status === 'PENDING APPROVAL';
-    else if (activeTab === 'Approved') matchesTabLogic = req.status === 'APPROVED';
+    else if (activeTab === 'Approved') matchesTabLogic = req.status === 'APPROVED' || req.status === 'ACTIVE';
     else if (activeTab === 'Rejected') matchesTabLogic = req.status === 'REJECTED';
 
     const matchesSearch = req.customer.toLowerCase().includes(searchQuery.toLowerCase()) || req.phone.includes(searchQuery) || req.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -183,9 +203,9 @@ const OwnerBookingRequests = () => {
   const uniqueProperties = ['All Properties', ...new Set(requests.map(r => r.property))];
   const stats = [
     { title: statsBaseRequests.filter(r => r.status === 'PENDING APPROVAL').length, subtitle: 'Total Pending', desc: 'Requires Action', icon: 'lucide:clock', color: 'text-amber-500', bgColor: 'bg-amber-50', borderColor: 'border-amber-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
-    { title: statsBaseRequests.filter(r => r.status === 'APPROVED').length, subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: statsBaseRequests.filter(r => r.status === 'APPROVED' || r.status === 'ACTIVE').length, subtitle: 'Approved', desc: 'Awaiting Full Payment', icon: 'lucide:check-circle-2', color: 'text-blue-500', bgColor: 'bg-blue-50', borderColor: 'border-blue-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
     { title: statsBaseRequests.filter(r => r.status === 'REJECTED').length, subtitle: 'Rejected', desc: 'Not Proceeded', icon: 'lucide:x-circle', color: 'text-red-500', bgColor: 'bg-red-50', borderColor: 'border-red-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
-    { title: statsBaseRequests.length > 0 ? Math.round((statsBaseRequests.filter(r => r.status === 'APPROVED').length / statsBaseRequests.length) * 100) + '%' : '0%', subtitle: 'Conversion Rate', desc: 'Requests to Bookings', icon: 'lucide:percent', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
+    { title: statsBaseRequests.length > 0 ? Math.round((statsBaseRequests.filter(r => r.status === 'APPROVED' || r.status === 'ACTIVE').length / statsBaseRequests.length) * 100) + '%' : '0%', subtitle: 'Conversion Rate', desc: 'Requests to Bookings', icon: 'lucide:percent', color: 'text-emerald-500', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-100', chartPath: 'M0 30 Q 25 20, 40 5 T 70 10 T 100 0' },
   ];
 
   const getStatusBadge = (status) => {
@@ -299,12 +319,7 @@ const OwnerBookingRequests = () => {
             {/* Property Dropdown */}
             <div className="w-full sm:w-[220px] shrink-0">
               <CustomDropdown
-                value={
-                  <span className="flex items-center gap-1.5 truncate">
-                    <span className="text-slate-400 font-medium shrink-0">Property:</span>
-                    <span className="truncate text-[#062F26]">{propertyFilter}</span>
-                  </span>
-                }
+                value={propertyFilter}
                 options={uniqueProperties.map(prop => ({ label: prop, value: prop }))}
                 onChange={(val) => setPropertyFilter(val)}
                 buttonClassName="shadow-sm !py-2.5 border-slate-200 w-full"
@@ -313,44 +328,29 @@ const OwnerBookingRequests = () => {
             </div>
 
             {/* Date Filter */}
-            <div className="w-full sm:w-[200px] relative shrink-0">
-              <div 
-                onClick={(e) => {
-                  const input = e.currentTarget.querySelector('input[type="date"]');
-                  if (input) {
-                    try { input.showPicker(); } catch (err) { input.focus(); }
-                  }
-                }}
-                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-sm font-medium text-slate-700 hover:border-brand-teal transition-all cursor-pointer relative overflow-hidden shadow-sm"
-              >
-                <div className="flex items-center gap-2 flex-1 truncate">
-                  <span className="text-slate-400 shrink-0">Move-in:</span>
-                  <span className="truncate">
-                    {dateFilter ? new Date(dateFilter).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Any Date'}
-                  </span>
-                </div>
-                <Icon icon="lucide:calendar" className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
-                
-                {/* Transparent Date Input Overlay */}
-                <input
-                  type="date"
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none"
-                  style={{ WebkitAppearance: 'none' }}
-                />
-
-                {/* Clear button */}
-                {dateFilter && (
-                  <button 
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDateFilter(''); }} 
-                    className="absolute right-10 z-10 p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-md transition-colors"
-                  >
-                    <Icon icon="lucide:x" className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+            <div className="w-full sm:w-[160px] relative shrink-0">
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:outline-none focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 transition-all shadow-sm text-center"
+              />
             </div>
+
+            {/* Clear Filters */}
+            {(propertyFilter !== 'All Properties' || dateFilter !== '' || searchQuery !== '') && (
+              <button
+                onClick={() => {
+                  setPropertyFilter('All Properties');
+                  setDateFilter('');
+                  setSearchQuery('');
+                }}
+                className="w-full sm:w-auto px-4 py-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2 shrink-0"
+              >
+                <Icon icon="lucide:x" className="w-4 h-4" />
+                Clear
+              </button>
+            )}
           </div>
         </div>
 
@@ -472,12 +472,12 @@ const OwnerBookingRequests = () => {
                     </td>
                     <td className="py-4 px-5 align-middle">
                       <div className="font-bold text-slate-800 text-sm">{req.property}</div>
-                      <div className="mt-1.5">
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="text-[11px] font-medium text-slate-400">{req.bed}</div>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${req.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : req.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
                           {req.propertyType}
                         </span>
                       </div>
-                      <div className="text-[11px] font-medium text-slate-400 mt-1">{req.bed}</div>
                     </td>
                     <td className="py-4 px-5 align-middle">
                       <div className="text-sm font-bold text-slate-700">{req.moveIn}</div>
@@ -555,11 +555,17 @@ const OwnerBookingRequests = () => {
         {selectedRequest && (
           <>
             {/* Drawer Header */}
-            <div className="p-6 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
+            <div className="p-5 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-brand-teal/10 text-brand-teal font-bold flex items-center justify-center text-lg shadow-inner">
-                  {selectedRequest.customer.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-                </div>
+                {selectedRequest.profilePic ? (
+                  <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-slate-200 shadow-sm">
+                    <img src={selectedRequest.profilePic} alt={selectedRequest.customer} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-brand-teal/10 text-brand-teal font-bold flex items-center justify-center text-lg shadow-inner shrink-0">
+                    {selectedRequest.customer.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                  </div>
+                )}
                 <div>
                   <h2 className="text-xl font-bold text-[#062F26]">{selectedRequest.customer}</h2>
                   <p className="text-sm font-medium text-slate-500">{selectedRequest.property} - {selectedRequest.bed}</p>
@@ -567,7 +573,7 @@ const OwnerBookingRequests = () => {
               </div>
               <button
                 onClick={() => setSelectedRequest(null)}
-                className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+                className="w-8 h-8 cursor-pointer rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
               >
                 <Icon icon="lucide:x" className="w-4 h-4" />
               </button>
@@ -578,11 +584,11 @@ const OwnerBookingRequests = () => {
               className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50"
               options={{ smoothTouch: true }}
             >
-              <div className="p-6 space-y-6">
+              <div className="p-5 space-y-4">
 
 
                 {/* Personal Information */}
-                <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                   <h4 className="text-sm font-bold text-[#062F26] mb-4">Personal Information</h4>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-50">
@@ -616,7 +622,7 @@ const OwnerBookingRequests = () => {
 
                 {/* Emergency Contact */}
                 {selectedRequest.raw.emergencyContact?.name && (
-                  <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                  <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                     <h4 className="text-sm font-bold text-[#062F26] mb-4">Emergency Contact</h4>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-3 border-b border-slate-50">

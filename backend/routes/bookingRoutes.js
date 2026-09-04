@@ -20,7 +20,8 @@ import {
   acceptBookingRequest,
   rejectBookingRequest,
   completeBookingDetails,
-  downloadAgreement
+  downloadAgreement,
+  getAdminBookingCollectionStats
 } from '../controllers/bookingController.js';
 
 const router = express.Router();
@@ -33,6 +34,9 @@ router.route('/owner')
 
 router.route('/admin/all')
   .get(protect, admin, getAdminBookings);
+
+router.route('/admin/collection-stats')
+  .get(protect, admin, getAdminBookingCollectionStats);
 
 router.route('/owner/rent-collection')
   .get(protect, getOwnerRentCollection);

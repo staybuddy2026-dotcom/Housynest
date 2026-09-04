@@ -215,7 +215,7 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
-                        ['Confirmed', 'Active', 'Completed'].includes(booking.status) ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                        ['Confirmed', 'Active', 'Moved Out'].includes(booking.status) ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                         ['Pending Request', 'Pending Payment'].includes(booking.status) ? 'bg-amber-50 text-amber-600 border-amber-200' :
                         booking.status === 'Reserved' ? 'bg-teal-50 text-teal-600 border-teal-200' :
                         'bg-rose-50 text-rose-600 border-rose-200'
@@ -323,7 +323,7 @@ const TabBookings = ({ bookings, loadingBookings, setBookings }) => {
                     </div>
                   </div>
                   <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border shrink-0 ${
-                      ['Confirmed', 'Active', 'Completed'].includes(booking.status) ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                      ['Confirmed', 'Active', 'Moved Out'].includes(booking.status) ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                       ['Pending Request', 'Pending Payment'].includes(booking.status) ? 'bg-amber-50 text-amber-600 border-amber-200' :
                       booking.status === 'Reserved' ? 'bg-teal-50 text-teal-600 border-teal-200' :
                       'bg-rose-50 text-rose-600 border-rose-200'

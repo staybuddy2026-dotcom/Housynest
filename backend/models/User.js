@@ -39,6 +39,12 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
   lawyerStatus: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
@@ -93,6 +99,21 @@ const userSchema = new mongoose.Schema({
   blockReason: {
     type: String,
     default: null
+  },
+  visitPass: {
+    passType: {
+      type: String,
+      enum: ['none', '5_visits', 'unlimited'],
+      default: 'none'
+    },
+    visitsRemaining: {
+      type: Number,
+      default: 0
+    },
+    validUntil: {
+      type: Date,
+      default: null
+    }
   }
 }, { timestamps: true });
 

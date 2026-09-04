@@ -386,7 +386,7 @@ export const getOwnerProperties = async (req, res) => {
     const propertiesWithCounts = await Promise.all(properties.map(async (prop) => {
       const [leadCount, bookingCount] = await Promise.all([
         Lead.countDocuments({ propertyId: prop._id }),
-        Booking.countDocuments({ propertyId: prop._id, status: { $nin: ['Rejected', 'Cancelled', 'Completed'] } })
+        Booking.countDocuments({ propertyId: prop._id, status: { $nin: ['Rejected', 'Cancelled', 'Moved Out'] } })
       ]);
       return { ...prop, leads: leadCount, bookings: bookingCount };
     }));

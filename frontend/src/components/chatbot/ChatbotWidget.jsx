@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot } from 'lucide-react';
 import ChatWindow from './ChatWindow';
+import { toast } from 'react-hot-toast';
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isDashboardRoute = location.pathname.startsWith('/owner') || 
                            location.pathname.startsWith('/tenant') || 
@@ -15,6 +17,17 @@ const ChatbotWidget = () => {
                            location.pathname.startsWith('/lawyer');
 
   if (isDashboardRoute) return null;
+
+  const handleOpenChat = () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      toast.error('Please login to use the chat assistant.');
+      navigate('/login');
+      return;
+    }
+    setIsOpen(true);
+    setShowTooltip(false);
+  };
 
   return (
     <>
@@ -51,10 +64,7 @@ const ChatbotWidget = () => {
             whileTap={{ scale: 0.95 }}
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
-            onClick={() => {
-              setIsOpen(true);
-              setShowTooltip(false);
-            }}
+            onClick={handleOpenChat}
             className="relative w-14 h-14 cursor-pointer bg-[#0D5C63] rounded-full shadow-2xl flex items-center justify-center text-white"
           >
             {/* Pulse effect rings */}

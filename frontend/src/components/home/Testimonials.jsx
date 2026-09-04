@@ -187,7 +187,7 @@ const Testimonials = () => {
             </div>
 
             {/* Curly Arrow pointing to phone */}
-            <div className="hidden lg:block relative -mr-12 xl:-mr-28 3xl:-mr-44! -mt-14 z-10 transition-transform duration-500 hover:scale-105">
+            <div className="hidden lg:block relative -mr-12 xl:-mr-28 3xl:-mr-46! -mt-14 z-10 transition-transform duration-500 hover:scale-105">
               <svg width="120" height="120" viewBox="0 0 120 120" fill="none" className="text-[#04473a] opacity-60 drop-shadow-md scale-x-[-1] -rotate-24">
                 {/* Dashed loop path */}
                 <path d="M 15,95 C 40,110 75,105 70,65 C 65,35 30,40 35,70 C 40,100 70,95 90,70 C 100,55 105,40 109,28" stroke="currentColor" strokeWidth="2.5" strokeDasharray="6 6" strokeLinecap="round" />

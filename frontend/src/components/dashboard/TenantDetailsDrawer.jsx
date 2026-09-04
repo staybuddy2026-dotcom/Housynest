@@ -70,17 +70,20 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
         {selectedTenant && (
           <>
             {/* Drawer Header */}
-            <div className="p-6 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
+            <div className="p-5 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-lg shadow-inner">
-                  {selectedTenant.initials}
-                </div>
+                {selectedTenant.profilePic ? (
+                  <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-slate-200 shadow-sm">
+                    <img src={selectedTenant.profilePic} alt={selectedTenant.name} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-lg shadow-inner shrink-0">
+                    {selectedTenant.initials}
+                  </div>
+                )}
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl font-bold text-[#062F26]">{selectedTenant.name}</h2>
-                    <button className="text-slate-400 hover:text-slate-600 transition-colors">
-                      <Icon icon="lucide:more-vertical" className="w-5 h-5" />
-                    </button>
                   </div>
                   <p className="text-sm font-medium text-slate-500">
                     {selectedTenant.propertyName && selectedTenant.propertyType ? (
@@ -96,7 +99,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+                className="w-8 h-8 rounded-full cursor-pointer bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
               >
                 <Icon icon="lucide:x" className="w-4 h-4" />
               </button>
@@ -107,10 +110,10 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
               className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50"
               options={{ smoothTouch: true }}
             >
-              <div className="p-6 pb-24 sm:pb-6 space-y-6">
+              <div className="p-5 pb-24 sm:pb-6 space-y-4">
 
                 {/* Personal Information */}
-                <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                   <h4 className="text-sm font-bold text-[#062F26] mb-4">Personal Information</h4>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-50">
@@ -148,7 +151,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
 
                 {/* Emergency Contact */}
                 {selectedTenant.emergencyContact?.name && (
-                  <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                  <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                     <h4 className="text-sm font-bold text-[#062F26] mb-4">Emergency Contact</h4>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-3 border-b border-slate-50">
@@ -168,7 +171,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
                 )}
 
                 {/* Room & Booking Details */}
-                <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                   <h4 className="text-sm font-bold text-[#062F26] mb-4">Room & Booking Details</h4>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-50">
@@ -183,6 +186,12 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
                       <span className="text-sm font-medium text-slate-500">Booking ID</span>
                       <span className="text-sm font-bold text-slate-800">{selectedTenant.bookingId}</span>
                     </div>
+                    {selectedTenant.rawBooking?.createdAt && (
+                      <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                        <span className="text-sm font-medium text-slate-500">Booking Date</span>
+                        <span className="text-sm font-bold text-slate-800">{new Date(selectedTenant.rawBooking.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center pb-3 border-b border-slate-50">
                       <span className="text-sm font-medium text-slate-500">Moved In Date</span>
                       <span className="text-sm font-bold text-slate-800">{selectedTenant.moveInIso}</span>
@@ -195,7 +204,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
                 </div>
 
                 {/* Financial Details */}
-                <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                   <h4 className="text-sm font-bold text-[#062F26] mb-4">Financial Details</h4>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-50">
@@ -219,9 +228,9 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
 
                 {/* Agreement Status */}
                 {selectedTenant.rawBooking && (
-                  <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                  <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                     <h4 className="text-sm font-bold text-[#062F26] mb-4">Lease Agreement</h4>
-                    
+
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-3 border-b border-slate-50">
                         <span className="text-sm font-medium text-slate-500">Tenant eSign</span>
@@ -231,7 +240,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
                           <span className="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded-md">Pending</span>
                         )}
                       </div>
-                      
+
                       <div className="flex flex-col gap-3">
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium text-slate-500">Owner eSign</span>
@@ -247,7 +256,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
                             {!showOtp ? (
                               <div>
                                 <p className="text-xs text-slate-600 mb-3">Both parties must sign the agreement. Sign now using your Aadhaar OTP.</p>
-                                <button 
+                                <button
                                   onClick={handleSendOtp}
                                   className="w-full py-2 bg-[#062F26] text-white rounded-lg text-sm font-bold hover:bg-emerald-900 transition-colors"
                                 >
@@ -257,15 +266,15 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
                             ) : (
                               <div className="space-y-3">
                                 <p className="text-xs font-bold text-emerald-700">OTP Sent to Aadhaar Linked Mobile</p>
-                                <input 
-                                  type="text" 
+                                <input
+                                  type="text"
                                   placeholder="Enter 6-digit OTP"
                                   value={otp}
                                   onChange={(e) => setOtp(e.target.value)}
                                   maxLength={6}
                                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-brand-teal"
                                 />
-                                <button 
+                                <button
                                   onClick={handleVerifyOtp}
                                   disabled={isSigning || otp.length < 6}
                                   className="w-full py-2 bg-[#0AA87D] text-white rounded-lg text-sm font-bold hover:bg-[#088c68] disabled:opacity-50 transition-colors flex justify-center items-center"
@@ -278,7 +287,7 @@ const TenantDetailsDrawer = ({ selectedTenant, onClose, getPaymentBadge }) => {
                         )}
 
                         {selectedTenant.rawBooking.ownerConsentStatus === 'Consented' && (
-                          <button 
+                          <button
                             onClick={() => window.open(`/api/bookings/${selectedTenant.rawBooking._id}/download-agreement?token=${localStorage.getItem('accessToken')}`, '_blank')}
                             className="mt-2 w-full py-2 border-2 border-[#062F26] text-[#062F26] rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors flex justify-center items-center gap-2"
                           >

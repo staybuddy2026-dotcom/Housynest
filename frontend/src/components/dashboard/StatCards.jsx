@@ -142,7 +142,7 @@ const StatCards = ({ data: initialData }) => {
 
           // Total Tenants
           const activeTenantsCount = bookings.filter(b =>
-            ['Confirmed', 'Reserved', 'Active', 'Completed'].includes(b.status)
+            ['Confirmed', 'Reserved', 'Active', 'Moved Out'].includes(b.status)
           ).length;
 
           newStats[3] = {

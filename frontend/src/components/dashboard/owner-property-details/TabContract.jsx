@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
 
-const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
+const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL AGREEMENT</h1>
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
 
@@ -81,7 +81,7 @@ By proceeding with occupation of the premises, the Licensee acknowledges that th
 const TabContract = ({ property, bookings = [] }) => {
   const [showContractFormat, setShowContractFormat] = useState(false);
 
-  const activeBookings = bookings.filter(b => b.status === 'Active' || b.status === 'Confirmed' || b.status === 'Completed');
+  const activeBookings = bookings.filter(b => b.status === 'Active' || b.status === 'Confirmed' || b.status === 'Moved Out');
 
   const tenantContracts = activeBookings.map((b) => {
     const firstName = b.personalInfo?.firstName || '';
@@ -96,7 +96,7 @@ const TabContract = ({ property, bookings = [] }) => {
       room: room,
       bed: bed,
       date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      status: (b.status === 'Active' || b.status === 'Completed') ? 'Signed' : 'Pending'
+      status: (b.status === 'Active' || b.status === 'Moved Out') ? 'Signed' : 'Pending'
     };
   });
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { sendOtp, registerUser, loginUser, logoutUser, refresh, googleLogin, adminRegister, sendAadharOtp, verifyAadharOtpAndRegister } from '../controllers/authController.js';
+import { sendOtp, registerUser, loginUser, logoutUser, refresh, googleLogin, adminRegister, sendAadharOtp, verifyAadharOtpAndRegister, forgotPassword, resetPassword } from '../controllers/authController.js';
 import { upload } from '../config/cloudinary.js';
 import rateLimit from 'express-rate-limit';
 
@@ -22,5 +22,7 @@ router.post('/logout', logoutUser);
 router.post('/refresh', refresh);
 router.post('/google', googleLogin);
 router.post('/admin/register', adminRegister);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.put('/reset-password/:token', authLimiter, resetPassword);
 
 export default router;

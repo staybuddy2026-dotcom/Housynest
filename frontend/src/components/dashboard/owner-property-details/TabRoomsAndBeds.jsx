@@ -11,7 +11,7 @@ const TabRoomsAndBeds = ({ property, bookings }) => {
     let booking = bookings?.find(b => {
       const bRoom = (b.roomDetails?.roomName || '').toLowerCase().trim();
       const bBed = (b.roomDetails?.bedName || '').toLowerCase().trim();
-      return bRoom === rName && bBed === bName && ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active', 'Completed'].includes(b.status);
+      return bRoom === rName && bBed === bName && ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active', 'Moved Out'].includes(b.status);
     });
 
     if (!booking) {
@@ -57,28 +57,31 @@ const TabRoomsAndBeds = ({ property, bookings }) => {
                   <h4 className="font-bold text-[#062F26]">{floor.floorName || `Floor ${floor.floorNumber || idx + 1}`}</h4>
                   <span className="text-xs font-semibold text-slate-500">{floor.rooms?.length || 0} Rooms</span>
                 </div>
-                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-4 flex flex-col gap-4">
                   {floor.rooms?.map((room, rIdx) => (
-                    <div key={rIdx} className="border border-slate-200 rounded-lg p-3">
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="text-sm font-bold text-[#062F26]">{room.roomName || `Room ${room.roomNumber || rIdx + 1}`}</span>
-                        <span className="text-[10px] font-bold px-2 py-1 bg-brand-teal/10 text-brand-teal rounded uppercase tracking-wider">
+                    <div key={rIdx} className="border border-slate-200 rounded-lg p-4 bg-white">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <div className="flex items-center gap-3">
+                          <Icon icon="lucide:door-open" className="text-brand-teal w-5 h-5" />
+                          <span className="text-base font-bold text-[#062F26]">{room.roomName || `Room ${room.roomNumber || rIdx + 1}`}</span>
+                        </div>
+                        <span className="text-xs font-bold px-2.5 py-1 bg-brand-teal/10 text-brand-teal rounded uppercase tracking-wider w-fit">
                           {room.sharingType} {room.isAC ? 'AC' : 'Non-AC'}
                         </span>
                       </div>
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                         {room.beds?.map((bed, bIdx) => (
-                          <div 
-                            key={bIdx} 
+                          <div
+                            key={bIdx}
                             onClick={() => handleBedClick(floor, idx, room, rIdx, bed, bIdx)}
-                            className={`flex items-center justify-between bg-slate-50 p-2 rounded transition-colors ${['Occupied', 'Reserved'].includes(getDynamicBedStatus(bed)) ? 'cursor-pointer hover:bg-slate-100' : ''}`}
+                            className={`flex items-center justify-between bg-slate-50 border border-slate-100 p-2 rounded-lg transition-all hover:shadow-sm ${['Occupied', 'Reserved'].includes(getDynamicBedStatus(bed)) ? 'cursor-pointer hover:bg-white hover:border-[#062F26]/30' : ''}`}
                             title={['Occupied', 'Reserved'].includes(getDynamicBedStatus(bed)) ? "Click to view tenant details" : ""}
                           >
-                            <div className="flex items-center gap-2">
-                              <Icon icon="lucide:bed" className="w-4 h-4 text-slate-400" />
-                              <span className="text-xs font-semibold text-slate-700">{bed.bedName || `Bed ${bIdx + 1}`}</span>
+                            <div className="flex items-center gap-2.5">
+                              <Icon icon="lucide:bed-double" className={`w-4 h-4 ${['Occupied', 'Reserved'].includes(getDynamicBedStatus(bed)) ? 'text-brand-teal' : 'text-slate-400'}`} />
+                              <span className="text-sm font-semibold text-slate-700">{bed.bedName || `Bed ${bIdx + 1}`}</span>
                             </div>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${getDynamicBedStatus(bed) === 'Vacant' ? 'bg-emerald-100 text-emerald-700' : getDynamicBedStatus(bed) === 'Reserved' ? 'bg-amber-100 text-amber-700' : getDynamicBedStatus(bed) === 'Maintenance' ? 'bg-slate-100 text-slate-700' : 'bg-rose-100 text-rose-700'}`}>
+                            <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide ${getDynamicBedStatus(bed) === 'Vacant' ? 'bg-emerald-100 text-emerald-700' : getDynamicBedStatus(bed) === 'Reserved' ? 'bg-amber-100 text-amber-700' : getDynamicBedStatus(bed) === 'Maintenance' ? 'bg-slate-100 text-slate-700' : 'bg-rose-100 text-rose-700'}`}>
                               {getDynamicBedStatus(bed)}
                             </span>
                           </div>

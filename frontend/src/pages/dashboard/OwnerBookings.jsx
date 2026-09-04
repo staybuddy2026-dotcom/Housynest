@@ -44,7 +44,7 @@ const OwnerBookings = () => {
     if (dbStatus === 'Pending Payment') return 'PENDING PAYMENT';
     if (dbStatus === 'Reserved') return 'RESERVED';
     if (dbStatus === 'Confirmed') return 'CONFIRMED';
-    if (dbStatus === 'Completed') return 'MOVED OUT';
+    if (dbStatus === 'Moved Out') return 'MOVED OUT';
     if (dbStatus === 'Active') return 'ACTIVE';
     return null; // Don't show pending requests or rejected in bookings tab
   };
@@ -101,35 +101,36 @@ const OwnerBookings = () => {
         filterStatus = 'ACTIVE';
       }
 
-        const paymentStatus = b.paymentDetails?.status || 'Pending';
-        const isFullPaid = paymentStatus === 'Paid';
-        const isTokenPaid = paymentStatus === 'Partial';
-        let totalExpected = 0;
-        if (b.paymentDetails?.rentAmount || b.paymentDetails?.securityDeposit) {
-          totalExpected = (b.paymentDetails.rentAmount || 0) + (b.paymentDetails.securityDeposit || 0) + (b.paymentDetails.extraCharges || 0);
-        } else {
-          totalExpected = totalAmount; // the one calculated above
-        }
-        const calculatedDue = isFullPaid ? 0 : Math.max(totalExpected - paidAmt, 0);
+      const paymentStatus = b.paymentDetails?.status || 'Pending';
+      const isFullPaid = paymentStatus === 'Paid';
+      const isTokenPaid = paymentStatus === 'Partial';
+      let totalExpected = 0;
+      if (b.paymentDetails?.rentAmount || b.paymentDetails?.securityDeposit) {
+        totalExpected = (b.paymentDetails.rentAmount || 0) + (b.paymentDetails.securityDeposit || 0) + (b.paymentDetails.extraCharges || 0);
+      } else {
+        totalExpected = totalAmount; // the one calculated above
+      }
+      const calculatedDue = isFullPaid ? 0 : Math.max(totalExpected - paidAmt, 0);
 
-        return {
-          _id: b._id,
-          id: b._id.substring(b._id.length - 8).toUpperCase(),
-          date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
-          tenant: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
-          phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
-          email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
-          property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
-          propertyType: b.propertyId?.propertyType || 'N/A',
-          bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
-          moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
-          movedOut: b.expectedMoveOutDate ? new Date(b.expectedMoveOutDate).toISOString().split('T')[0] : null,
-          rent: rentAmt,
-          token: tokenAmt,
-          paid: paidAmt,
-          due: calculatedDue,
-          isTokenPaid: isTokenPaid,
-          isFullPaid: isFullPaid,
+      return {
+        _id: b._id,
+        id: b._id.substring(b._id.length - 8).toUpperCase(),
+        date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
+        tenant: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
+        profilePic: b.tenantId?.profilePic || b.personalInfo?.profilePic || null,
+        phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
+        email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
+        property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
+        propertyType: b.propertyId?.propertyType || 'N/A',
+        bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
+        moveIn: new Date(b.moveInDate).toISOString().split('T')[0],
+        movedOut: b.expectedMoveOutDate ? new Date(b.expectedMoveOutDate).toISOString().split('T')[0] : null,
+        rent: rentAmt,
+        token: tokenAmt,
+        paid: paidAmt,
+        due: calculatedDue,
+        isTokenPaid: isTokenPaid,
+        isFullPaid: isFullPaid,
         status: rawStatus,
         filterStatus: filterStatus,
         source: b.propertyId?.bookingType === 'Direct Booking' ? 'DIRECT' : 'REQUEST',
@@ -265,16 +266,16 @@ const OwnerBookings = () => {
     try {
       // Simulate backend delay for eSign verification
       await new Promise(r => setTimeout(r, 2000));
-      
+
       const token = localStorage.getItem('accessToken');
       const res = await fetch(`/api/bookings/${bookingId}/consent`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (res.ok) {
         toast.success('Agreement E-Signed Successfully!');
-        
+
         // Update local state
         setBookings(bookings.map(b => b._id === bookingId ? { ...b, ownerConsentStatus: 'Consented' } : b));
         if (selectedBooking && selectedBooking._id === bookingId) {
@@ -446,7 +447,7 @@ const OwnerBookings = () => {
                   </span>
                 </div>
                 <Icon icon="lucide:calendar" className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
-                
+
                 {/* Transparent Date Input Overlay */}
                 <input
                   type="date"
@@ -458,8 +459,8 @@ const OwnerBookings = () => {
 
                 {/* Clear button (sits above the transparent input) */}
                 {dateFilter && (
-                  <button 
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDateFilter(''); }} 
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDateFilter(''); }}
                     className="absolute right-10 z-10 p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-md transition-colors"
                   >
                     <Icon icon="lucide:x" className="w-4 h-4" />
@@ -504,12 +505,12 @@ const OwnerBookings = () => {
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{booking.property}</div>
-                    <div className="mt-1.5">
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <div className="text-[11px] font-medium text-slate-400">{booking.bed}</div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${booking.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : booking.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
                         {booking.propertyType}
                       </span>
                     </div>
-                    <div className="text-[11px] font-medium text-slate-400 mt-1">{booking.bed}</div>
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="text-sm font-bold text-slate-700">{booking.moveIn}</div>
@@ -591,11 +592,17 @@ const OwnerBookings = () => {
         {selectedBooking && (
           <>
             {/* Drawer Header */}
-            <div className="p-6 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
+            <div className="p-5 pb-4 bg-white border-b border-slate-100 shrink-0 flex items-start justify-between z-10 relative">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-brand-teal/10 text-brand-teal font-bold flex items-center justify-center text-lg shadow-inner">
-                  {selectedBooking.tenant.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-                </div>
+                {selectedBooking.profilePic ? (
+                  <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-slate-200 shadow-sm">
+                    <img src={selectedBooking.profilePic} alt={selectedBooking.tenant} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-brand-teal/10 text-brand-teal font-bold flex items-center justify-center text-lg shadow-inner shrink-0">
+                    {selectedBooking.tenant.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                  </div>
+                )}
                 <div>
                   <h2 className="text-xl font-bold text-[#062F26]">{selectedBooking.tenant}</h2>
                   <p className="text-sm font-medium text-slate-500">{selectedBooking.property} - {selectedBooking.bed}</p>
@@ -603,7 +610,7 @@ const OwnerBookings = () => {
               </div>
               <button
                 onClick={() => setSelectedBooking(null)}
-                className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+                className="w-8 h-8 rounded-full cursor-pointer bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
               >
                 <Icon icon="lucide:x" className="w-4 h-4" />
               </button>
@@ -614,11 +621,11 @@ const OwnerBookings = () => {
               className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50"
               options={{ smoothTouch: true }}
             >
-              <div className="p-6 space-y-6">
+              <div className="p-5 space-y-4">
 
                 {/* Move-out Action Card */}
                 {selectedBooking.raw.moveOutRequest?.isRequested && selectedBooking.raw.moveOutRequest?.status === 'Pending' && (
-                  <div className="bg-amber-50 rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-amber-200">
+                  <div className="bg-amber-50 rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-amber-200">
                     <div className="flex items-start gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
                         <Icon icon="lucide:log-out" className="w-5 h-5 text-amber-600" />
@@ -687,7 +694,7 @@ const OwnerBookings = () => {
                 {selectedBooking.raw.status === 'Confirmed' && selectedBooking.raw.ownerConsentStatus !== 'Consented' && (
                   <div className="mt-6">
                     <h3 className="text-lg font-bold text-[#062F26] mb-4">Agreement Signature</h3>
-                    
+
                     {selectedBooking.raw.eStampStatus === 'Completed' && (
                       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5">
                         <div className="flex gap-4">
@@ -697,7 +704,7 @@ const OwnerBookings = () => {
                           <div className="flex-1">
                             <p className="text-sm font-bold text-indigo-900">E-Sign Your Agreement</p>
                             <p className="text-xs text-indigo-700/80 leading-relaxed mt-0.5 mb-4">The e-Stamp has been generated for this booking. As the owner, please eSign the agreement using your Aadhaar OTP.</p>
-                            
+
                             {!showEsignOtp ? (
                               <button
                                 onClick={handleSendEsignOtp}
@@ -736,7 +743,7 @@ const OwnerBookings = () => {
                 )}
 
                 {/* Personal Information */}
-                <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                   <h4 className="text-sm font-bold text-[#062F26] mb-4">Personal Information</h4>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-50">
@@ -770,7 +777,7 @@ const OwnerBookings = () => {
 
                 {/* Emergency Contact */}
                 {selectedBooking.raw.emergencyContact?.name && (
-                  <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                  <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
                     <h4 className="text-sm font-bold text-[#062F26] mb-4">Emergency Contact</h4>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-3 border-b border-slate-50">

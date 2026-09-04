@@ -61,7 +61,7 @@ import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminBookings from './pages/admin/AdminBookings';
-import AdminRentCollection from './pages/admin/AdminRentCollection';
+import AdminBookingCollection from './pages/admin/AdminBookingCollection';
 import NotFound from './pages/NotFound';
 import { Toaster, toast } from 'react-hot-toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -70,7 +70,7 @@ import ChatbotWidget from './components/chatbot/ChatbotWidget';
 const RootApp = () => {
   const location = useLocation();
   const hideChatbotPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
-  const shouldHideChatbot = hideChatbotPaths.includes(location.pathname);
+  const shouldHideChatbot = hideChatbotPaths.some(path => location.pathname.startsWith(path));
   
   const isDashboard = location.pathname.startsWith('/tenant') || 
                       location.pathname.startsWith('/owner') || 
@@ -246,7 +246,7 @@ const router = createBrowserRouter(
           <Route path="/signup" element={<Auth />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           {/* Public Routes with internal smooth scroll */}
           <Route path="/" element={<MainLayout />}>
@@ -347,7 +347,7 @@ const router = createBrowserRouter(
             <Route path="lawyer-requests" element={<AdminLawyerRequests />} />
             <Route path="wa-outreach" element={<AdminWhatsAppOutreach />} />
             <Route path="reports" element={<AdminReports />} />
-            <Route path="rent-collection" element={<AdminRentCollection />} />
+            <Route path="booking-collection" element={<AdminBookingCollection />} />
             <Route path="settings" element={<AdminSettings />} />
             {/* Additional admin routes can go here */}
           </Route>

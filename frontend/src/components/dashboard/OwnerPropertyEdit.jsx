@@ -34,7 +34,21 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
     mode: 'onChange'
   });
 
+  const { isDirty } = methods.formState;
   const propertyType = methods.watch('propertyType');
+
+  // Prevent page refresh or navigation if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -90,6 +104,7 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
             description: data.description || '',
             virtualTour: data.virtualTour || '',
 
+            numberOfVillas: data.numberOfVillas || '',
             bhkType: data.bhkType || '',
             bathrooms: data.bathrooms || '',
             balconies: data.balconies || '',
@@ -308,7 +323,15 @@ const OwnerPropertyEdit = ({ propertyId, onClose }) => {
           <p className="text-xs sm:text-sm text-slate-500 font-medium">Update the details for this listing</p>
         </div>
         <button
-          onClick={() => onClose()}
+          onClick={() => {
+            if (isDirty) {
+              if (window.confirm('You have unsaved changes. Are you sure you want to discard them and leave?')) {
+                onClose();
+              }
+            } else {
+              onClose();
+            }
+          }}
           className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-colors shadow-sm"
         >
           <Icon icon="lucide:x" className="w-4 h-4" />

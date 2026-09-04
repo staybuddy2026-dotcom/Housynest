@@ -17,7 +17,7 @@ import TabReports from './owner-property-details/TabReports';
 import TabConditionReports from './owner-property-details/TabConditionReports';
 import TabNoticePeriods from './owner-property-details/TabNoticePeriods';
 
-const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
+const DEFAULT_ENGLISH_AGREEMENT = `<h1>RENTAL AGREEMENT</h1>
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].
 
@@ -298,7 +298,6 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
   };
 
   const images = property.images || [];
-  const mainImage = images.length > 0 ? images[0].url : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800';
 
   const renderEmptyTab = (tabName) => (
     <div className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center animate-fadeIn">
@@ -365,41 +364,41 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
                 <Icon icon="lucide:map-pin" className="w-4 h-4 text-slate-400" />
                 {location}
               </div>
-                {isPG ? (
-                  <>
-                    <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                    <div className="flex items-center gap-1.5">
-                      <Icon icon="lucide:bed" className="w-4 h-4 text-slate-400" />
-                      <span className="text-[#062F26] font-bold">{totalBeds} beds</span>
-                    </div>
-                    <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                    <div className="flex items-center gap-1.5">
-                      <Icon icon="lucide:users" className="w-4 h-4 text-slate-400" />
-                      <span className="text-rose-500 font-bold">{occupancyRate}%</span> occupied
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {property.bhkType && (
-                      <>
-                        <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                        <div className="flex items-center gap-1.5">
-                          <Icon icon="lucide:home" className="w-4 h-4 text-slate-400" />
-                          <span className="text-[#062F26] font-bold">{property.bhkType}</span>
-                        </div>
-                      </>
-                    )}
-                    {property.monthlyRent && (
-                      <>
-                        <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                        <div className="flex items-center gap-1.5">
-                          <Icon icon="lucide:indian-rupee" className="w-4 h-4 text-slate-400" />
-                          <span className="text-emerald-600 font-bold">₹{Number(property.monthlyRent).toLocaleString('en-IN')} / month</span>
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
+              {isPG ? (
+                <>
+                  <div className="w-1 h-1 rounded-full bg-slate-300"></div>
+                  <div className="flex items-center gap-1.5">
+                    <Icon icon="lucide:bed" className="w-4 h-4 text-slate-400" />
+                    <span className="text-[#062F26] font-bold">{totalBeds} beds</span>
+                  </div>
+                  <div className="w-1 h-1 rounded-full bg-slate-300"></div>
+                  <div className="flex items-center gap-1.5">
+                    <Icon icon="lucide:users" className="w-4 h-4 text-slate-400" />
+                    <span className="text-rose-500 font-bold">{occupancyRate}%</span> occupied
+                  </div>
+                </>
+              ) : (
+                <>
+                  {property.bhkType && (
+                    <>
+                      <div className="w-1 h-1 rounded-full bg-slate-300"></div>
+                      <div className="flex items-center gap-1.5">
+                        <Icon icon="lucide:home" className="w-4 h-4 text-slate-400" />
+                        <span className="text-[#062F26] font-bold">{property.bhkType}</span>
+                      </div>
+                    </>
+                  )}
+                  {property.monthlyRent && (
+                    <>
+                      <div className="w-1 h-1 rounded-full bg-slate-300"></div>
+                      <div className="flex items-center gap-1.5">
+                        <Icon icon="lucide:indian-rupee" className="w-4 h-4 text-slate-400" />
+                        <span className="text-emerald-600 font-bold">{Number(property.monthlyRent).toLocaleString('en-IN')} / month</span>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
               {isPG && pgPricesList.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap">
                   {pgPricesList.map((p, idx) => (
@@ -443,8 +442,8 @@ const OwnerPropertyDetails = ({ propertyId, onClose, onEdit }) => {
               }
             }}
             className={`text-sm font-bold whitespace-nowrap transition-all relative cursor-pointer px-4 py-2 sm:px-0 sm:py-0 sm:pb-3 rounded-full sm:rounded-none ${activeTab === tab
-                ? 'bg-[#062F26] text-white sm:bg-transparent sm:text-[#062F26] shadow-md sm:shadow-none border border-transparent'
-                : 'bg-white text-slate-500 border border-slate-200 sm:border-transparent hover:bg-slate-50 sm:bg-transparent sm:text-slate-400 sm:hover:bg-transparent sm:hover:text-slate-600'
+              ? 'bg-[#062F26] text-white sm:bg-transparent sm:text-[#062F26] shadow-md sm:shadow-none border border-transparent'
+              : 'bg-white text-slate-500 border border-slate-200 sm:border-transparent hover:bg-slate-50 sm:bg-transparent sm:text-slate-400 sm:hover:bg-transparent sm:hover:text-slate-600'
               }`}
           >
             {tab}

@@ -89,6 +89,7 @@ const propertySchema = new mongoose.Schema({
   noticePeriod: String,
 
   // Tenant Specific Property Details
+  numberOfVillas: String,
   bhkType: String,
   bathrooms: String,
   balconies: String,

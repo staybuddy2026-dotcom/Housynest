@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import toast from 'react-hot-toast';
 import loginImg from '../assets/loginimg.png';
 import logo from '../assets/logo.png';
 
@@ -19,6 +20,9 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { token } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
@@ -29,8 +33,30 @@ const ResetPassword = () => {
     resolver: zodResolver(resetSchema),
   });
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/auth/reset-password/${token}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: data.password }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success(result.message || 'Password reset successfully!');
+        navigate('/login');
+      } else {
+        toast.error(result.message || 'Failed to reset password.');
+      }
+    } catch (error) {
+      toast.error('An error occurred while resetting the password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -186,9 +212,14 @@ const ResetPassword = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] hover:shadow-[0_8px_25px_rgba(6,47,38,0.25)] transition-all duration-300 transform flex items-center justify-center text-sm cursor-pointer mt-6"
+                disabled={loading}
+                className="w-full bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] hover:shadow-[0_8px_25px_rgba(6,47,38,0.25)] transition-all duration-300 transform flex items-center justify-center text-sm cursor-pointer mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Reset Password
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  'Reset Password'
+                )}
               </button>
 
             </form>

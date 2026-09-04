@@ -7,7 +7,6 @@ import socket from '../../lib/socket';
 const columns = [
   { id: 'New', title: 'New', color: 'bg-slate-50 border-slate-100', headerBg: 'bg-slate-100', badgeColor: 'bg-[#062F26] text-white', icon: 'lucide:sparkles' },
   { id: 'Contacted', title: 'Contacted', color: 'bg-blue-50/30 border-blue-100', headerBg: 'bg-blue-50', badgeColor: 'bg-[#062F26] text-white', icon: 'lucide:phone-call' },
-  { id: 'In Discussion', title: 'Site Visit', color: 'bg-amber-50/30 border-amber-100', headerBg: 'bg-amber-50', badgeColor: 'bg-amber-500 text-white', icon: 'lucide:users' },
   { id: 'Closed', title: 'Booked', color: 'bg-emerald-50/30 border-emerald-100', headerBg: 'bg-emerald-50', badgeColor: 'bg-emerald-600 text-white', icon: 'lucide:check-circle-2' },
   { id: 'Cancelled', title: 'Cancelled', color: 'bg-rose-50/30 border-rose-100', headerBg: 'bg-rose-50', badgeColor: 'bg-rose-500 text-white', icon: 'lucide:x-circle' },
 ];

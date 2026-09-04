@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon } from '@iconify/react';
 
 const TabTenants = ({ bookings, invoices, property, tenantSearchQuery, setSelectedTenant }) => {
-  const activeBookings = bookings.filter(b => ['Active', 'Confirmed', 'Completed', 'Reserved'].includes(b.status));
+  const activeBookings = bookings.filter(b => ['Active', 'Confirmed', 'Moved Out', 'Reserved'].includes(b.status));
 
   const tenants = activeBookings.map((b) => {
     const name = b.tenantId?.fullName || (b.personalInfo?.firstName ? b.personalInfo.firstName + ' ' + (b.personalInfo.lastName || '') : 'Unknown');

@@ -293,7 +293,16 @@ const AdminBookings = () => {
         tenantName.toLowerCase().includes(searchLower) ||
         ownerName.toLowerCase().includes(searchLower);
 
-      const matchesStatus = statusFilter === 'All' || b.status === statusFilter;
+      let matchesStatus = false;
+      if (statusFilter === 'All') {
+        matchesStatus = true;
+      } else if (statusFilter === 'Confirmed') {
+        matchesStatus = b.status === 'Confirmed' && !b.tenantConfirmedMoveIn;
+      } else if (statusFilter === 'Active') {
+        matchesStatus = b.status === 'Active' || (b.status === 'Confirmed' && b.tenantConfirmedMoveIn);
+      } else {
+        matchesStatus = b.status === statusFilter;
+      }
 
       return matchesSearch && matchesStatus;
     });
@@ -498,7 +507,7 @@ const AdminBookings = () => {
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 custom-scrollbar">
-            {['All', 'Confirmed', 'Active', 'Reserved', 'Pending Payment', 'Cancelled'].map((status) => (
+            {['All', 'Confirmed', 'Active', 'Reserved', 'Moved Out', 'Cancelled'].map((status) => (
               <button
                 key={status}
                 onClick={() => {

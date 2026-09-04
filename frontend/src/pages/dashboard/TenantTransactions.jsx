@@ -178,91 +178,175 @@ const TenantTransactions = () => {
     toast.loading('Generating receipt...', { id: 'receipt' });
     try {
       const doc = new jsPDF();
+      
+      // Helper to get image base64
+      const getLogoBase64 = async () => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'Anonymous';
+          img.src = '/src/assets/logo.png';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          };
+          img.onerror = () => resolve(null);
+        });
+      };
 
-      // Housynest Header
-      doc.setFillColor(6, 47, 38); // #062F26 (Dark Green)
-      doc.rect(0, 0, 210, 45, 'F');
+      const logoBase64 = await getLogoBase64();
       
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(28);
+      // Header
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 14, 12, 40, 12);
+      } else {
+        doc.setFontSize(22);
+        doc.setTextColor(10, 168, 125);
+        doc.setFont("helvetica", "bold");
+        doc.text("Housynest", 14, 20);
+      }
+      
+      // Centered Payment Receipt Title
+      doc.setFontSize(16);
+      doc.setTextColor(10, 168, 125);
       doc.setFont("helvetica", "bold");
-      doc.text("Housynest", 14, 25);
-      
-      doc.setFontSize(10);
+      doc.text("PAYMENT RECEIPT", 105, 22, { align: 'center' });
       doc.setFont("helvetica", "normal");
-      doc.text("Your perfect PG partner", 14, 33);
       
-      doc.setFontSize(22);
-      doc.setFont("helvetica", "bold");
-      doc.text("RECEIPT", 196, 25, { align: "right" });
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 196, 33, { align: "right" });
-
-      // Transaction Details
+      doc.setFontSize(12);
       doc.setTextColor(40, 40, 40);
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("Transaction Details", 14, 65);
+      doc.text(`Receipt #${tx._id?.substring(0, 8).toUpperCase()}`, 196, 20, { align: 'right' });
+      doc.setFontSize(10);
+      doc.text(`Date: ${new Date(tx.paidAt || tx.updatedAt || Date.now()).toLocaleDateString('en-GB')}`, 196, 26, { align: 'right' });
+      
+      doc.setDrawColor(230, 230, 230);
+      doc.line(14, 32, 196, 32);
+      
+      // Billed To / Paid To
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 150);
+      doc.text("PAID TO", 14, 42);
+      doc.text("BILLED TO", 196, 42, { align: 'right' });
       
       doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Receipt No: #${tx._id.substring(tx._id.length - 8).toUpperCase()}`, 14, 75);
-      doc.text(`Date of Payment: ${new Date(tx.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`, 14, 82);
-      doc.text(`Payment Method: ${tx.paymentMethod || 'Online Transfer'}`, 14, 89);
-      doc.text(`Status: ${tx.status}`, 14, 96);
-
-      // Bill To (Tenant Info - optional/placeholder if not available)
-      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
       doc.setFont("helvetica", "bold");
-      doc.text("Billed To", 120, 65);
-      doc.setFontSize(11);
+      const propertyName = tx.propertyId?.pgName || tx.propertyId?.societyName || tx.propertyId?.title || tx.propertyId?.propertyCategory || 'Property Owner';
+      doc.text(propertyName, 14, 48);
+      
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      doc.text(user.fullName || 'Tenant', 196, 48, { align: 'right' });
+      
+      doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text(tx.bookingId?.tenantDetails?.fullName || "Tenant", 120, 75);
-      if (tx.bookingId?.tenantDetails?.phone) doc.text(tx.bookingId.tenantDetails.phone, 120, 82);
-      if (tx.bookingId?.tenantDetails?.email) doc.text(tx.bookingId.tenantDetails.email, 120, 89);
-
-      // Property Name
-      const propertyName = tx.propertyId ? tx.propertyId.societyName || tx.propertyId.pgName || tx.propertyId.propertyCategory : 'Property';
-      const roomName = tx.bookingId?.roomDetails?.roomName ? `${tx.bookingId.roomDetails.roomName} - ${tx.bookingId.roomDetails.bedName}` : 'Entire Property';
-
-      // Custom Table (Native jsPDF instead of autotable)
-      const startY = 110;
-      doc.setFillColor(10, 168, 125); // #0AA87D
+      doc.setTextColor(100, 100, 100);
+      doc.text(tx.propertyId?.address || tx.propertyId?.location || 'N/A', 14, 54);
+      
+      let roomStr = 'Entire Property';
+      if (tx.bookingId?.roomDetails) {
+        roomStr = `Room ${tx.bookingId.roomDetails.roomName || ''}`;
+        if (tx.bookingId.roomDetails.bedName) {
+           roomStr += `, ${tx.bookingId.roomDetails.bedName}`;
+        }
+      }
+      doc.text(roomStr, 196, 54, { align: 'right' });
+      doc.text(`Booking ID: ${tx.bookingId?.bookingId || tx.bookingId?._id?.substring(0, 8).toUpperCase() || tx._id?.substring(0, 8).toUpperCase()}`, 196, 60, { align: 'right' });
+      
+      // Table Header
+      const startY = 70;
+      doc.setFillColor(248, 250, 252);
       doc.rect(14, startY, 182, 10, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 100, 100);
       doc.text("Description", 20, startY + 7);
       doc.text("Amount", 188, startY + 7, { align: 'right' });
       
       // Table Content
       doc.setTextColor(40, 40, 40);
       doc.setFont("helvetica", "normal");
-      doc.rect(14, startY + 10, 182, 16); // Border for row
       
-      doc.text(`Rent Payment for ${propertyName}`, 20, startY + 17);
-      doc.text(`Room: ${roomName}`, 20, startY + 23);
-      doc.text(`Rs. ${tx.amount.toLocaleString('en-IN')}`, 188, startY + 17, { align: 'right' });
+      let currentY = startY + 10;
+      
+      let finalRentAmt = tx.bookingId?.roomDetails?.rent || tx.bookingId?.roomDetails?.rentAmount || tx.bookingId?.paymentDetails?.rentAmount || 0;
+      
+      if (!finalRentAmt) {
+        if (tx.propertyId?.monthlyRent) {
+          finalRentAmt = Number(String(tx.propertyId.monthlyRent).replace(/\D/g, ''));
+        } else if (tx.propertyId?.price) {
+          finalRentAmt = Number(String(tx.propertyId.price).replace(/\D/g, ''));
+        } else if (tx.amount > 1000) {
+          const possibleRent = (tx.amount - 800) / 2;
+          if (possibleRent > 0) finalRentAmt = possibleRent;
+        }
+      }
 
-      const finalY = startY + 26;
+      if (!finalRentAmt || finalRentAmt === 0) {
+        finalRentAmt = tx.amount; 
+      }
+
+      let stamp = 0;
+      let secDep = 0;
+      let isMoveIn = false;
+
+      if (finalRentAmt > 0 && tx.amount >= finalRentAmt + 800) {
+        isMoveIn = true;
+        stamp = 800;
+        secDep = tx.amount - finalRentAmt - stamp;
+      }
+      
+      const formatDt = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+      const periodStr = tx.billingPeriodStart && tx.billingPeriodEnd ? ` (${formatDt(tx.billingPeriodStart)} - ${formatDt(tx.billingPeriodEnd)})` : '';
+      
+      if (isMoveIn) {
+        const items = [
+          { label: `Rent${periodStr}`, amount: finalRentAmt },
+          { label: 'Security Deposit', amount: secDep > 0 ? secDep : 0 }
+        ];
+        if (stamp > 0) items.push({ label: 'Extra Charges (Stamp & Agreement)', amount: stamp });
+        
+        items.forEach(item => {
+          doc.rect(14, currentY, 182, 12);
+          doc.text(item.label, 20, currentY + 8);
+          doc.text(`Rs. ${item.amount.toLocaleString('en-IN')}`, 188, currentY + 8, { align: 'right' });
+          currentY += 12;
+        });
+      } else {
+        doc.rect(14, currentY, 182, 16); 
+        doc.text(`Rent${periodStr}`, 20, currentY + 7);
+        doc.text(`Rs. ${tx.amount.toLocaleString('en-IN')}`, 188, currentY + 7, { align: 'right' });
+        currentY += 16;
+      }
+
+      const finalY = currentY + 6;
 
       // Total Summary
       doc.setFillColor(248, 250, 252);
-      doc.rect(120, finalY + 10, 76, 20, 'F');
-      doc.setFontSize(14);
+      doc.rect(14, finalY, 182, 16, 'F');
+      doc.rect(14, finalY, 182, 16); 
+      doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(6, 47, 38);
-      doc.text("Total Paid:", 125, finalY + 23);
-      doc.text(`Rs. ${tx.amount.toLocaleString('en-IN')}`, 192, finalY + 23, { align: 'right' });
+      doc.setTextColor(40, 40, 40);
+      doc.text("Total Paid:", 20, finalY + 11);
+      doc.setTextColor(10, 168, 125);
+      doc.text(`Rs. ${tx.amount.toLocaleString('en-IN')}`, 188, finalY + 11, { align: 'right' });
 
       // Footer
       doc.setFontSize(10);
       doc.setFont("helvetica", "italic");
       doc.setTextColor(120, 120, 120);
-      doc.text("This is a computer generated receipt and does not require a physical signature.", 105, 275, { align: "center" });
+      doc.text("This payment was successfully processed.", 105, 275, { align: "center" });
       doc.text("Thank you for using Housynest!", 105, 282, { align: "center" });
+
+      // Add Watermark (center) over everything so it's not clipped
+      if (logoBase64) {
+        doc.setGState(new doc.GState({ opacity: 0.08 }));
+        doc.addImage(logoBase64, 'PNG', 45, 130, 120, 36);
+        doc.setGState(new doc.GState({ opacity: 1.0 }));
+      }
 
       // Save
       doc.save(`Receipt_${tx._id.substring(tx._id.length - 8).toUpperCase()}.pdf`);

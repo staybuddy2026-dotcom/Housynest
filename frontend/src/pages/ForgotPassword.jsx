@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import toast from 'react-hot-toast';
 import loginImg from '../assets/loginimg.png';
 import logo from '../assets/logo.png';
 
@@ -13,6 +14,7 @@ const forgotSchema = z.object({
 
 const ForgotPassword = () => {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
@@ -23,8 +25,29 @@ const ForgotPassword = () => {
     resolver: zodResolver(forgotSchema),
   });
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: data.email }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success(result.message || 'Reset link sent to your email.');
+      } else {
+        toast.error(result.message || 'Failed to send reset link.');
+      }
+    } catch (error) {
+      toast.error('An error occurred while sending the reset link.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -148,9 +171,14 @@ const ForgotPassword = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] hover:shadow-[0_8px_25px_rgba(6,47,38,0.25)] transition-all duration-300 transform flex items-center justify-center text-sm cursor-pointer mt-4"
+                disabled={loading}
+                className="w-full bg-[#062F26] hover:bg-[#04201a] text-white font-semibold py-3 rounded-md shadow-[0_4px_15px_rgba(6,47,38,0.15)] hover:shadow-[0_8px_25px_rgba(6,47,38,0.25)] transition-all duration-300 transform flex items-center justify-center text-sm cursor-pointer mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Send Reset Link
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  'Send Reset Link'
+                )}
               </button>
 
             </form>

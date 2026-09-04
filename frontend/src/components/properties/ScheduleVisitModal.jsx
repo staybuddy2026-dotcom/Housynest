@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
+import VisitPassModal from './VisitPassModal';
 
 const ScheduleVisitModal = ({ isOpen, onClose, property }) => {
   const [formData, setFormData] = useState({
@@ -17,11 +18,27 @@ const ScheduleVisitModal = ({ isOpen, onClose, property }) => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           const user = JSON.parse(storedUser);
+          
+          // Check Visit Pass
+          const pass = user.visitPass || {};
+          const hasValidPass = pass.passType && pass.passType !== 'none' && 
+                               (!pass.validUntil || new Date(pass.validUntil) >= new Date()) && 
+                               (pass.passType !== '5_visits' || pass.visitsRemaining > 0);
+          
+          if (!hasValidPass && user.role !== 'owner' && user.role !== 'admin') {
+            setShowVisitPassModal(true);
+          } else {
+            setShowVisitPassModal(false);
+          }
+
           setFormData(prev => ({
             ...prev,
             name: user.name || user.fullName || '',
             phone: user.phone || user.mobile || user.phoneNo || ''
           }));
+        } else {
+          // If no user is logged in, they also don't have a pass
+          setShowVisitPassModal(true);
         }
       } catch (error) {
         console.error('Failed to parse user from localStorage', error);
@@ -36,9 +53,10 @@ const ScheduleVisitModal = ({ isOpen, onClose, property }) => {
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showVisitPassModal, setShowVisitPassModal] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!formData.name || !formData.phone || !formData.date || !formData.time) {
       toast.error('Please fill in all required fields');
       return;
@@ -66,7 +84,13 @@ const ScheduleVisitModal = ({ isOpen, onClose, property }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to schedule visit');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 403 && ['NO_PASS', 'PASS_EXPIRED', 'NO_VISITS_REMAINING'].includes(errorData.code)) {
+          setShowVisitPassModal(true);
+          setIsSubmitting(false);
+          return;
+        }
+        throw new Error(errorData.message || 'Failed to schedule visit');
       }
 
       toast.success('Visit scheduled successfully! We will contact you soon.');
@@ -89,6 +113,22 @@ const ScheduleVisitModal = ({ isOpen, onClose, property }) => {
   const maxDate = nextMonth.toISOString().split('T')[0];
 
   if (!isOpen) return null;
+
+  if (showVisitPassModal) {
+    return (
+      <VisitPassModal 
+        isOpen={showVisitPassModal} 
+        onClose={() => {
+          setShowVisitPassModal(false);
+          onClose(); // Close the entire flow if they cancel pass purchase
+        }} 
+        onSuccess={() => {
+          setShowVisitPassModal(false);
+          // Now they see the schedule form
+        }}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

@@ -391,17 +391,24 @@ const OwnerVisits = () => {
 
           {/* Date Filter */}
           <div className="col-span-1 w-full lg:w-40 relative shrink-0">
-            <div className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 transition-all cursor-pointer relative overflow-hidden">
+            <div className={`w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs sm:text-sm font-semibold hover:border-slate-300 transition-all cursor-pointer relative overflow-hidden ${
+              filterDate ? 'text-slate-700' : 'text-slate-400'
+            }`}>
               <div className="flex items-center gap-2 truncate">
-                <Icon icon="lucide:calendar" className="w-4 h-4 text-slate-400 shrink-0" />
+                <Icon icon="lucide:calendar" className="w-4 h-4 shrink-0 text-slate-400" />
                 <span className="truncate">
-                  {filterDate ? new Date(filterDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'All Dates'}
+                  {filterDate ? new Date(filterDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'DD/MM/YYYY'}
                 </span>
               </div>
               {/* Transparent Date Input Overlay */}
               <input
                 type="date"
                 value={filterDate}
+                onClick={(e) => {
+                  if (typeof e.target.showPicker === 'function') {
+                    try { e.target.showPicker(); } catch (err) {}
+                  }
+                }}
                 onChange={(e) => setFilterDate(e.target.value)}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 style={{ WebkitAppearance: 'none' }}

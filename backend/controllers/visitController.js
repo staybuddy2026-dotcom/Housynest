@@ -1,5 +1,6 @@
 import Visit from '../models/Visit.js';
 import Property from '../models/Property.js';
+import User from '../models/User.js';
 import { sendGenericEmail } from '../utils/emailService.js';
 import { getIo } from '../socket.js';
 
@@ -13,6 +14,26 @@ export const scheduleVisit = async (req, res) => {
       return res.status(404).json({ message: 'Property not found' });
     }
 
+    // Verify Visit Pass
+    const user = await User.findById(tenantId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { passType, visitsRemaining, validUntil } = user.visitPass || {};
+
+    if (!passType || passType === 'none') {
+      return res.status(403).json({ message: 'No active visit pass', code: 'NO_PASS' });
+    }
+
+    if (validUntil && new Date(validUntil) < new Date()) {
+      return res.status(403).json({ message: 'Visit pass expired', code: 'PASS_EXPIRED' });
+    }
+
+    if (passType === '5_visits' && visitsRemaining <= 0) {
+      return res.status(403).json({ message: 'No visits remaining in your pass', code: 'NO_VISITS_REMAINING' });
+    }
+
     const visit = await Visit.create({
       property: propertyId,
       tenant: tenantId,
@@ -23,6 +44,12 @@ export const scheduleVisit = async (req, res) => {
       time,
       message,
     });
+
+    // Deduct pass if 5_visits
+    if (passType === '5_visits') {
+      user.visitPass.visitsRemaining -= 1;
+      await user.save();
+    }
 
     // Notify Owner via Email
     const subject = `New Visit Request for ${property.title || 'your property'}`;

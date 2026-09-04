@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import Property from '../models/Property.js';
 import User from '../models/User.js';
+import Lead from '../models/Lead.js';
 import MaintenanceTicket from '../models/MaintenanceTicket.js';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
@@ -92,7 +93,7 @@ const getPdfHtmlContent = (booking, tenant, property, actualOwner) => {
   const depositAmt = Number(property?.securityAmount?.replace(/\D/g, '') || 12000).toLocaleString('en-IN');
 
   const detailsBox = `
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+    <div style="background: transparent; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
       <h3 style="margin-top: 0; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; color: #062F26; font-size: 15px; text-transform: uppercase;">Accommodation & Financial Details</h3>
       <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155;">
         <tr>
@@ -144,9 +145,10 @@ const getPdfHtmlContent = (booking, tenant, property, actualOwner) => {
           Ref: ${bookingRef}
         </div>
         
+        ${formattedContract}
+        
         ${detailsBox}
         
-        ${formattedContract}
         ${formattedTerms}
         
         <br/><br/>
@@ -314,11 +316,35 @@ export const createBooking = async (req, res) => {
       try {
         const io = getIo();
         if (io) {
-          io.to(`user_${property.owner.toString()}`).emit('newBookingRequest', { bookingId: savedBooking._id });
+          const populatedBooking = await Booking.findById(savedBooking._id)
+            .populate('propertyId', 'pgName societyName propertyCategory propertyType address images locality city monthlyRent securityAmount maintenanceCharges pgPricing floors')
+            .populate('tenantId', 'fullName email phone profilePic');
+            
+          io.to(`user_${property.owner.toString()}`).emit('newBookingRequest', { 
+            bookingId: savedBooking._id,
+            booking: populatedBooking 
+          });
         }
       } catch (err) {
         console.error('Socket error on createBooking:', err);
       }
+    }
+
+    // Auto-update Lead status to Closed (Booked) if a lead exists
+    try {
+      const existingLead = await Lead.findOneAndUpdate(
+        { propertyId: savedBooking.propertyId, senderId: req.user._id },
+        { status: 'Closed' },
+        { new: true }
+      );
+      if (existingLead) {
+        const io = getIo();
+        if (io) {
+          io.to(`user_${property.owner.toString()}`).emit('newLead', existingLead);
+        }
+      }
+    } catch (leadUpdateErr) {
+      console.error('Error auto-updating lead on booking:', leadUpdateErr);
     }
 
     res.status(201).json(savedBooking);
@@ -372,7 +398,7 @@ export const getTenantBookings = async (req, res) => {
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active', 'Rejected', 'Cancelled', 'Completed'];
+    const validStatuses = ['Pending Request', 'Pending Payment', 'Reserved', 'Confirmed', 'Active', 'Rejected', 'Cancelled', 'Moved Out'];
 
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
@@ -732,7 +758,7 @@ export const getOwnerRentCollection = async (req, res) => {
     // Fetch all active/completed bookings for the owner
     const bookings = await Booking.find({
       ownerId,
-      status: { $in: ['Active', 'Completed', 'Confirmed', 'Reserved'] }
+      status: { $in: ['Active', 'Moved Out', 'Confirmed', 'Reserved'] }
     }).populate('propertyId').populate('tenantId', 'fullName email profileImage');
 
     let totalCollected = 0;
@@ -1211,7 +1237,7 @@ export const processCheckout = async (req, res) => {
     booking.moveOutRequest.deductions = deductions || 0;
 
     // Mark the entire booking as completed
-    booking.status = 'Completed';
+    booking.status = 'Moved Out';
     booking.expectedMoveOutDate = new Date(); // Actual move out date
 
     const updatedBooking = await booking.save();
@@ -1780,3 +1806,135 @@ export const completeBookingDetails = async (req, res) => {
     res.status(500).json({ message: 'Server error completing booking details' });
   }
 };
+
+
+// @desc    Get Admin Booking Collection Stats
+// @route   GET /api/bookings/admin/collection-stats
+// @access  Private (Admin)
+export const getAdminBookingCollectionStats = async (req, res) => {
+  try {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+    // Fetch all bookings with payment details
+    const bookings = await Booking.find({ 'paymentDetails.status': { $in: ['Paid', 'Pending', 'Partial', 'Failed'] } })
+      .populate('tenantId', 'fullName email phone profilePic')
+      .populate('propertyId', 'pgName societyName')
+      .lean();
+
+    const collections = bookings.map(b => {
+      // Map booking payment to invoice-like structure for the frontend
+      return {
+        _id: b._id,
+        bookingId: {
+          _id: b._id,
+          roomDetails: b.roomDetails
+        },
+        tenantId: b.tenantId,
+        propertyId: b.propertyId,
+        amount: b.paymentDetails?.amount || 0,
+        dueDate: b.createdAt,
+        billingPeriodStart: b.moveInDate || b.createdAt,
+        billingPeriodEnd: b.expectedMoveOutDate || b.createdAt,
+        status: b.paymentDetails?.status === 'Paid' ? 'Paid' : (b.paymentDetails?.status === 'Pending' ? 'Pending' : 'Reserved'),
+        paymentMethod: b.paymentDetails?.paymentMethod || 'N/A',
+        paidAt: b.paymentDetails?.paidAt || b.createdAt,
+        isInitialPayment: true,
+        daysOverdue: 0,
+        bookingStatus: b.status
+      };
+    });
+
+    // Sort collections by due date descending
+    collections.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
+
+    // --- Calculate Stats ---
+    let stats = {
+      current: { collected: 0, pending: 0, overdue: 0 },
+      previous: { collected: 0, pending: 0, overdue: 0 },
+      historical: {
+        collected: new Array(12).fill(0),
+        pending: new Array(12).fill(0),
+        reserved: new Array(12).fill(0)
+      }
+    };
+
+    const recentReserved = [];
+
+    collections.forEach(inv => {
+      const d = new Date(inv.dueDate);
+      const invMonth = d.getMonth();
+      const invYear = d.getFullYear();
+      const amount = Number(inv.amount) || 0;
+
+      // Current Month
+      if (invMonth === currentMonth && invYear === currentYear) {
+        if (inv.status === 'Paid') stats.current.collected += amount;
+        if (inv.status === 'Pending') stats.current.pending += amount;
+        if (inv.status === 'Reserved') stats.current.reserved += amount;
+      }
+
+      // Previous Month
+      if (invMonth === previousMonth && invYear === previousMonthYear) {
+        if (inv.status === 'Paid') stats.previous.collected += amount;
+        if (inv.status === 'Pending') stats.previous.pending += amount;
+        if (inv.status === 'Reserved') stats.previous.reserved += amount;
+      }
+
+      // Historical (This year only)
+      if (invYear === currentYear) {
+        if (inv.status === 'Paid') stats.historical.collected[invMonth] += amount;
+        if (inv.status === 'Pending') stats.historical.pending[invMonth] += amount;
+        if (inv.status === 'Reserved') stats.historical.reserved[invMonth] += amount;
+      }
+
+      // Identify recent reserved
+      if (inv.bookingStatus === 'Reserved') {
+        const diffDays = Math.ceil((today - new Date(inv.dueDate)) / (1000 * 60 * 60 * 24));
+        recentReserved.push({
+          id: inv._id,
+          tenant: inv.tenantId?.fullName || 'Unknown',
+          property: inv.propertyId?.pgName || inv.propertyId?.societyName || 'N/A',
+          amount: amount,
+          dueDate: inv.dueDate,
+          daysReserved: diffDays >= 0 ? diffDays : 0
+        });
+      }
+    });
+
+    recentReserved.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
+    const topRecentReserved = recentReserved.slice(0, 5);
+
+    // Helper for percentage change calculation
+    const calcTrend = (curr, prev) => {
+      if (prev === 0) return { value: curr > 0 ? 100 : 0, up: curr >= prev };
+      const change = ((curr - prev) / prev) * 100;
+      return { value: Math.abs(change).toFixed(1), up: change >= 0 };
+    };
+
+    const trends = {
+      collected: calcTrend(stats.current.collected, stats.previous.collected),
+      pending: calcTrend(stats.current.pending, stats.previous.pending),
+      reserved: calcTrend(stats.current.reserved, stats.previous.reserved)
+    };
+
+    res.json({
+      stats: {
+        current: stats.current,
+        trends: trends,
+        expected: stats.current.collected + stats.current.pending + stats.current.reserved
+      },
+      historical: stats.historical,
+      recentReserved: topRecentReserved,
+      invoices: collections // Sent as invoices to match frontend expectations
+    });
+
+  } catch (error) {
+    console.error('Error in getAdminBookingCollectionStats:', error);
+    res.status(500).json({ message: 'Server error fetching booking collection stats' });
+  }
+};
+

@@ -60,7 +60,7 @@ const FAQ = () => {
                 className={`bg-white border rounded-xl overflow-hidden transition-all duration-500 ${openFaq === index ? 'border-brand-teal shadow-[0_10px_30px_rgba(10,168,125,0.1)]' : 'border-slate-100 hover:border-slate-200 shadow-sm'}`}
               >
                 <button
-                  className="w-full flex items-center justify-between p-5 lg:p-6 text-left cursor-pointer focus:outline-none bg-transparent"
+                  className="w-full flex items-center justify-between p-5.5 text-left cursor-pointer focus:outline-none bg-transparent"
                   onClick={() => toggleFaq(index)}
                 >
                   <h4 className={`text-base font-bold transition-colors ${openFaq === index ? 'text-brand-teal' : 'text-[#062F26]'}`}>
@@ -75,7 +75,7 @@ const FAQ = () => {
                   className={`grid transition-all duration-500 ease-in-out ${openFaq === index ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
                 >
                   <div className="overflow-hidden">
-                    <div className="pb-5 lg:pb-6 pt-0 text-slate-600 text-sm font-medium leading-relaxed border-t border-slate-50 mt-2 pt-4 mx-5 lg:mx-6">
+                    <div className="pb-5 lg:pb-6 pt-0 text-slate-600 text-sm font-medium leading-relaxed border-t border-slate-100 pt-4 mx-5 lg:mx-6">
                       {faq.answer}
                     </div>
                   </div>

@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { OAuth2Client } from 'google-auth-library';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { sendGenericEmail } from '../utils/emailService.js';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -216,6 +218,7 @@ export const registerUser = async (req, res) => {
       phone: validatedData.phone,
       password: validatedData.password,
       role: validatedData.role,
+      isEmailVerified: true,
       ...(validatedData.role === 'lawyer' && {
         lawyerDetails: {
           barCouncilNumber: userData.barCouncilNumber,
@@ -438,7 +441,8 @@ export const googleLogin = async (req, res) => {
         fullName: name,
         email,
         googleId,
-        role: assignedRole
+        role: assignedRole,
+        isEmailVerified: true
       });
     }
 
@@ -551,5 +555,67 @@ export const verifyAadharOtpAndRegister = async (req, res) => {
   } catch (error) {
     console.error('Error in verifyAadharOtpAndRegister:', error);
     res.status(500).json({ message: 'Server error during Aadhaar verification.', error: error.message });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'There is no user with that email address.' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 mins
+
+    await user.save();
+
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+    const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
+    const htmlMessage = `
+      <p>You requested a password reset</p>
+      <p>Click this <a href="${resetUrl}">link</a> to reset your password.</p>
+    `;
+
+    try {
+      await sendGenericEmail(user.email, 'Password Reset Request', message, htmlMessage);
+      res.status(200).json({ message: 'Email sent' });
+    } catch (err) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+      return res.status(500).json({ message: 'Email could not be sent' });
+    }
+  } catch (error) {
+    console.error('Error in forgotPassword:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful' });
+  } catch (error) {
+    console.error('Error in resetPassword:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

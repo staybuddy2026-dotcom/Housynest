@@ -45,7 +45,7 @@ const footerLinks = [
     links: [
       { name: "hello@housynest.com", href: "mailto:hello@housynest.com", icon: "lucide:mail" },
       { name: "+91 98765 43210", href: "tel:+919876543210", icon: "lucide:phone" },
-      { name: "Bangalore, India", href: "#", icon: "lucide:map-pin" },
+      { name: "Ahmedabad, Gujarat", href: "#", icon: "lucide:map-pin" },
     ]
   }
 ];

@@ -48,7 +48,7 @@ const OwnerTenants = () => {
           const bookings = await bookingsRes.json();
           const invoices = await invoicesRes.json();
           const activeTenants = bookings
-            .filter(b => b.status === 'Confirmed' || b.status === 'Reserved' || b.status === 'Active' || b.status === 'Completed')
+            .filter(b => b.status === 'Confirmed' || b.status === 'Reserved' || b.status === 'Active' || b.status === 'Moved Out')
             .map((b) => {
               const name = b.tenantId?.fullName || (b.personalInfo?.firstName ? b.personalInfo.firstName + ' ' + (b.personalInfo.lastName || '') : 'Unknown');
               const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
@@ -149,6 +149,7 @@ const OwnerTenants = () => {
                 id: `TN-${b._id.substring(b._id.length - 4).toUpperCase()}`,
                 name: name,
                 initials: initials,
+                profilePic: b.tenantId?.profilePic || b.personalInfo?.profilePic || null,
                 email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
                 phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
                 property: b.propertyId?.pgName || b.propertyId?.societyName || b.propertyId?.propertyCategory || 'Property',
@@ -332,12 +333,12 @@ const OwnerTenants = () => {
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{t.property}</div>
-                    <div className="mt-1.5">
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {t.propertyType === 'PG' && <div className="text-[11px] font-medium text-slate-400">{t.room} • {t.bed}</div>}
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${t.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : t.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
                         {t.propertyType}
                       </span>
                     </div>
-                    {t.propertyType === 'PG' && <div className="text-[11px] font-medium text-slate-400 mt-1">{t.room} • {t.bed}</div>}
                   </td>
                   <td className="py-4 px-5 align-middle">
                     <div className="font-bold text-slate-800 text-sm">{t.rent}</div>

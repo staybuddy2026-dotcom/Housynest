@@ -190,15 +190,15 @@ const PropertyListingCard = ({ property, forceLiked = null }) => {
           {property.location}
         </p>
 
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {(Array.isArray(property.amenities) ? property.amenities : []).slice(0, 3).map((amenity, idx) => (
-            <span key={idx} className="px-2 py-0.5 rounded border border-slate-200 text-slate-600 text-xs font-medium">
+        <div className="flex flex-wrap items-center gap-1.5 mb-4">
+          {(Array.isArray(property.amenities) ? property.amenities : []).slice(0, 2).map((amenity, idx) => (
+            <span key={idx} className="px-2 py-0.5 rounded border border-slate-200 text-slate-600 text-[11px] font-medium whitespace-nowrap">
               {amenity}
             </span>
           ))}
-          {(Array.isArray(property.amenities) ? property.amenities : []).length > 3 && (
-            <span className=" py-0.5 underline text-slate-600 text-[10px] font-semibold cursor-pointer transition-colors">
-              +{(Array.isArray(property.amenities) ? property.amenities : []).length - 3} more
+          {(Array.isArray(property.amenities) ? property.amenities : []).length > 2 && (
+            <span className="px-1.5 py-0.5 rounded bg-slate-50 border border-slate-100 text-slate-500 text-[10px] font-bold whitespace-nowrap cursor-pointer hover:bg-slate-100 transition-colors">
+              +{(Array.isArray(property.amenities) ? property.amenities : []).length - 2} more
             </span>
           )}
         </div>

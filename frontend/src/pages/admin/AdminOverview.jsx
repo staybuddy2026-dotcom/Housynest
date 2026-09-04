@@ -93,17 +93,17 @@ const AdminOverview = () => {
       const [propRes, userRes, statsRes, reportsRes] = await Promise.all([
         fetch('/api/properties/admin/all', { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch('/api/users/admin/all', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/invoices/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/bookings/admin/collection-stats', { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch('/api/reports', { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       if (propRes.ok && userRes.ok) {
         const properties = await propRes.json();
         const users = await userRes.json();
-        const invoiceStats = statsRes.ok ? await statsRes.json() : null;
+        const bookingStats = statsRes.ok ? await statsRes.json() : null;
         const reports = reportsRes.ok ? await reportsRes.json() : { reports: [] };
         
-        const totalRent = invoiceStats?.stats?.current?.collected || 0;
+        const totalBookings = bookingStats?.historical?.collected?.reduce((a, b) => a + b, 0) || 0;
         
         // Ensure reports is an array
         const reportList = Array.isArray(reports) ? reports : (reports.reports || []);
@@ -120,7 +120,7 @@ const AdminOverview = () => {
           { title: 'Total Property Listed', value: properties.length.toString(), subtitle: `${verifiedProps} verified properties`, icon: 'lucide:home', color: 'bg-emerald-50', iconColor: 'text-emerald-600' },
           { title: 'Total Users', value: users.length.toString(), subtitle: `${landlords} Owners • ${renters} Tenants`, icon: 'lucide:users', color: 'bg-blue-50', iconColor: 'text-blue-600' },
           { title: 'Pending Reports', value: pendingReportsCount.toString(), subtitle: pendingReportsLabel, icon: 'lucide:clipboard-list', color: 'bg-amber-50', iconColor: 'text-amber-500' },
-          { title: 'Rent Collected', value: `₹${totalRent.toLocaleString()}`, subtitle: 'This month', icon: 'lucide:indian-rupee', color: 'bg-purple-50', iconColor: 'text-purple-600' }
+          { title: 'Booking Collection', value: `₹${totalBookings.toLocaleString()}`, subtitle: 'Total collected', icon: 'lucide:credit-card', color: 'bg-purple-50', iconColor: 'text-purple-600' }
         ]);
 
         setAllProperties(properties);
@@ -198,7 +198,8 @@ const AdminOverview = () => {
           phone: u.phone,
           role: u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Unknown',
           roleColor: u.role === 'owner' ? 'bg-blue-50 text-blue-600' : u.role === 'tenant' ? 'bg-emerald-50 text-emerald-600' : 'bg-purple-50 text-purple-600',
-          date: new Date(u.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+          date: new Date(u.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+          profilePic: u.profilePic
         }));
         setRecentUsers(mappedUsers);
 
@@ -528,7 +529,11 @@ const AdminOverview = () => {
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center font-bold text-slate-500">
-                          {user.name.charAt(0).toUpperCase()}
+                          {user.profilePic ? (
+                            <img src={user.profilePic} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            user.name.charAt(0).toUpperCase()
+                          )}
                         </div>
                         <span className="text-sm font-bold text-slate-800">{user.name}</span>
                       </div>

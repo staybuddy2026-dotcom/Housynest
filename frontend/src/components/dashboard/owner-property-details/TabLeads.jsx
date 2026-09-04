@@ -31,7 +31,6 @@ const TabLeads = ({ leads, loadingLeads, setLeads, property }) => {
   const columns = [
     { id: 'New', title: 'New', color: 'bg-slate-50 border-slate-100', headerBg: 'bg-slate-100', badgeColor: 'bg-[#062F26] text-white', icon: 'lucide:sparkles' },
     { id: 'Contacted', title: 'Contacted', color: 'bg-blue-50/30 border-blue-100', headerBg: 'bg-blue-50', badgeColor: 'bg-[#062F26] text-white', icon: 'lucide:phone-call' },
-    { id: 'In Discussion', title: 'Site Visit', color: 'bg-amber-50/30 border-amber-100', headerBg: 'bg-amber-50', badgeColor: 'bg-amber-500 text-white', icon: 'lucide:users' },
     { id: 'Closed', title: 'Booked', color: 'bg-emerald-50/30 border-emerald-100', headerBg: 'bg-emerald-50', badgeColor: 'bg-emerald-600 text-white', icon: 'lucide:check-circle-2' },
     { id: 'Cancelled', title: 'Cancelled', color: 'bg-rose-50/30 border-rose-100', headerBg: 'bg-rose-50', badgeColor: 'bg-rose-500 text-white', icon: 'lucide:x-circle' },
   ];
@@ -97,7 +96,7 @@ const TabLeads = ({ leads, loadingLeads, setLeads, property }) => {
               key={col.id}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, col.id)}
-              className={`snap-center sm:snap-none shrink-0 flex flex-col min-w-[280px] w-full max-w-[320px] rounded-2xl border ${col.color} transition-colors`}
+              className={`snap-center sm:snap-none shrink-0 flex flex-col min-w-[280px] w-full max-w-[320px] md:max-w-none md:w-auto md:min-w-[280px] rounded-2xl border ${col.color} bg-white/50 transition-colors md:flex-1`}
             >
               <div className={`p-4 rounded-t-2xl border-b border-inherit flex items-center justify-between ${col.headerBg}`}>
                 <div className="flex items-center gap-2">

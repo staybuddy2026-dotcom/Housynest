@@ -391,11 +391,7 @@ const AdminListings = () => {
             />
           </div>
 
-          {/* Add New Button */}
-          <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#062F26] text-white rounded-lg hover:bg-[#05261e] transition-colors shrink-0 w-full sm:w-auto">
-            <Icon icon="lucide:plus" className="w-4 h-4" />
-            <span className="text-sm font-bold">Add New Listing</span>
-          </button>
+
         </div>
       </div>
 

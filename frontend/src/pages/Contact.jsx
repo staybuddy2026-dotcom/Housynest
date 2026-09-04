@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import loginImg from '../assets/loginimg.png';
 import contactImg from '../assets/contact.png';
+import CustomDropdown from '../components/list-property/CustomDropdown';
 
 const contactInfoData = [
   {
@@ -33,8 +34,8 @@ const contactInfoData = [
     content: (
       <p className="text-xs sm:text-xs text-slate-600 font-medium leading-relaxed">
         HousyNest Technologies Pvt. Ltd.<br />
-        Koramangala, Bengaluru,<br />
-        Karnataka 560034, India
+        SG Highway, Ahmedabad,<br />
+        Gujarat 380015, India
       </p>
     )
   },
@@ -51,6 +52,13 @@ const contactInfoData = [
   }
 ];
 
+const topicOptions = [
+  { value: 'rent', label: 'I want to rent a property' },
+  { value: 'list', label: 'I want to list my property' },
+  { value: 'support', label: 'General Support' },
+  { value: 'other', label: 'Other Lead' }
+];
+
 const Contact = () => {
   const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
@@ -61,6 +69,7 @@ const Contact = () => {
     message: ''
   });
   const [status, setStatus] = useState({ loading: false, success: false, error: null });
+  const [isTopicFocused, setIsTopicFocused] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id.replace('contact', '').toLowerCase()]: e.target.value });
@@ -109,6 +118,8 @@ const Contact = () => {
             alt="Background"
             className="w-full h-full object-cover object-center lg:object-left brightness-90 opacity-90"
           />
+          {/* Bottom fade to blend with the page background */}
+          <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32 lg:h-40 bg-gradient-to-t from-slate-50 to-transparent"></div>
         </div>
 
         <div className="relative z-10 max-w-340 3xl:max-w-420 mx-auto flex flex-col lg:flex-row gap-4 sm:gap-8 items-center justify-between">
@@ -226,18 +237,19 @@ const Contact = () => {
 
                 {/* Select */}
                 <div className="relative flex items-center group">
-                  <Icon icon="lucide:help-circle" className="absolute left-3.5 w-4 h-4 text-slate-400 group-focus-within:text-[#062F26] group-focus-within:scale-110 transition-all duration-300 z-10" />
-                  <select id="contactTopic" value={formData.topic} onChange={handleChange} className="peer w-full bg-slate-50 border border-slate-200 rounded-lg py-3.5 pr-10 pl-10 text-sm outline-none focus:border-[#062F26] focus:ring-4 focus:ring-[#062F26]/10 focus:bg-white hover:bg-white transition-all duration-300 text-slate-700 font-medium shadow-sm appearance-none cursor-pointer">
-                    <option value="" disabled hidden></option>
-                    <option value="rent">I want to rent a property</option>
-                    <option value="list">I want to list my property</option>
-                    <option value="support">General Support</option>
-                    <option value="other">Other Lead</option>
-                  </select>
-                  <label htmlFor="contactTopic" className="absolute left-10 px-1 transition-all duration-300 pointer-events-none z-10 text-slate-400 peer-focus:text-[#062F26] top-0 -translate-y-1/2 text-xs bg-white rounded-sm">
+                  <Icon icon="lucide:help-circle" className={`absolute left-3.5 w-4 h-4 z-20 pointer-events-none transition-all duration-300 ${isTopicFocused ? 'text-[#062F26] scale-110' : 'text-slate-400'}`} />
+                  <CustomDropdown
+                    options={topicOptions}
+                    value={formData.topic}
+                    onChange={(val) => setFormData({ ...formData, topic: val })}
+                    onToggle={(open) => setIsTopicFocused(open)}
+                    placeholder=" "
+                    containerClassName="w-full"
+                    buttonClassName={`!py-3.5 !pr-4 !pl-10 !text-sm !font-medium !shadow-sm transition-all duration-300 ${isTopicFocused ? '!border-[#062F26] !ring-4 !ring-[#062F26]/10 !bg-white' : '!border-slate-200 !bg-slate-50 hover:!bg-white'}`}
+                  />
+                  <label className={`absolute left-10 px-1 transition-all duration-300 pointer-events-none z-10 rounded-sm ${formData.topic || isTopicFocused ? 'top-0 -translate-y-1/2 text-xs bg-white text-[#062F26]' : 'top-1/2 -translate-y-1/2 text-sm bg-transparent text-slate-400'}`}>
                     How can we help you?
                   </label>
-                  <Icon icon="lucide:chevron-down" className="absolute right-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
 
                 {/* Message */}
@@ -264,9 +276,9 @@ const Contact = () => {
 
       {/* Info Bar overlapping the map and hero */}
       <div className="relative z-20 max-w-340 3xl:max-w-420 mx-auto w-full -mt-12 sm:-mt-16 lg:-mt-24 mb-6 px-4 sm:px-6 xl:px-8">
-        <div className="bg-white rounded-xl shadow-[0_15px_50px_rgba(0,0,0,0.06)] border border-slate-100 p-5 sm:p-6 lg:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 lg:gap-8">
+        <div className="bg-white rounded-xl shadow-[0_15px_50px_rgba(0,0,0,0.06)] border border-slate-100 p-5 sm:p-6 lg:p-8 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-row lg:divide-x lg:divide-slate-200 gap-5 sm:gap-6 lg:gap-0">
           {contactInfoData.map((info) => (
-            <div key={info.id} className="flex gap-3 sm:gap-4">
+            <div key={info.id} className="flex gap-3 sm:gap-4 w-full lg:w-1/4 lg:px-6 xl:px-8 first:lg:pl-0 last:lg:pr-0">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#062F26]/5 flex items-center justify-center shrink-0">
                 <Icon icon={info.icon} className="text-[#062F26] w-4 h-4 sm:w-5 sm:h-5" />
               </div>
@@ -283,7 +295,7 @@ const Contact = () => {
       <div className="w-full px-4 sm:px-6 xl:px-8 mb-0 sm:mb-4">
         <div className="relative w-full h-60 sm:h-100 bg-slate-200 max-w-340 3xl:max-w-420 mx-auto rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] overflow-hidden">
           <iframe
-            src="https://maps.google.com/maps?q=Koramangala,%20Bengaluru&t=&z=13&ie=UTF8&iwloc=&output=embed"
+            src="https://maps.google.com/maps?q=SG%20Highway,%20Ahmedabad&t=&z=13&ie=UTF8&iwloc=&output=embed"
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -303,8 +315,8 @@ const Contact = () => {
                   <h4 className="font-bold text-slate-900 text-sm mb-1">Our Office</h4>
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">
                     HousyNest Technologies Pvt. Ltd.<br />
-                    Koramangala, Bengaluru,<br />
-                    Karnataka 560034, India
+                    SG Highway, Ahmedabad,<br />
+                    Gujarat 380015, India
                   </p>
                 </div>
               </div>

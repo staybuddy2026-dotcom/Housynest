@@ -116,6 +116,7 @@ const tenantSchema = z.object({
   mapLink: z.string().min(1, "Google Maps Link is required").regex(/^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.app\.goo\.gl|maps\.google\.com)\/.*$/, "Must be a valid Google Maps link"),
   nearbyPlaces: z.array(z.any()).optional(),
 
+  numberOfVillas: z.string().optional(),
   bhkType: z.string().min(1, "Required"),
   bathrooms: z.string().optional(),
   balconies: z.string().optional(),

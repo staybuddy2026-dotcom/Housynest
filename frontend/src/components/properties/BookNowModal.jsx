@@ -17,6 +17,23 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingId, setBookingId] = useState('');
   const [subscribedBeds, setSubscribedBeds] = useState({});
+  const [discountAmount, setDiscountAmount] = useState(0);
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        const pass = user.visitPass || {};
+        if (pass.passType && pass.passType !== 'none' && (!pass.validUntil || new Date(pass.validUntil) >= new Date())) {
+          if (pass.passType === '5_visits') setDiscountAmount(50);
+          if (pass.passType === 'unlimited') setDiscountAmount(100);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const handleSubscribeWaitlist = async (bedName, roomId, sharingType) => {
     try {
@@ -231,8 +248,12 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
             roomName: currentRoom?.roomName,
             bedName: selectedBedName,
             sharingType: currentRoom?.sharingType,
-            rent: currentRoom?.rent,
+            rent: (currentRoom?.rent || 0) - discountAmount,
             deposit: currentRoom?.deposit
+          } : {},
+          paymentDetails: discountAmount > 0 ? {
+            discountApplied: discountAmount,
+            originalRent: currentRoom?.rent || property.price
           } : {}
         })
       });
@@ -446,9 +467,19 @@ const BookNowModal = ({ isOpen, onClose, property }) => {
                     {isPG ? `Reserved: ${currentRoom?.roomName} (${selectedBedName || 'Bed'})` : property.title}
                   </p>
                   <p className="text-[10px] sm:text-[11px] font-medium text-slate-500">
-                    Rent: <span className="font-bold text-slate-800">₹{currentRoom?.rent?.toLocaleString('en-IN') || property.price}/mo</span>
+                    Rent: 
+                    {discountAmount > 0 ? (
+                      <>
+                        <span className="font-bold text-slate-400 line-through mx-1">₹{(currentRoom?.rent || (property.price ? parseInt(String(property.price).replace(/,/g, ''), 10) : 12000)).toLocaleString('en-IN')}</span>
+                        <span className="font-bold text-slate-800">₹{((currentRoom?.rent || (property.price ? parseInt(String(property.price).replace(/,/g, ''), 10) : 12000)) - discountAmount).toLocaleString('en-IN')}/mo</span>
+                        <span className="ml-1 text-rose-500 font-bold bg-rose-50 px-1 py-0.5 rounded">-₹{discountAmount} Pass Off</span>
+                      </>
+                    ) : (
+                      <span className="font-bold text-slate-800">₹{(currentRoom?.rent || property.price)?.toLocaleString('en-IN')}/mo</span>
+                    )}
+                    
                     {isPG && (
-                      <> • Token (40%): <span className="font-bold text-[#0AA87D]">₹{Math.round((currentRoom?.rent || (property.price ? parseInt(String(property.price).replace(/,/g, ''), 10) : 12000)) * 0.40).toLocaleString('en-IN')}</span></>
+                      <> • Token (40%): <span className="font-bold text-[#0AA87D]">₹{Math.round(((currentRoom?.rent || (property.price ? parseInt(String(property.price).replace(/,/g, ''), 10) : 12000)) - discountAmount) * 0.40).toLocaleString('en-IN')}</span></>
                     )}
                   </p>
                 </div>

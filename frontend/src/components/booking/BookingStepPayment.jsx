@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import { toast } from 'react-hot-toast';
 import { translateWithGoogleFreeApi } from '../../lib/translate';
 
-export const DEFAULT_CONTRACT_TEXT = `<h1>RENTAL / LEAVE AND LICENSE AGREEMENT</h1>
+export const DEFAULT_CONTRACT_TEXT = `<h1>RENTAL AGREEMENT</h1>
 <p style="text-align: center; font-weight: bold;">(11-Month Rental Agreement)</p>
 
 This Leave and License Agreement ("Agreement") is entered into on [agreement_date], at [agreement_city].

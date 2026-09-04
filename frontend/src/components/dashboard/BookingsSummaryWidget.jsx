@@ -32,7 +32,7 @@ const BookingsSummaryWidget = () => {
     fetchData();
   }, []);
 
-  const completed = bookings.filter(b => ['Completed', 'Confirmed', 'Active'].includes(b.status)).length;
+  const completed = bookings.filter(b => ['Moved Out', 'Confirmed', 'Active'].includes(b.status)).length;
   const pending = bookings.filter(b => ['Reserved', 'Pending Payment', 'Pending Request'].includes(b.status)).length;
   const cancelled = bookings.filter(b => b.status === 'Cancelled' || b.status === 'Rejected').length;
 
@@ -121,7 +121,7 @@ const BookingsSummaryWidget = () => {
         {/* Completed */}
         <div className="bg-white border border-slate-100 shadow-sm rounded-xl py-3 flex flex-col items-center justify-center">
           <span className="text-[26px] leading-none font-bold text-[#062F26] mb-1.5">{loading ? '-' : completed}</span>
-          <span className="text-[11px] font-bold text-brand-teal">Completed</span>
+          <span className="text-[11px] font-bold text-brand-teal">Moved Out</span>
         </div>
 
         {/* Pending */}

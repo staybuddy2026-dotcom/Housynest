@@ -22,7 +22,7 @@ export const getOwnerInvoices = async (req, res) => {
       .populate('tenantId', 'fullName email phone')
       .populate({
         path: 'bookingId',
-        select: 'roomDetails personalInfo'
+        select: 'roomDetails personalInfo bookingId'
       })
       .lean();
       
@@ -41,6 +41,7 @@ export const getOwnerInvoices = async (req, res) => {
         _id: b._id,
         bookingId: {
           _id: b._id,
+          bookingId: b.bookingId,
           roomDetails: b.roomDetails,
           personalInfo: b.personalInfo
         },
@@ -82,7 +83,7 @@ export const getTenantInvoices = async (req, res) => {
       .populate('propertyId', 'pgName societyName propertyCategory')
       .populate({
         path: 'bookingId',
-        select: 'roomDetails'
+        select: 'roomDetails bookingId'
       })
       .lean();
 
@@ -100,6 +101,7 @@ export const getTenantInvoices = async (req, res) => {
         _id: b._id,
         bookingId: {
           _id: b._id,
+          bookingId: b.bookingId,
           roomDetails: b.roomDetails
         },
         tenantId: b.tenantId,
@@ -261,7 +263,7 @@ export const generateMonthlyInvoices = async () => {
     );
 
     // Find all active bookings
-    const activeBookings = await Booking.find({ status: { $in: ['Active', 'Confirmed', 'Reserved', 'Completed'] } }).populate('propertyId');
+    const activeBookings = await Booking.find({ status: { $in: ['Active', 'Confirmed', 'Reserved', 'Moved Out'] } }).populate('propertyId');
     
     for (const b of activeBookings) {
       if (!b.moveInDate || !b.propertyId) continue;

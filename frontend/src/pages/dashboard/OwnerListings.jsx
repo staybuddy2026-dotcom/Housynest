@@ -1,19 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import OwnerPropertyDetails from '../../components/dashboard/OwnerPropertyDetails';
 import OwnerPropertyEdit from '../../components/dashboard/OwnerPropertyEdit';
 import CustomDropdown from '../../components/list-property/CustomDropdown';
 
 const OwnerListings = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewingPropertyId = searchParams.get('view');
+  const editingPropertyId = searchParams.get('edit');
+
+  const setViewingPropertyId = (id) => {
+    if (id) {
+      searchParams.set('view', id);
+      setSearchParams(searchParams);
+    } else {
+      searchParams.delete('view');
+      setSearchParams(searchParams);
+    }
+  };
+
+  const setEditingPropertyId = (id) => {
+    if (id) {
+      searchParams.set('edit', id);
+      setSearchParams(searchParams);
+    } else {
+      searchParams.delete('edit');
+      setSearchParams(searchParams);
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [viewType, setViewType] = useState('grid');
   const [listings, setListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewingPropertyId, setViewingPropertyId] = useState(null);
-  const [editingPropertyId, setEditingPropertyId] = useState(null);
   const [propertyToDelete, setPropertyToDelete] = useState(null);
 
   const filterOptions = ['All', ...new Set(listings.map(l => l.status || 'Pending'))].filter(Boolean);
@@ -146,7 +167,7 @@ const OwnerListings = () => {
       </div>
 
       {/* Filters & Search Bar */}
-      <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+      <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 mb-4">
         {/* Search */}
         <div className="relative w-full md:max-w-md">
           <Icon icon="lucide:search" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -174,13 +195,13 @@ const OwnerListings = () => {
           <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-1 shrink-0">
             <button
               onClick={() => setViewType('grid')}
-              className={`p-2 rounded-md transition-colors ${viewType === 'grid' ? 'bg-white shadow-sm text-brand-teal' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`p-2 rounded-md cursor-pointer transition-colors ${viewType === 'grid' ? 'bg-white shadow-sm text-brand-teal' : 'text-slate-400 hover:text-slate-600'}`}
             >
               <Icon icon="lucide:layout-grid" className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewType('list')}
-              className={`p-2 rounded-md transition-colors ${viewType === 'list' ? 'bg-white shadow-sm text-brand-teal' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`p-2 rounded-md cursor-pointer transition-colors ${viewType === 'list' ? 'bg-white shadow-sm text-brand-teal' : 'text-slate-400 hover:text-slate-600'}`}
             >
               <Icon icon="lucide:list" className="w-4 h-4" />
             </button>
@@ -190,7 +211,7 @@ const OwnerListings = () => {
 
       {/* Property Display */}
       {filteredListings.length > 0 ? (
-        <div className={viewType === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4! gap-4" : "flex flex-col gap-4"}>
+        <div className={viewType === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4! gap-4" : "flex flex-col gap-2"}>
           {filteredListings.map((rawListing) => {
             const title = rawListing.pgName || rawListing.societyName || rawListing.propertyCategory || 'Property';
             const type = rawListing.propertyType === 'PG' ? 'PG / Co-living' : 'Flat / Apartment';

@@ -1092,8 +1092,19 @@ const AdminUsers = () => {
 
               {selectedUser.role === 'owner' && (
                 <div className="bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
-                  <p className="text-[10px] font-bold uppercase text-blue-800">Listed Properties</p>
-                  <p className="font-bold text-[#062F26] text-base mt-1">{selectedUser.propertiesCount || 0} Total Properties Listed</p>
+                  <p className="text-[10px] font-bold uppercase text-blue-800 mb-2">Listed Properties ({selectedUser.propertiesCount || 0})</p>
+                  {selectedUser.properties && selectedUser.properties.length > 0 ? (
+                    <div className="space-y-2 mt-2 max-h-[150px] overflow-y-auto pr-1">
+                      {selectedUser.properties.map((prop, idx) => (
+                        <div key={idx} className="bg-white p-2.5 rounded-lg border border-blue-100 shadow-sm flex flex-col">
+                          <span className="text-sm font-bold text-slate-800">{prop.pgName || prop.societyName || prop.propertyCategory || 'Property'}</span>
+                          <span className="text-[11px] text-slate-500 font-medium mt-0.5">{prop.locality ? `${prop.locality}, ` : ''}{prop.city || 'Unknown Location'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="font-bold text-[#062F26] text-sm mt-1">No properties listed yet</p>
+                  )}
                 </div>
               )}
             </div>

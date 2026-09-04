@@ -1,13 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import PropertyListingCard from '../properties/PropertyListingCard';
 
-
-// import { MOCK_PROPERTIES } from '../../data/mockProperties';
-
-// We will fetch properties from the backend API
-
 const FeaturedProperties = () => {
+  const navigate = useNavigate();
   const scrollContainerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -88,7 +85,10 @@ const FeaturedProperties = () => {
           </div>
         </div>
 
-        <button className="group relative overflow-hidden hidden sm:flex items-center justify-center cursor-pointer px-6 py-2.5 rounded-md border border-gray-200 text-[#04473a] font-bold text-sm hover:border-[#04473a] hover:bg-teal-50 transition-all shadow-sm">
+        <button
+          onClick={() => navigate('/properties')}
+          className="group relative overflow-hidden hidden sm:flex items-center justify-center cursor-pointer px-6 py-2.5 rounded-md border border-gray-200 text-[#04473a] font-bold text-sm hover:border-[#04473a] hover:bg-teal-50 transition-all shadow-sm"
+        >
           <Icon
             icon="lucide:arrow-right"
             width="16"
@@ -150,7 +150,10 @@ const FeaturedProperties = () => {
 
       {/* Mobile only View All button */}
       <div className="mt-0 sm:mt-2 flex sm:hidden justify-center pb-6">
-        <button className="group relative overflow-hidden flex items-center justify-center cursor-pointer px-6 py-3 rounded-md border border-gray-200 text-[#04473a] font-bold text-sm hover:border-[#04473a] hover:bg-teal-50 transition-all w-full shadow-sm">
+        <button
+          onClick={() => navigate('/properties')}
+          className="group relative overflow-hidden flex items-center justify-center cursor-pointer px-6 py-3 rounded-md border border-gray-200 text-[#04473a] font-bold text-sm hover:border-[#04473a] hover:bg-teal-50 transition-all w-full shadow-sm"
+        >
           <Icon
             icon="lucide:arrow-right"
             width="16"

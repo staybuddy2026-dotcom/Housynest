@@ -153,7 +153,7 @@ const TabNoticePeriods = ({ propertyId }) => {
               </div>
               <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                 b.moveOutRequest?.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                b.moveOutRequest?.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                b.moveOutRequest?.status === 'Moved Out' ? 'bg-emerald-100 text-emerald-700' :
                 'bg-red-100 text-red-700'
               }`}>
                 {b.moveOutRequest?.status}
@@ -228,7 +228,7 @@ const TabNoticePeriods = ({ propertyId }) => {
                 </button>
               </div>
               <p className="text-xs text-slate-500 mt-2">
-                This will mark the booking as Completed and release the bed/room. Make sure to check the Condition Reports before processing deductions.
+                This will mark the booking as Moved Out and release the bed/room. Make sure to check the Condition Reports before processing deductions.
               </p>
             </div>
           )}

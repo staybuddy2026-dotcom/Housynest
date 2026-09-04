@@ -354,9 +354,17 @@ const TenantContracts = () => {
 
   return (
     <div className="animate-fadeIn max-w-340 3xl:max-w-420 mx-auto pb-10 space-y-5">
-      <div className="pt-2">
-        <h2 className="text-3xl font-bold text-[#062F26] tracking-tight mb-2">My Contracts</h2>
-        <p className="text-sm text-slate-500 font-medium">Rental contracts waiting for your signature</p>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-300 pb-4 pt-2">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-[#062F26]/5 border border-[#062F26]/10 flex items-center justify-center shrink-0 shadow-sm">
+            <Icon icon="lucide:file-signature" className="w-6 h-6 text-[#062F26]" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-[#062F26]">My Contracts</h2>
+            <p className="text-sm text-slate-500 font-medium">Rental contracts waiting for your signature</p>
+          </div>
+        </div>
       </div>
       {!loading && contracts.filter(c => c.status === "PENDING_TENANT_REVIEW").length > 0 && (
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold bg-amber-100 text-amber-700">
@@ -378,15 +386,15 @@ const TenantContracts = () => {
                 const cfg = STATUS[c.status] ?? STATUS.PENDING_TENANT_REVIEW;
                 const needsAction = c.status === "PENDING_TENANT_REVIEW";
                 return (
-                  <div key={c._id} onClick={() => openContract(c)} className={`bg-white border rounded-xl p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:shadow-md transition-all group ${needsAction ? 'border-amber-300 bg-amber-50/30 hover:border-amber-400' : 'border-slate-200 hover:border-brand-teal/30'}`}>
+                  <div key={c._id} onClick={() => openContract(c)} className={`bg-white border rounded-xl p-4 sm:p-5 flex items-center justify-between cursor-pointer transition-all duration-300 group hover:-translate-y-1 hover:shadow-lg ${needsAction ? 'border-amber-300 bg-amber-50/50 hover:border-amber-400 hover:bg-amber-50' : 'border-slate-200 hover:border-brand-teal/40 hover:bg-[#F4F9F8]'}`}>
                     <div className="flex items-center gap-4 sm:gap-5">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-colors ${needsAction ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-brand-teal/5 group-hover:text-brand-teal'}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-colors shadow-sm ${needsAction ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-brand-teal group-hover:border-brand-teal group-hover:text-white'}`}>
                         <Icon icon="lucide:file-signature" className="w-5 h-5" />
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-3 mb-1">
-                          <h3 className="font-bold text-[15px] sm:text-base text-slate-800">Contract for {c.propertyAddress ? c.propertyAddress.split(',')[0] : 'Property'}</h3>
-                          <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${cfg.light}`}>
+                          <h3 className="font-bold text-[15px] sm:text-base text-slate-800 group-hover:text-brand-teal transition-colors">Contract for {c.propertyAddress ? c.propertyAddress.split(',')[0] : 'Property'}</h3>
+                          <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm ${cfg.light}`}>
                             <Icon icon={cfg.icon} className="w-3.5 h-3.5" /> {cfg.label}
                           </span>
                           {needsAction && (
@@ -395,13 +403,17 @@ const TenantContracts = () => {
                             </span>
                           )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 font-medium">
-                          {c.ownerId && <span className="flex items-center gap-1.5"><Icon icon="lucide:user" className="w-3.5 h-3.5" />Owner: {c.ownerId.fullName}</span>}
-                          {c.monthlyRent > 0 && <span className="flex items-center gap-1.5"><Icon icon="lucide:indian-rupee" className="w-3.5 h-3.5" />{c.monthlyRent.toLocaleString('en-IN')}/mo</span>}
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 font-medium group-hover:text-slate-600 transition-colors">
+                          {c.ownerId && <span className="flex items-center gap-1.5"><Icon icon="lucide:user" className="w-4 h-4" />Owner: {c.ownerId.fullName}</span>}
+                          {c.monthlyRent > 0 && <span className="flex items-center gap-1.5"><Icon icon="lucide:indian-rupee" className="w-4 h-4" />{c.monthlyRent.toLocaleString('en-IN')}/mo</span>}
                         </div>
                       </div>
                     </div>
-                    <Icon icon="lucide:chevron-right" className={`w-5 h-5 transition-colors shrink-0 ${needsAction ? 'text-amber-400 group-hover:text-amber-600' : 'text-slate-300 group-hover:text-brand-teal'}`} />
+                    <div className="flex flex-col items-center justify-center ml-2 shrink-0">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${needsAction ? 'group-hover:bg-amber-100' : 'group-hover:bg-brand-teal/10'}`}>
+                        <Icon icon="lucide:chevron-right" className={`w-5 h-5 transition-all duration-300 transform group-hover:translate-x-1 ${needsAction ? 'text-amber-400 group-hover:text-amber-600' : 'text-slate-300 group-hover:text-brand-teal'}`} />
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -429,15 +441,15 @@ const TenantContracts = () => {
                       return;
                     }
                     window.open(`/api/bookings/${b._id}/download-agreement?token=${localStorage.getItem('accessToken')}`, '_blank');
-                  }} className={`bg-white border rounded-xl p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:shadow-md transition-all group ${needsAction ? 'border-amber-300 bg-amber-50/30 hover:border-amber-400' : 'border-slate-200 hover:border-brand-teal/30'}`}>
+                  }} className={`bg-white border rounded-xl p-4 sm:p-5 flex items-center justify-between cursor-pointer transition-all duration-300 group hover:-translate-y-1 hover:shadow-lg ${needsAction ? 'border-amber-300 bg-amber-50/50 hover:border-amber-400 hover:bg-amber-50' : 'border-slate-200 hover:border-brand-teal/40 hover:bg-[#F4F9F8]'}`}>
                     <div className="flex items-center gap-4 sm:gap-5">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-colors ${needsAction ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-brand-teal/5 group-hover:text-brand-teal'}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 transition-colors shadow-sm ${needsAction ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-brand-teal group-hover:border-brand-teal group-hover:text-white'}`}>
                         <Icon icon="lucide:file-text" className="w-5 h-5" />
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-3 mb-1">
-                          <h3 className="font-bold text-[15px] sm:text-base text-slate-800">Agreement for {propertyName}</h3>
-                          <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${isSigned ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                          <h3 className="font-bold text-[15px] sm:text-base text-slate-800 group-hover:text-brand-teal transition-colors">Agreement for {propertyName}</h3>
+                          <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm ${isSigned ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                             <Icon icon={isSigned ? "lucide:check-circle" : "lucide:clock"} className="w-3.5 h-3.5" /> 
                             {isSigned ? 'Fully Executed' : 'Awaiting Signature'}
                           </span>
@@ -447,13 +459,17 @@ const TenantContracts = () => {
                             </span>
                           )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 font-medium">
-                          {b.ownerId && <span className="flex items-center gap-1.5"><Icon icon="lucide:user" className="w-3.5 h-3.5" />Owner: {b.ownerId.fullName}</span>}
-                          {b.monthlyRent > 0 && <span className="flex items-center gap-1.5"><Icon icon="lucide:indian-rupee" className="w-3.5 h-3.5" />{b.monthlyRent.toLocaleString('en-IN')}/mo</span>}
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 font-medium group-hover:text-slate-600 transition-colors">
+                          {b.ownerId && <span className="flex items-center gap-1.5"><Icon icon="lucide:user" className="w-4 h-4" />Owner: {b.ownerId.fullName}</span>}
+                          {b.monthlyRent > 0 && <span className="flex items-center gap-1.5"><Icon icon="lucide:indian-rupee" className="w-4 h-4" />{b.monthlyRent.toLocaleString('en-IN')}/mo</span>}
                         </div>
                       </div>
                     </div>
-                    <Icon icon="lucide:chevron-right" className={`w-5 h-5 transition-colors shrink-0 ${needsAction ? 'text-amber-400 group-hover:text-amber-600' : 'text-slate-300 group-hover:text-brand-teal'}`} />
+                    <div className="flex flex-col items-center justify-center ml-2 shrink-0">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${needsAction ? 'group-hover:bg-amber-100' : 'group-hover:bg-brand-teal/10'}`}>
+                        <Icon icon={isSigned ? "lucide:download" : "lucide:chevron-right"} className={`w-5 h-5 transition-all duration-300 transform ${needsAction ? 'text-amber-400 group-hover:text-amber-600 group-hover:translate-x-1' : isSigned ? 'text-slate-300 group-hover:text-brand-teal group-hover:translate-y-1' : 'text-slate-300 group-hover:text-brand-teal group-hover:translate-x-1'}`} />
+                      </div>
+                    </div>
                   </div>
                 );
               })}

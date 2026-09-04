@@ -74,7 +74,7 @@ const TabRentCollection = ({ bookings, invoices, property, setSelectedTenant }) 
   const rentItems = [];
   const today = new Date();
 
-  const activeBookings = bookings.filter(b => ['Active', 'Confirmed', 'Completed', 'Reserved'].includes(b.status));
+  const activeBookings = bookings.filter(b => ['Active', 'Confirmed', 'Moved Out', 'Reserved'].includes(b.status));
 
   let totalExpected = 0;
   let totalCollected = 0;

@@ -364,7 +364,7 @@ const TenantBookings = () => {
                     </td>
                     <td className="p-4">
                       <div className="inline-block px-2.5 py-1 bg-brand-teal/10 text-brand-teal rounded-lg font-bold text-[13px] uppercase tracking-wide group-hover:bg-brand-teal group-hover:text-white transition-colors">
-                        {booking._id.substring(booking._id.length - 8).toUpperCase()}
+                        {booking.bookingId || booking._id.substring(booking._id.length - 8).toUpperCase()}
                       </div>
                     </td>
                     <td className="p-4">
@@ -537,7 +537,7 @@ const TenantBookings = () => {
             ];
 
             const summary = [
-              { label: 'Booking ID', value: booking._id.substring(booking._id.length - 8).toUpperCase() },
+              { label: 'Booking ID', value: booking.bookingId || booking._id.substring(booking._id.length - 8).toUpperCase() },
               { label: 'Booking Date', value: bookingDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) },
               { label: 'Room', value: booking.roomDetails?.roomName || 'N/A' },
               { label: 'Bed', value: booking.roomDetails?.bedName || 'N/A' },

@@ -3,6 +3,7 @@ import { ReactLenis } from 'lenis/react';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import CustomDropdown from '../../components/list-property/CustomDropdown';
+import { jsPDF } from "jspdf";
 
 const OwnerRentTracking = () => {
   const [invoices, setInvoices] = useState([]);
@@ -45,9 +46,186 @@ const OwnerRentTracking = () => {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error('Failed to load rent data');
+      toast.error('Error connecting to server');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadReceipt = async (tx) => {
+    toast.loading('Generating receipt...', { id: 'receipt' });
+    try {
+      const doc = new jsPDF();
+      
+      const getLogoBase64 = async () => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'Anonymous';
+          img.src = '/src/assets/logo.png';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          };
+          img.onerror = () => resolve(null);
+        });
+      };
+
+      const logoBase64 = await getLogoBase64();
+      
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 14, 12, 40, 12);
+      } else {
+        doc.setFontSize(22);
+        doc.setTextColor(10, 168, 125);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Housynest', 14, 20);
+      }
+      
+      doc.setFontSize(16);
+      doc.setTextColor(10, 168, 125);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PAYMENT RECEIPT', 105, 22, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      
+      doc.setFontSize(12);
+      doc.setTextColor(40, 40, 40);
+      doc.text(`Receipt #${tx._id?.substring(0, 8).toUpperCase()}`, 196, 20, { align: 'right' });
+      doc.setFontSize(10);
+      doc.text(`Date: ${new Date(tx.paidAt || tx.updatedAt || Date.now()).toLocaleDateString('en-GB')}`, 196, 26, { align: 'right' });
+      
+      doc.setDrawColor(230, 230, 230);
+      doc.line(14, 32, 196, 32);
+      
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 150);
+      doc.text('PAID TO', 14, 42);
+      doc.text('BILLED TO', 196, 42, { align: 'right' });
+      
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
+      doc.setFont('helvetica', 'bold');
+      const propertyName = selectedTenantHistory?.tenant?.propertyId?.societyName || selectedTenantHistory?.tenant?.propertyId?.pgName || 'Property Owner';
+      doc.text(propertyName, 14, 48);
+      
+      doc.text(selectedTenantHistory?.tenant?.tenantId?.fullName || 'Tenant', 196, 48, { align: 'right' });
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      let roomStr = 'Entire Property';
+      if (tx.bookingId?.roomDetails) {
+        const rName = tx.bookingId.roomDetails.roomName || '';
+        roomStr = rName.toLowerCase().includes('room') ? rName : `Room ${rName}`;
+        if (tx.bookingId.roomDetails.bedName) {
+           roomStr += `, ${tx.bookingId.roomDetails.bedName}`;
+        }
+      }
+      
+      doc.text(roomStr, 14, 54);
+      doc.text(selectedTenantHistory?.tenant?.tenantId?.email || 'N/A', 196, 54, { align: 'right' });
+      doc.text(`Booking ID: BKG-${(tx.bookingId?.bookingId || tx.bookingId?._id || tx._id)?.substring(0, 8).toUpperCase()}`, 196, 60, { align: 'right' });
+      
+      // Table Header
+      const startY = 70;
+      doc.setDrawColor(230, 230, 230);
+      doc.setFillColor(248, 250, 252);
+      doc.rect(14, startY, 182, 10, 'FD');
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 100, 100);
+      doc.text("Description", 20, startY + 7);
+      doc.text("Amount", 188, startY + 7, { align: 'right' });
+      
+      // Table Content
+      doc.setTextColor(40, 40, 40);
+      doc.setFont("helvetica", "normal");
+      
+      let currentY = startY + 10;
+      
+      let finalRentAmt = tx.bookingId?.roomDetails?.rent || tx.bookingId?.roomDetails?.rentAmount || tx.bookingId?.paymentDetails?.rentAmount || 0;
+      
+      if (!finalRentAmt) {
+        if (tx.propertyId?.monthlyRent) {
+          finalRentAmt = Number(String(tx.propertyId.monthlyRent).replace(/\D/g, ''));
+        } else if (tx.propertyId?.price) {
+          finalRentAmt = Number(String(tx.propertyId.price).replace(/\D/g, ''));
+        } else if (tx.amount > 1000) {
+          const possibleRent = (tx.amount - 800) / 2;
+          if (possibleRent > 0) finalRentAmt = possibleRent;
+        }
+      }
+
+      if (!finalRentAmt || finalRentAmt === 0) {
+        finalRentAmt = tx.amount; 
+      }
+
+      let stamp = 0;
+      let secDep = 0;
+      let isMoveIn = false;
+
+      if (finalRentAmt > 0 && tx.amount >= finalRentAmt + 800) {
+        isMoveIn = true;
+        stamp = 800;
+        secDep = tx.amount - finalRentAmt - stamp;
+      }
+      
+      const formatDt = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+      const periodStr = tx.billingPeriodStart && tx.billingPeriodEnd ? ` (${formatDt(tx.billingPeriodStart)} - ${formatDt(tx.billingPeriodEnd)})` : '';
+      
+      if (isMoveIn) {
+        const items = [
+          { label: `Rent${periodStr}`, amount: finalRentAmt },
+          { label: 'Security Deposit', amount: secDep > 0 ? secDep : 0 }
+        ];
+        if (stamp > 0) items.push({ label: 'Extra Charges (Stamp & Agreement)', amount: stamp });
+        
+        items.forEach(item => {
+          doc.rect(14, currentY, 182, 12);
+          doc.text(item.label, 20, currentY + 8);
+          doc.text(`Rs. ${item.amount.toLocaleString('en-IN')}`, 188, currentY + 8, { align: 'right' });
+          currentY += 12;
+        });
+      } else {
+        doc.rect(14, currentY, 182, 16); 
+        doc.text(`Rent${periodStr}`, 20, currentY + 7);
+        doc.text(`Rs. ${tx.amount.toLocaleString('en-IN')}`, 188, currentY + 7, { align: 'right' });
+        currentY += 16;
+      }
+
+      const finalY = currentY + 6;
+
+      // Total Summary
+      doc.setFillColor(248, 250, 252);
+      doc.rect(14, finalY, 182, 16, 'F');
+      doc.rect(14, finalY, 182, 16); 
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(40, 40, 40);
+      doc.text("Total Paid:", 20, finalY + 11);
+      doc.setTextColor(10, 168, 125);
+      doc.text(`Rs. ${tx.amount?.toLocaleString('en-IN')}`, 188, finalY + 11, { align: 'right' });
+
+      // Add Watermark (center) over everything so it's not clipped
+      if (logoBase64) {
+        doc.setGState(new doc.GState({ opacity: 0.08 }));
+        doc.addImage(logoBase64, 'PNG', 45, 130, 120, 36);
+        doc.setGState(new doc.GState({ opacity: 1.0 }));
+      }
+      
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 150);
+      doc.setFont('helvetica', 'normal');
+      doc.text('This is a computer generated receipt and does not require a physical signature.', 105, 270, { align: 'center' });
+      
+      doc.save(`Receipt_${tx._id?.substring(0, 8) || 'Rent'}.pdf`);
+      toast.success('Receipt downloaded!', { id: 'receipt' });
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+      toast.error('Failed to generate receipt.', { id: 'receipt' });
     }
   };
 
@@ -90,7 +268,7 @@ const OwnerRentTracking = () => {
   };
 
   const mappedTenants = bookings.filter(b => {
-    return b.status === 'Confirmed' || b.status === 'Reserved' || b.status === 'Active' || b.status === 'Completed';
+    return b.status === 'Confirmed' || b.status === 'Reserved' || b.status === 'Active' || b.status === 'Moved Out';
   }).map(b => {
     const tenantName = b.tenantId?.fullName || (b.personalInfo?.firstName ? b.personalInfo.firstName + ' ' + (b.personalInfo.lastName || '') : 'Unknown');
     const propertyName = b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property';
@@ -464,24 +642,36 @@ const OwnerRentTracking = () => {
                     <td className="py-2.5 px-5 align-middle">
                       <div className="min-w-0">
                         <p className="font-bold text-slate-800 text-sm truncate max-w-[150px] lg:max-w-[220px]" title={inv.propertyId?.societyName || inv.propertyId?.pgName || inv.propertyId?.propertyCategory || 'Property'}>{inv.propertyId?.societyName || inv.propertyId?.pgName || inv.propertyId?.propertyCategory || 'Property'}</p>
-                        <div className="mt-0.5">
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-[11px] font-medium text-slate-400 truncate max-w-[150px] lg:max-w-[220px]" title={inv.bookingId?.roomDetails?.roomName ? `${inv.bookingId.roomDetails.roomName} • ${inv.bookingId.roomDetails.bedName}` : 'Entire Property'}>{inv.bookingId?.roomDetails?.roomName ? `${inv.bookingId.roomDetails.roomName} • ${inv.bookingId.roomDetails.bedName}` : 'Entire Property'}</p>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${inv.propertyId?.propertyType === 'PG' ? 'bg-purple-100 text-purple-700' : inv.propertyId?.propertyType === 'Tenant' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
                             {inv.propertyId?.propertyType || 'N/A'}
                           </span>
                         </div>
-                        <p className="text-[11px] font-medium text-slate-400 mt-1 truncate max-w-[150px] lg:max-w-[220px]" title={inv.bookingId?.roomDetails?.roomName ? `${inv.bookingId.roomDetails.roomName} • ${inv.bookingId.roomDetails.bedName}` : 'Entire Property'}>{inv.bookingId?.roomDetails?.roomName ? `${inv.bookingId.roomDetails.roomName} • ${inv.bookingId.roomDetails.bedName}` : 'Entire Property'}</p>
                       </div>
                     </td>
                     <td className="py-2.5 px-5 align-middle">
                       <div className="flex items-center justify-center gap-2">
-                        <a href={`tel:${inv.tenantId?.phone || ''}`} className="w-7 h-7 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="Call">
+                        <a href={`tel:${inv.tenantId?.phone || ''}`} className="relative group/icon w-7 h-7 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-colors shadow-sm">
                           <Icon icon="lucide:phone" className="w-3.5 h-3.5" />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 bg-[#062F26] text-white text-[11px] font-bold rounded-md shadow-lg opacity-0 invisible group-hover/icon:opacity-100 group-hover/icon:visible transition-all whitespace-nowrap z-50 pointer-events-none flex items-center gap-1.5 border border-[#094738]">
+                            {inv.tenantId?.phone || 'N/A'}
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-[5px] border-transparent border-t-[#062F26]"></div>
+                          </div>
                         </a>
-                        <a href={`https://wa.me/${(inv.tenantId?.whatsappNumber || inv.tenantId?.phone || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="WhatsApp">
+                        <a href={`https://wa.me/${(inv.tenantId?.whatsappNumber || inv.tenantId?.phone || '').replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="relative group/icon w-7 h-7 rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors shadow-sm">
                           <Icon icon="lucide:message-circle" className="w-3.5 h-3.5" />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 bg-[#062F26] text-white text-[11px] font-bold rounded-md shadow-lg opacity-0 invisible group-hover/icon:opacity-100 group-hover/icon:visible transition-all whitespace-nowrap z-50 pointer-events-none flex items-center gap-1.5 border border-[#094738]">
+                            {inv.tenantId?.whatsappNumber || inv.tenantId?.phone || 'N/A'}
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-[5px] border-transparent border-t-[#062F26]"></div>
+                          </div>
                         </a>
-                        <a href={`mailto:${inv.tenantId?.email || ''}`} className="w-7 h-7 rounded-full bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white flex items-center justify-center transition-colors shadow-sm" title={inv.tenantId?.email || 'Email'}>
+                        <a href={`mailto:${inv.tenantId?.email || ''}`} className="relative group/icon w-7 h-7 rounded-full bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white flex items-center justify-center transition-colors shadow-sm">
                           <Icon icon="lucide:mail" className="w-3.5 h-3.5" />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1 bg-[#062F26] text-white text-[11px] font-bold rounded-md shadow-lg opacity-0 invisible group-hover/icon:opacity-100 group-hover/icon:visible transition-all whitespace-nowrap z-50 pointer-events-none flex items-center gap-1.5 border border-[#094738]">
+                            {inv.tenantId?.email || 'N/A'}
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-[5px] border-transparent border-t-[#062F26]"></div>
+                          </div>
                         </a>
                       </div>
                     </td>
@@ -601,13 +791,24 @@ const OwnerRentTracking = () => {
                           {inv.paidAt && ` • Paid: ${new Date(inv.paidAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <div className="text-base font-bold text-slate-800">
-                          ₹ {inv.amount?.toLocaleString()}
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-base font-bold text-slate-800">
+                            ₹ {inv.amount?.toLocaleString()}
+                          </div>
+                          <div className="text-[10px] font-semibold text-slate-400 mt-0.5">
+                            {inv.paymentMethod || (inv.status === 'Paid' ? 'Online' : 'Not paid')}
+                          </div>
                         </div>
-                        <div className="text-[10px] font-semibold text-slate-400 mt-0.5">
-                          {inv.paymentMethod || (inv.status === 'Paid' ? 'Online' : 'Not paid')}
-                        </div>
+                        {inv.status === 'Paid' && (
+                          <button
+                            onClick={() => handleDownloadReceipt(inv)}
+                            className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-teal hover:border-brand-teal hover:bg-brand-teal/5 transition-colors group"
+                            title="Download Receipt"
+                          >
+                            <Icon icon="lucide:download" className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -184,19 +184,23 @@ export const getAllUsers = async (req, res) => {
     const users = await User.find({ role: { $ne: 'admin' } }).select('-password').sort({ createdAt: -1 }).lean();
     
     const enrichedUsers = await Promise.all(users.map(async (u) => {
+      let isVerified = false;
       if (u.role === 'owner') {
-        const propCount = await Property.countDocuments({ owner: u._id });
-        return { ...u, propertiesCount: propCount };
+        isVerified = u.isAadharVerified || false;
+        const properties = await Property.find({ owner: u._id }).select('pgName societyName propertyCategory locality city status').lean();
+        return { ...u, propertiesCount: properties.length, properties, isVerified };
       } else if (u.role === 'tenant') {
+        isVerified = u.isEmailVerified || false;
         const booking = await Booking.findOne({ tenantId: u._id, status: { $in: ['Confirmed', 'Active'] } })
           .populate('propertyId', 'pgName societyName propertyCategory');
         return {
           ...u,
           assignedProperty: booking ? (booking.propertyId?.pgName || booking.propertyId?.societyName || booking.propertyId?.propertyCategory) : null,
-          assignedRoom: booking?.roomDetails?.roomName || null
+          assignedRoom: booking?.roomDetails?.roomName || null,
+          isVerified
         };
       }
-      return u;
+      return { ...u, isVerified };
     }));
 
     res.json(enrichedUsers);
@@ -517,7 +521,7 @@ export const getOwnerPerformanceAnalytics = async (req, res) => {
     const bookings = await Booking.find({
       ownerId,
       createdAt: { $gte: startDate },
-      status: { $in: ['Pending Payment', 'Confirmed', 'Reserved', 'Active', 'Completed'] }
+      status: { $in: ['Pending Payment', 'Confirmed', 'Reserved', 'Active', 'Moved Out'] }
     });
 
     // 2. Get Leads (Counts)
