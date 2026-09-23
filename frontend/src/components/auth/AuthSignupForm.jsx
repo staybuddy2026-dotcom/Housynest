@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
+import { useLocation } from 'react-router-dom';
 
 const signupSchema = z.object({
   role: z.string(),
@@ -34,7 +35,10 @@ const signupSchema = z.object({
 });
 
 const AuthSignupForm = ({ onOtpSent, onSuccess }) => {
-  const [role, setRole] = useState('tenant');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialRole = searchParams.get('role') || 'tenant';
+  const [role, setRole] = useState(initialRole);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +57,7 @@ const AuthSignupForm = ({ onOtpSent, onSuccess }) => {
 
   const { register, handleSubmit, setValue, trigger, formState: { errors } } = useForm({
     resolver: zodResolver(signupSchema),
-    defaultValues: { role: 'tenant', terms: false }
+    defaultValues: { role: initialRole, terms: false }
   });
 
   useEffect(() => {

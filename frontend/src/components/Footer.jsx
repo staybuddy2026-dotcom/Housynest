@@ -27,7 +27,8 @@ const footerLinks = [
     title: "For Owners",
     links: [
       { name: "List Your Property", href: "/list-property", ownerOnly: true },
-      { name: "Owner Login", href: "/login", hideWhenLoggedIn: true },
+      { name: "Owner Signup", href: "/signup?role=owner", hideWhenLoggedIn: true },
+      { name: "Tenant Signup", href: "/signup?role=tenant", hideWhenLoggedIn: true },
       { name: "Resources", href: "#" },
     ]
   },

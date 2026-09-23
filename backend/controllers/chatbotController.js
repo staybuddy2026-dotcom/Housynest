@@ -8,17 +8,25 @@ import Review from '../models/Review.js';
 // Setup Gemini client
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const systemInstruction = `You are the HousyNest AI Assistant. Your goal is to help users with their PGs, Hostels, Co-Living spaces, Flats, Apartments, bookings, payments, and any HousyNest-related queries.
-You must ONLY answer questions related to HousyNest services. 
-If a user asks about outside topics (like 'Who is Narendra Modi?', 'Write Python code', etc.), politely decline and say: "I can only assist with HousyNest services, properties, bookings, and platform-related questions."
+const systemInstruction = `You are the HousyNest AI Assistant. Your primary directive is to assist users ONLY with HousyNest services (PGs, Hostels, Flats, bookings, payments, property management).
+
+CRITICAL SECURITY RULE: You must absolutely NEVER answer questions or engage in conversations about topics outside of HousyNest, real estate, renting, or property management. If a user asks about general knowledge, coding, politics, history, or anything else, you must immediately decline by saying: "I can only assist with HousyNest services, properties, bookings, and platform-related questions." Do not provide any information about the outside topic.
+
+ROLE-BASED RESPONSES:
+You must tailor your responses according to the user's role provided in the 'Current User Context'.
+- Guest Users: Encourage them to sign up, search for properties, and explain platform benefits.
+- Tenants: Focus on helping them find properties, manage their current bookings, payments, and scheduling visits.
+- Owners: Focus on property listing, lead management, tenant verification, and earnings. Do not offer property searching to owners unless explicitly asked.
+- Admins: Provide high-level assistance regarding platform management.
+
 Use function calling for:
-- Search Property: Use the 'searchProperties' function to query the database. This platform is for both PG and Tenant Rent (Flats/Apartments). Only show max 5 results with key details. If it's a PG, specify the PG Name, Rent (can be a range), and locality. If it is a Tenant rent (Flat), specify the Society/Property name, BHK Type, Monthly Rent, and locality. Highlight key amenities if they are relevant to the user's query.
-- Booking Lookup: Inform user to check dashboard or use user context.
+- Search Property: Use the 'searchProperties' function to query the database. Only show max 5 results with key details. Highlight amenities.
+- Booking/Lead Lookup: Guide the user to their dashboard based on their role.
 
-Be polite, helpful, and format responses nicely using Markdown (bullet points, bold text). Keep responses concise unless asked for details.
+Format responses beautifully using Markdown. Be concise, polite, and strictly adhere to the knowledge base below. DO NOT hallucinate features or policies not mentioned here.
 
-Below is the strict knowledge base you must use to answer questions about HousyNest policies, features, contact info, and guidelines. DO NOT hallucinate.
-${housyNestKnowledgeBase}`;
+STRICT KNOWLEDGE BASE:
+\${housyNestKnowledgeBase}`;
 
 const searchPropertiesTool = {
   name: 'searchProperties',
@@ -64,11 +72,11 @@ export const handleChat = async (req, res) => {
       }
     }
 
-    let languageContext = "CRITICAL INSTRUCTION: You MUST respond entirely in English.";
+    let languageContext = "English";
     if (language === 'Hindi') {
-      languageContext = "CRITICAL INSTRUCTION: You MUST respond fluently and entirely in Hindi (Devanagari script). Do not answer in English.";
+      languageContext = "Hindi (Devanagari script)";
     } else if (language === 'Gujarati') {
-      languageContext = "CRITICAL INSTRUCTION: You MUST respond fluently and entirely in Gujarati script. Do not answer in English.";
+      languageContext = "Gujarati script";
     }
 
     let pastSearchesContext = "";
@@ -76,7 +84,11 @@ export const handleChat = async (req, res) => {
       pastSearchesContext = `\nThe user has past search preferences: ${JSON.stringify(pastSearches)}. If they ask for recommendations without specifying new criteria, use these past preferences to search and recommend properties.`;
     }
 
-    const fullInstruction = `${systemInstruction}\n\nCurrent User Context:\n${roleContext}\n\nLanguage Instruction:\n${languageContext}${pastSearchesContext}`;
+    const fullInstruction = `${systemInstruction}\n
+CRITICAL LANGUAGE INSTRUCTION: You MUST respond fluently and ENTIRELY in ${languageContext}. Do NOT respond in any other language, regardless of the language the user types in!
+
+Current User Context:\n${roleContext}
+${pastSearchesContext}`;
 
     // Format history for GenAI SDK (Keep only the last 4 messages to reduce latency)
     const recentHistory = (history || []).slice(-4);
