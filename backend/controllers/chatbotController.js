@@ -26,7 +26,7 @@ Use function calling for:
 Format responses beautifully using Markdown. Be concise, polite, and strictly adhere to the knowledge base below. DO NOT hallucinate features or policies not mentioned here.
 
 STRICT KNOWLEDGE BASE:
-\${housyNestKnowledgeBase}`;
+${housyNestKnowledgeBase}`;
 
 const searchPropertiesTool = {
   name: 'searchProperties',
@@ -43,13 +43,17 @@ const searchPropertiesTool = {
   },
 };
 
+const escapeRegex = (text) => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export const handleChat = async (req, res) => {
   try {
     const { message, history, language, pastSearches } = req.body;
     let currentUser = null;
 
-    // Extract user from HttpOnly refreshToken
-    const refreshToken = req.cookies.refreshToken;
+    // Identify the user: the website sends its HttpOnly refreshToken cookie, the mobile app a Bearer token
+    const authHeader = req.headers.authorization || '';
+    const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    const refreshToken = req.cookies.refreshToken || bearerToken;
     if (refreshToken) {
       try {
         const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
@@ -128,6 +132,7 @@ ${pastSearchesContext}`;
 
     let finalReply = "";
     let extractedPreferences = null;
+    let matchedProperties = [];
 
     // Check if a tool was called
     if (response.functionCalls && response.functionCalls.length > 0) {
@@ -140,17 +145,17 @@ ${pastSearchesContext}`;
         if (args.city) {
           andConditions.push({
             $or: [
-              { city: new RegExp(args.city, 'i') },
-              { locality: new RegExp(args.city, 'i') },
-              { address: new RegExp(args.city, 'i') }
+              { city: new RegExp(escapeRegex(args.city), 'i') },
+              { locality: new RegExp(escapeRegex(args.city), 'i') },
+              { address: new RegExp(escapeRegex(args.city), 'i') }
             ]
           });
         }
         if (args.propertyName) {
           andConditions.push({
             $or: [
-              { pgName: new RegExp(args.propertyName, 'i') },
-              { societyName: new RegExp(args.propertyName, 'i') }
+              { pgName: new RegExp(escapeRegex(args.propertyName), 'i') },
+              { societyName: new RegExp(escapeRegex(args.propertyName), 'i') }
             ]
           });
         }
@@ -177,7 +182,7 @@ ${pastSearchesContext}`;
         // Query DB
         const rawProperties = await Property.find(query)
           .limit(30)
-          .select('pgName societyName propertyType city locality address monthlyRent preferredGender status bhkType rooms pgPricing societyAmenities commonAmenities');
+          .select('pgName societyName propertyType city locality address monthlyRent preferredGender status bhkType rooms pgPricing societyAmenities commonAmenities images');
         
         const propertyIds = rawProperties.map(p => p._id);
         const reviewsAggregation = await Review.aggregate([
@@ -215,6 +220,8 @@ ${pastSearchesContext}`;
             }
 
             return {
+              id: p._id.toString(),
+              image: p.images?.[0]?.url || null,
               name: p.pgName || p.societyName || 'Property',
               type: p.propertyType,
               bhk: p.bhkType,
@@ -238,9 +245,13 @@ ${pastSearchesContext}`;
         // Take top 5 to avoid overloading the prompt context
         filteredProps = filteredProps.slice(0, 5);
 
-        let toolResponseText = filteredProps.length > 0 
-          ? JSON.stringify(filteredProps) 
+        // The model doesn't need ids or image URLs; the clients get them in `properties`.
+        let toolResponseText = filteredProps.length > 0
+          ? JSON.stringify(filteredProps.map(({ id, image, ...rest }) => rest))
           : "No properties found matching criteria.";
+        matchedProperties = filteredProps.map(({ id, name, city, locality, minPrice, maxPrice, image, rating }) => ({
+          id, name, city, locality, minPrice, maxPrice, image, rating
+        }));
 
         // Send function response back to the model
         const followUp = await ai.models.generateContent({
@@ -270,7 +281,7 @@ ${pastSearchesContext}`;
       finalReply = response.text;
     }
 
-    res.status(200).json({ reply: finalReply, extractedPreferences });
+    res.status(200).json({ reply: finalReply, extractedPreferences, properties: matchedProperties });
   } catch (error) {
     console.error("Chatbot Error:", error);
     res.status(500).json({ message: 'Internal Server Error' });

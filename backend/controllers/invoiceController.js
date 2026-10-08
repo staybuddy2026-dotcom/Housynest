@@ -262,8 +262,8 @@ export const generateMonthlyInvoices = async () => {
       { $set: { status: 'Overdue' } }
     );
 
-    // Find all active bookings
-    const activeBookings = await Booking.find({ status: { $in: ['Active', 'Confirmed', 'Reserved', 'Moved Out'] } }).populate('propertyId');
+    // Find all active bookings (a tenant who has moved out is no longer billed rent)
+    const activeBookings = await Booking.find({ status: { $in: ['Active', 'Confirmed', 'Reserved'] } }).populate('propertyId');
     
     for (const b of activeBookings) {
       if (!b.moveInDate || !b.propertyId) continue;

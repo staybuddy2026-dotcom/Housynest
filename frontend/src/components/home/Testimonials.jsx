@@ -137,6 +137,10 @@ const Testimonials = () => {
                     <img
                       src={testimonial.image}
                       alt={testimonial.name}
+                      width="56"
+                      height="56"
+                      loading="lazy"
+                      crossOrigin="anonymous"
                       className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover shadow-sm"
                     />
                   </div>
@@ -157,7 +161,7 @@ const Testimonials = () => {
 
                     {/* User Info */}
                     <div className="mt-auto">
-                      <h4 className="font-bold text-[#04473a] text-sm md:text-sm">{testimonial.name}</h4>
+                      <h3 className="font-bold text-[#04473a] text-sm md:text-sm">{testimonial.name}</h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="text-slate-500 text-xs md:text-xs">{testimonial.role}</span>
                         <Icon icon="lucide:check-circle" className="text-green-600 w-3.5 h-3.5" />

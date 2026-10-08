@@ -17,9 +17,9 @@ const footerLinks = [
   {
     title: "Company",
     links: [
-      { name: "About Us", href: "#" },
-      { name: "Careers", href: "#" },
-      { name: "Blog", href: "#" },
+      { name: "About Us", href: "/about" },
+      { name: "Careers", href: "/careers" },
+      { name: "Blog", href: "/blog" },
       { name: "Contact Us", href: "/contact" },
     ]
   },
@@ -29,7 +29,7 @@ const footerLinks = [
       { name: "List Your Property", href: "/list-property", ownerOnly: true },
       { name: "Owner Signup", href: "/signup?role=owner", hideWhenLoggedIn: true },
       { name: "Tenant Signup", href: "/signup?role=tenant", hideWhenLoggedIn: true },
-      { name: "Resources", href: "#" },
+      { name: "Resources", href: "/resources" },
     ]
   },
   {
@@ -46,24 +46,23 @@ const footerLinks = [
     links: [
       { name: "hello@housynest.com", href: "mailto:hello@housynest.com", icon: "lucide:mail" },
       { name: "+91 98765 43210", href: "tel:+919876543210", icon: "lucide:phone" },
-      { name: "Ahmedabad, Gujarat", href: "#", icon: "lucide:map-pin" },
+      { name: "Ahmedabad, Gujarat", href: "/contact", icon: "lucide:map-pin" },
     ]
   }
 ];
 
 const Footer = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
+  const [user, setUser] = useState(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
-        setUser(JSON.parse(userStr));
-      } catch (e) {
-        // ignore
+        return JSON.parse(userStr);
+      } catch {
+        return null;
       }
     }
-  }, []);
+    return null;
+  });
 
   return (
     <footer className="bg-[#062F26] text-white mt-auto">
@@ -81,7 +80,7 @@ const Footer = () => {
             </p>
             <div className="flex gap-3 items-center">
               {companyInfo.socials.map((social, idx) => (
-                <a key={idx} href={social.url} className="group relative w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-yellow hover:border-brand-yellow cursor-pointer transition-all duration-300">
+                <a key={idx} href={social.url} aria-label={social.name} className="group relative w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-yellow hover:border-brand-yellow cursor-pointer transition-all duration-300">
                   <Icon icon={social.icon} className="text-[#cce2dc] group-hover:text-slate-900 w-5 h-5 transition-colors" />
                   <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 flex flex-col items-center pointer-events-none">
                     <div className="w-0 h-0 border-x-[5px] border-x-transparent border-b-[5px] border-b-slate-800 -mb-px"></div>
@@ -153,7 +152,7 @@ const Footer = () => {
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-medium">
             <Link to="/privacy" className="hover:text-brand-yellow transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-brand-yellow transition-colors">Terms of Service</Link>
-            <a href="#" className="hover:text-brand-yellow transition-colors">Cookie Policy</a>
+            <Link to="/cookies" className="hover:text-brand-yellow transition-colors">Cookie Policy</Link>
           </div>
         </div>
 

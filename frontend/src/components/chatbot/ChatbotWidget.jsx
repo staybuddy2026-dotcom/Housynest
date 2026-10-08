@@ -58,6 +58,7 @@ const ChatbotWidget = () => {
           </AnimatePresence>
 
           <motion.button
+            aria-label="Toggle Chatbot"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             whileHover={{ scale: 1.05 }}

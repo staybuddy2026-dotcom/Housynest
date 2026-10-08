@@ -111,6 +111,7 @@ const FeaturedProperties = () => {
         {/* Left Arrow Button */}
         <button
           onClick={() => scroll('left')}
+          aria-label="Scroll left"
           className={`absolute cursor-pointer left-[-40px] top-[40%] z-20 w-12 h-12 rounded-full bg-white shadow-[0_5px_15px_rgba(0,0,0,0.15)] flex items-center justify-center text-slate-700 hover:text-[#04473a] hover:scale-110 transition-all duration-300 ${!canScrollLeft ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-0 xl:group-hover/slider:opacity-100'}`}
         >
           <Icon icon="lucide:chevron-left" width="24" />
@@ -119,6 +120,7 @@ const FeaturedProperties = () => {
         {/* Right Arrow Button */}
         <button
           onClick={() => scroll('right')}
+          aria-label="Scroll right"
           className={`absolute cursor-pointer right-[-32px] top-[40%] z-20 w-12 h-12 rounded-full bg-white shadow-[0_5px_15px_rgba(0,0,0,0.15)] flex items-center justify-center text-slate-700 hover:text-[#04473a] hover:scale-110 transition-all duration-300 ${!canScrollRight ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-0 xl:group-hover/slider:opacity-100'}`}
         >
           <Icon icon="lucide:chevron-right" width="24" />

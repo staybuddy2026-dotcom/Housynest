@@ -46,6 +46,15 @@ const PropertyListingCard = ({ property, forceLiked = null }) => {
 
   const images = property.images || [property.image, property.image, property.image, property.image, property.image];
 
+  const optimizeImage = (url) => {
+    if (!url || typeof url !== 'string') return url;
+    // Optimize Cloudinary URLs with auto format, auto quality, and resize width to 600px
+    if (url.includes('res.cloudinary.com')) {
+      return url.replace('/upload/', '/upload/w_600,q_auto,f_auto/');
+    }
+    return url;
+  };
+
   const navigate = useNavigate();
 
   const handleNextImage = (e) => {
@@ -125,8 +134,12 @@ const PropertyListingCard = ({ property, forceLiked = null }) => {
           {images.map((img, idx) => (
             <div key={idx} className="w-full h-full shrink-0 relative overflow-hidden">
               <img
-                src={img}
+                src={optimizeImage(img)}
                 alt={property.title}
+                crossOrigin="anonymous"
+                loading="lazy"
+                width="600"
+                height="400"
                 className="w-full h-full object-cover transition-transform duration-700 ease-in-out transform group-hover:scale-110"
               />
             </div>
@@ -158,7 +171,7 @@ const PropertyListingCard = ({ property, forceLiked = null }) => {
 
         {/* Favorite */}
         {showFavoriteBtn && (
-          <button onClick={handleFavoriteClick} className="absolute top-3 right-3 md:w-7 md:h-7 w-8 h-8 cursor-pointer rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white text-white transition-colors z-10 group/fav">
+          <button onClick={handleFavoriteClick} aria-label="Toggle favorite" className="absolute top-3 right-3 md:w-7 md:h-7 w-8 h-8 cursor-pointer rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white text-white transition-colors z-10 group/fav">
             <Icon icon={isLiked ? "mdi:cards-heart" : "mdi:cards-heart-outline"} className={`w-5 h-5 md:w-4 md:h-4 transition-colors ${isLiked ? 'text-red-500' : 'text-white group-hover/fav:text-red-500'}`} />
           </button>
         )}
@@ -177,7 +190,7 @@ const PropertyListingCard = ({ property, forceLiked = null }) => {
             ))}
           </div>
 
-          <button onClick={handleNextImage} className="w-7 h-7 cursor-pointer rounded-full bg-white flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95">
+          <button onClick={handleNextImage} aria-label="Next image" className="w-7 h-7 cursor-pointer rounded-full bg-white flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95">
             <Icon icon="lucide:arrow-right" className="w-4 h-4 text-slate-900" />
           </button>
         </div>

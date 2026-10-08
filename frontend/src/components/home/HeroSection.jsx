@@ -25,20 +25,21 @@ const HeroSection = () => {
         <img
           src={heroImg}
           alt="Hero Background"
+          fetchPriority="high"
           className="w-full h-full object-cover object-left lg:object-center opacity-60 lg:opacity-100"
         />
         {/* Gradient fade to blend into the white background on the left */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent lg:hidden"></div>
-        <div className="absolute inset-y-0 left-0 w-[100px] sm:w-[250px] lg:w-[400px] bg-gradient-to-r from-white via-white/90 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-white/0 lg:hidden"></div>
+        <div className="absolute inset-y-0 -left-1 w-[120px] sm:w-[300px] lg:w-[500px] bg-gradient-to-r from-white via-white/80 to-white/0"></div>
 
         {/* Gradient fade to blend into the white background at the bottom (behind search bar) */}
-        <div className="absolute inset-x-0 bottom-0 h-[65px] bg-gradient-to-t from-white via-white/50 to-transparent"></div>
+        <div className="absolute inset-x-0 bottom-0 h-[80px] bg-gradient-to-t from-white via-white/80 to-white/0"></div>
 
         {/* Highlighted 3 Cards */}
         <div className="hidden lg:flex absolute left-[4%] top-1/3 -translate-y-1/2 flex-col gap-5 z-20 pointer-events-auto">
           {heroCards.map((card) => (
             <div key={card.id} className="bg-white rounded-md p-2.5 shadow-2xl border border-gray-200 flex items-center gap-4 w-[260px]">
-              <img src={card.image} alt={card.title} className="w-[120px] h-[85px] rounded-md object-cover" />
+              <img src={card.image} alt={card.title} width="120" height="85" className="w-[120px] h-[85px] rounded-md object-cover" />
               <div className="flex flex-col justify-center">
                 <h3 className="font-bold text-slate-900 text-sm mb-0.5">{card.title}</h3>
                 <p className="text-xs text-slate-500 leading-snug mb-1.5">{card.locationArea}<br />{card.locationCity}</p>

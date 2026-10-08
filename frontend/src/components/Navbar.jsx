@@ -74,7 +74,7 @@ const Navbar = () => {
           {/* Logo Section */}
           <div className="shrink-0 flex items-center flex-1">
             <Link to="/" className="flex items-center">
-              <img src={logo} alt="HousyNest Logo" className="h-11 sm:h-12 w-auto object-contain" />
+              <img src={logo} alt="HousyNest Logo" width="160" height="48" className="h-11 sm:h-12 w-auto object-contain" />
             </Link>
           </div>
 

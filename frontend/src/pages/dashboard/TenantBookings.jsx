@@ -16,6 +16,10 @@ const TenantBookings = () => {
   const navigate = useNavigate();
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [bookings, setBookings] = useState([]);
+  const [visits, setVisits] = useState([]);
+  // Same filters as the mobile app: Active / Cancelled, then All / Stays / Visits.
+  const [showActive, setShowActive] = useState(true);
+  const [kindFilter, setKindFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [processingPaymentId, setProcessingPaymentId] = useState(null);
   const [showAgreementModal, setShowAgreementModal] = useState(null);
@@ -88,12 +92,18 @@ const TenantBookings = () => {
   const fetchBookings = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch('/api/bookings/tenant', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const [res, visitsRes] = await Promise.all([
+        fetch('/api/bookings/tenant', { headers }),
+        fetch('/api/visits/tenant', { headers })
+      ]);
       if (res.ok) {
         const data = await res.json();
         setBookings(data);
+      }
+      if (visitsRes.ok) {
+        const visitData = await visitsRes.json();
+        setVisits(visitData);
       }
     } catch (error) {
       console.error('Error fetching tenant bookings:', error);
@@ -295,18 +305,101 @@ const TenantBookings = () => {
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading bookings...</div>;
-  }
+  // Stays and site visits in one list, like the app. Closed stays and rejected visits count as cancelled.
+  const CLOSED_STAY_STATUSES = ['Rejected', 'Cancelled', 'Moved Out'];
+  const allItems = [
+    ...bookings.map(b => ({ kind: 'stay', data: b, date: new Date(b.moveInDate) })),
+    ...visits.map(v => ({ kind: 'visit', data: v, date: new Date(v.date) }))
+  ];
+  const isCancelledItem = (item) =>
+    item.kind === 'visit' ? item.data.status === 'Rejected' : CLOSED_STAY_STATUSES.includes(item.data.status);
+  const activeItems = allItems.filter(item => !isCancelledItem(item));
+  const cancelledItems = allItems.filter(isCancelledItem);
+  const segmentItems = showActive ? activeItems : cancelledItems;
+  const kindCount = (kind) => segmentItems.filter(item => kind === 'all' || item.kind === kind).length;
+  const shownItems = segmentItems
+    .filter(item => kindFilter === 'all' || item.kind === kindFilter)
+    .sort((a, b) => a.date - b.date);
 
-  if (bookings.length === 0) {
+  const KIND_FILTERS = [
+    { key: 'all', label: 'All', icon: 'lucide:layout-grid' },
+    { key: 'stay', label: 'Stays', icon: 'lucide:bed-double' },
+    { key: 'visit', label: 'Visits', icon: 'lucide:calendar-check' }
+  ];
+
+  const getVisitStatusBadge = (status) => {
+    const tone = ['Accepted', 'Completed'].includes(status)
+      ? { box: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: 'lucide:check-circle-2', iconColor: 'text-emerald-500' }
+      : status === 'Rejected'
+        ? { box: 'bg-red-50 text-red-700 border-red-200', icon: 'lucide:x-circle', iconColor: 'text-red-500' }
+        : { box: 'bg-amber-50 text-amber-700 border-amber-200', icon: 'lucide:clock', iconColor: 'text-amber-500' };
     return (
-      <div className="p-12 text-center text-slate-500 flex flex-col items-center">
-        <Icon icon="lucide:book-x" className="w-16 h-16 text-slate-300 mb-4" />
-        <h2 className="text-xl font-bold text-slate-800 mb-2">No Bookings Found</h2>
-        <p>You haven't made any bookings yet.</p>
+      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-full shadow-sm ${tone.box}`}>
+        <Icon icon={tone.icon} className={`w-3.5 h-3.5 ${tone.iconColor}`} />
+        <span className="text-[10px] font-bold uppercase tracking-wider">{status}</span>
       </div>
     );
+  };
+
+  const renderVisitRow = (visit) => {
+    const property = visit.property;
+    const propertyName = !property ? 'Deleted Property' : (property.pgName || (property.bhkType ? `${property.bhkType} ${property.propertyCategory}` : property.propertyCategory) || 'Property');
+    const slot = visit.status === 'Rescheduled' && visit.suggestedTime ? visit.suggestedTime : visit.time;
+    return (
+      <tr
+        key={`visit-${visit._id}`}
+        onClick={() => navigate('/tenant/visits')}
+        className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+      >
+        <td className="p-4">
+          <div className="flex items-center gap-4">
+            <img
+              src={property?.images?.[0]?.url || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=600&auto=format&fit=crop"}
+              alt="Property"
+              className="w-12 h-12 rounded-md object-cover border border-slate-200 shrink-0"
+            />
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <p className="font-bold text-[#062F26] text-sm line-clamp-1">{propertyName}</p>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 bg-amber-100 text-amber-700">
+                  Visit
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 line-clamp-1 font-medium mt-0.5">{[property?.locality, property?.city].filter(Boolean).join(', ')}</p>
+            </div>
+          </div>
+        </td>
+        <td className="p-4">
+          <div className="inline-block px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg font-bold text-[13px] uppercase tracking-wide">
+            VST-{visit._id.substring(visit._id.length - 6).toUpperCase()}
+          </div>
+        </td>
+        <td className="p-4">
+          <p className="text-sm font-bold text-slate-700">Site Visit</p>
+          {slot && <p className="text-xs text-slate-500 font-medium capitalize">{slot}</p>}
+        </td>
+        <td className="p-4">
+          <p className="text-sm font-semibold text-slate-700">
+            {new Date(visit.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </p>
+        </td>
+        <td className="p-4">
+          {getVisitStatusBadge(visit.status)}
+        </td>
+        <td className="p-4">
+          <div className="flex items-center justify-end gap-2">
+            <button className="text-brand-teal px-3 py-2 rounded-lg cursor-pointer bg-brand-teal/5 hover:bg-brand-teal/15 transition-colors flex items-center justify-center shadow-sm">
+              <span className="text-xs font-bold mr-1">View Visit</span>
+              <Icon icon="lucide:arrow-right" className="w-4 h-4" />
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center text-slate-500">Loading bookings...</div>;
   }
   return (
     <div className="pb-10 mx-auto space-y-4 animate-fadeIn">
@@ -325,12 +418,63 @@ const TenantBookings = () => {
 
       {/* Main Layout - Map over bookings */}
       {!selectedBooking ? (
+        <>
+        {/* Filters (same as the app): Active / Cancelled, then All / Stays / Visits */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 w-full sm:w-auto">
+            {[
+              { value: true, label: 'Active', count: activeItems.length, icon: 'lucide:calendar-check' },
+              { value: false, label: 'Cancelled', count: cancelledItems.length, icon: 'lucide:calendar-x' }
+            ].map(segment => (
+              <button
+                key={segment.label}
+                onClick={() => setShowActive(segment.value)}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${showActive === segment.value ? 'bg-[#062F26] text-white shadow-sm' : 'text-slate-500 hover:text-[#062F26]'}`}
+              >
+                <Icon icon={segment.icon} className="w-4 h-4" />
+                {segment.label}
+                <span className={`px-2 py-0.5 rounded-md text-xs min-w-6 ${showActive === segment.value ? 'bg-white/20 text-white' : 'bg-white text-slate-500'}`}>
+                  {segment.count}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto">
+            {KIND_FILTERS.map(filter => (
+              <button
+                key={filter.key}
+                onClick={() => setKindFilter(filter.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap border transition-all cursor-pointer ${kindFilter === filter.key ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+              >
+                <Icon icon={filter.icon} className="w-4 h-4" />
+                {filter.label}
+                <span className={`text-xs ${kindFilter === filter.key ? 'text-emerald-600/70' : 'text-slate-400'}`}>{kindCount(filter.key)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {shownItems.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 flex flex-col items-center bg-white rounded-xl border border-slate-200 shadow-sm">
+            <Icon icon={showActive ? 'lucide:calendar-check' : 'lucide:calendar-x'} className="w-16 h-16 text-slate-300 mb-4" />
+            <h2 className="text-xl font-bold text-slate-800 mb-2">{showActive ? 'No bookings yet' : 'No cancelled bookings'}</h2>
+            <p>{showActive ? 'Book a bed or schedule a visit at a place you love. It will show up here.' : 'Bookings and visits you cancel will appear here.'}</p>
+            {showActive && (
+              <button
+                onClick={() => navigate('/properties')}
+                className="mt-6 px-6 py-2.5 bg-[#062F26] hover:bg-[#05261e] text-white text-sm font-bold rounded-xl shadow-lg transition-all cursor-pointer"
+              >
+                Explore Properties
+              </button>
+            )}
+          </div>
+        ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider">
-                  {['Property', 'Booking ID', 'Room', 'Move In', 'Status', 'Action'].map((header, idx) => (
+                  {['Property', 'Booking ID', 'Room', 'Move In / Visit', 'Status', 'Action'].map((header, idx) => (
                     <th key={idx} className={`p-4 font-semibold ${header === 'Action' ? 'text-right' : ''}`}>
                       {header}
                     </th>
@@ -338,7 +482,7 @@ const TenantBookings = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {bookings.map((booking) => (
+                {shownItems.map(({ kind: rowKind, data: booking }) => rowKind === 'visit' ? renderVisitRow(booking) : (
                   <tr
                     key={booking._id}
                     onClick={() => setSelectedBooking(booking)}
@@ -457,6 +601,8 @@ const TenantBookings = () => {
             </table>
           </div>
         </div>
+        )}
+        </>
       ) : (
         <div className="space-y-4 animate-in slide-in-from-right-8 fade-in duration-500">
           <button

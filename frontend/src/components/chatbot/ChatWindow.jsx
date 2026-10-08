@@ -138,6 +138,7 @@ const ChatWindow = ({ onClose }) => {
         role: 'assistant',
         content: response.data.reply,
         timestamp: new Date().toISOString(),
+        properties: response.data.properties || [],
       };
 
       // Save extracted preferences for personalized recommendations

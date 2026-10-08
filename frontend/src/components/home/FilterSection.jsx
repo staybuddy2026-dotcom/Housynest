@@ -238,6 +238,7 @@ const FilterSection = () => {
             </h2>
             <button
               onClick={() => setIsDrawerOpen(false)}
+              aria-label="Close filters"
               className="p-1.5 rounded-full bg-gray-50 hover:bg-gray-100 text-slate-500 hover:text-slate-800 transition-colors"
             >
               <Icon icon="lucide:x" width="18" />
@@ -250,12 +251,12 @@ const FilterSection = () => {
 
               {/* PG For */}
               <div>
-                <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-teal-50 flex items-center justify-center text-brand-teal">
                     <Icon icon="lucide:users" width="16" />
                   </div>
                   PG For
-                </h4>
+                </h3>
                 <div className="grid grid-cols-3 gap-2">
                   {['Male', 'Female', 'Both'].map((opt) => (
                     <button
@@ -273,12 +274,12 @@ const FilterSection = () => {
 
               {/* Preferred Tenants */}
               <div>
-                <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-teal-50 flex items-center justify-center text-brand-teal">
                     <Icon icon="lucide:briefcase" width="16" />
                   </div>
                   Preferred Tenants
-                </h4>
+                </h3>
                 <div className="grid grid-cols-3 gap-2">
                   {['Students', 'Professionals', 'Both'].map((opt) => (
                     <button
@@ -296,12 +297,12 @@ const FilterSection = () => {
 
               {/* Occupancy */}
               <div>
-                <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-teal-50 flex items-center justify-center text-brand-teal">
                     <Icon icon="lucide:bed" width="16" />
                   </div>
                   Occupancy
-                </h4>
+                </h3>
                 <div className="grid grid-cols-2 gap-2">
                   {['Single', 'Double', 'Triple', 'Four'].map((opt) => (
                     <button

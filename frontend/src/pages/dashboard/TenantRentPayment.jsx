@@ -3,6 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
+import { getBookingPricing } from '../../lib/rentPricing';
+
+const BOOKING_STATUS_STYLES = {
+  Active: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  Confirmed: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  Reserved: 'bg-blue-50 text-blue-700 border-blue-100',
+  'Pending Payment': 'bg-amber-50 text-amber-700 border-amber-100',
+  'Pending Request': 'bg-amber-50 text-amber-700 border-amber-100'
+};
 
 const TenantRentPayment = () => {
   const { id } = useParams();
@@ -38,46 +47,17 @@ const TenantRentPayment = () => {
             i.bookingId === id || (i.bookingId && i.bookingId._id === id) || i.bookingId === currentBooking._id
           );
           setInvoices(bookingInvoices);
-          let invoiceToPay = bookingInvoices.find(i => i.status === 'Pending' || i.status === 'Overdue');
+          // The oldest unpaid invoice is due first (the list comes newest first from the server).
+          let invoiceToPay = bookingInvoices
+            .filter(i => i.status === 'Pending' || i.status === 'Overdue')
+            .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))[0];
 
           if (!invoiceToPay && (currentBooking.status === 'Pending Payment' || currentBooking.status === 'Reserved')) {
             const moveIn = new Date(currentBooking.moveInDate || new Date());
             const endOfFirstMonth = new Date(moveIn);
             endOfFirstMonth.setMonth(endOfFirstMonth.getMonth() + 1);
 
-            const getPricing = () => {
-              if (currentBooking.propertyId?.propertyType === 'PG' && currentBooking.roomDetails?.sharingType) {
-                const floor = currentBooking.propertyId.floors?.find(f => f.floorName === currentBooking.roomDetails.floorName);
-                const room = floor?.rooms?.find(r => r.roomName === currentBooking.roomDetails.roomName);
-                let baseType = 'Single';
-                let isAC = false;
-
-                if (room) {
-                  baseType = room.sharingType || 'Single';
-                  isAC = room.isAC;
-                } else if (currentBooking.roomDetails?.sharingType) {
-                  const st = currentBooking.roomDetails.sharingType;
-                  baseType = st.includes('Single') ? 'Single' : st.includes('Double') ? 'Double' : st.includes('Triple') ? 'Triple' : st.includes('Four') ? 'Four' : 'Other';
-                  isAC = st.includes('(AC)');
-                }
-                const typeStr = `${baseType}_${isAC ? 'AC' : 'NonAC'}`;
-                const pricing = currentBooking.propertyId.pgPricing?.[typeStr];
-                if (pricing) {
-                  return {
-                    rent: Number(pricing.rentPerBed?.replace(/\D/g, '') || 0),
-                    deposit: Number(pricing.depositPerBed?.replace(/\D/g, '') || 0),
-                    maintenance: 0
-                  };
-                }
-              }
-              return {
-                rent: Number(currentBooking.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
-                deposit: Number(currentBooking.propertyId?.securityAmount?.replace(/\D/g, '') || 0),
-                maintenance: Number(currentBooking.propertyId?.maintenanceCharges?.replace(/\D/g, '') || 0)
-              };
-            };
-
-            const pricing = getPricing();
+            const pricing = getBookingPricing(currentBooking);
             const stampFees = 800;
             const fullAmount = pricing.rent + pricing.deposit + pricing.maintenance + stampFees;
             const paymentMethod = currentBooking.paymentDetails?.paymentMethod || '';
@@ -182,18 +162,7 @@ const TenantRentPayment = () => {
   if (!booking) return null;
 
   // Derive variables...
-  let rentAmount = 10000;
-  if (booking.propertyId) {
-    if (booking.propertyId.pgPricing && booking.roomDetails && booking.roomDetails.sharingType) {
-      const baseType = booking.roomDetails.sharingType.includes('Single') ? 'Single' : booking.roomDetails.sharingType.includes('Double') ? 'Double' : booking.roomDetails.sharingType.includes('Triple') ? 'Triple' : booking.roomDetails.sharingType.includes('Four') ? 'Four' : 'Other';
-      const typeStr = `${baseType}_${booking.propertyId.isAC ? 'AC' : 'NonAC'}`;
-      if (booking.propertyId.pgPricing[typeStr]?.rentPerBed) {
-        rentAmount = Number(booking.propertyId.pgPricing[typeStr].rentPerBed.replace(/\D/g, ''));
-      }
-    } else if (booking.propertyId.monthlyRent) {
-      rentAmount = Number(booking.propertyId.monthlyRent.replace(/\D/g, ''));
-    }
-  }
+  const rentAmount = getBookingPricing(booking).rent;
 
   const propertyName = booking.propertyId?.societyName || booking.propertyId?.pgName || booking.propertyId?.title || 'Property';
   const location = `${booking.propertyId?.locality || ''}, ${booking.propertyId?.city || ''}`;
@@ -262,8 +231,8 @@ const TenantRentPayment = () => {
 
           {/* Property Header Card */}
           <div className="bg-white rounded-xl p-4  shadow-[0_2px_15px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col sm:flex-row gap-6 items-start relative">
-            <div className="absolute top-6 right-6 px-3 py-1 bg-emerald-50 text-emerald-700 font-bold text-[10px] uppercase tracking-wider rounded-lg border border-emerald-100">
-              Active
+            <div className={`absolute top-6 right-6 px-3 py-1 font-bold text-[10px] uppercase tracking-wider rounded-lg border ${BOOKING_STATUS_STYLES[booking.status] || 'bg-slate-50 text-slate-600 border-slate-200'}`}>
+              {booking.status}
             </div>
             <img src={image} alt={propertyName} className="w-full sm:w-48 h-48 sm:h-32 object-cover rounded-lg shrink-0" />
 

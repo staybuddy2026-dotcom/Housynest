@@ -36,8 +36,9 @@ import { autoActivateBookings, autoDisburseBookings } from './controllers/bookin
 // Load env vars
 dotenv.config();
 
-// Connect to database
-connectDB();
+// Connect to database, then catch up on rent invoices: the daily cron only runs at midnight,
+// so invoices due while the server was down would otherwise never be created.
+connectDB().then(() => generateMonthlyInvoices());
 
 const app = express();
 const server = createServer(app);

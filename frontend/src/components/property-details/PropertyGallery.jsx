@@ -1,6 +1,22 @@
 import { Icon } from '@iconify/react';
 
 const PropertyGallery = ({ property, galleryImages, currentImageIndex, setCurrentImageIndex }) => {
+  const optimizeImage = (url) => {
+    if (!url || typeof url !== 'string') return url;
+    if (url.includes('res.cloudinary.com')) {
+      return url.replace('/upload/', '/upload/w_1200,q_auto,f_auto/');
+    }
+    return url;
+  };
+
+  const optimizeThumb = (url) => {
+    if (!url || typeof url !== 'string') return url;
+    if (url.includes('res.cloudinary.com')) {
+      return url.replace('/upload/', '/upload/w_300,q_auto,f_auto/');
+    }
+    return url;
+  };
+
   return (
     <div id="gallery" className="w-full lg:w-[68%] scroll-mt-24">
       <div className="relative w-full h-60 sm:h-100 lg:h-120 rounded-xl overflow-hidden mb-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
@@ -11,8 +27,12 @@ const PropertyGallery = ({ property, galleryImages, currentImageIndex, setCurren
           {galleryImages.map((image, idx) => (
             <img
               key={idx}
-              src={image.img}
+              src={optimizeImage(image.img)}
               alt={`${property.title} - ${image.name}`}
+              crossOrigin="anonymous"
+              loading="lazy"
+              width="1200"
+              height="800"
               className="w-full h-full object-cover shrink-0"
             />
           ))}
@@ -72,8 +92,12 @@ const PropertyGallery = ({ property, galleryImages, currentImageIndex, setCurren
                 }`}
             >
               <img
-                src={thumb.img}
+                src={optimizeThumb(thumb.img)}
                 alt={thumb.name}
+                crossOrigin="anonymous"
+                loading="lazy"
+                width="300"
+                height="200"
                 className={`w-full h-full object-cover transition-transform duration-700 ${hasMore ? '' : 'group-hover:scale-110'}`}
               />
 
