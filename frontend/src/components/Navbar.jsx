@@ -160,7 +160,7 @@ const Navbar = () => {
                         My Profile
                       </Link>
                       <Link
-                        to={user?.role ? `/${user.role}/dashboard` : '/dashboard'}
+                        to={user?.role ? (`/${user.role}/dashboard`) : '/dashboard'}
                         className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-600 rounded-lg hover:bg-[#EAF5F2] hover:text-brand-teal transition-colors group/item"
                         onClick={() => {
                           setUnreadCount(0); // clear on click

@@ -68,10 +68,13 @@ const OwnerBookings = () => {
 
       if (b.propertyId?.propertyType === 'PG' && b.propertyId?.pgPricing) {
         let pricing = null;
-        if (b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
-          pricing = b.propertyId.pgPricing[typeNonAC];
-        } else if (b.propertyId.pgPricing[typeAC]?.rentPerBed) {
+        const isBookingAC = sharing.includes('(AC)');
+        if (isBookingAC && b.propertyId.pgPricing[typeAC]?.rentPerBed) {
           pricing = b.propertyId.pgPricing[typeAC];
+        } else if (!isBookingAC && b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
+          pricing = b.propertyId.pgPricing[typeNonAC];
+        } else {
+          pricing = b.propertyId.pgPricing[typeNonAC] || b.propertyId.pgPricing[typeAC];
         }
         if (pricing) {
           rentAmt = Number(String(pricing.rentPerBed || '').replace(/\D/g, '') || 0);
@@ -116,10 +119,10 @@ const OwnerBookings = () => {
         _id: b._id,
         id: b._id.substring(b._id.length - 8).toUpperCase(),
         date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
-        tenant: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
-        profilePic: b.tenantId?.profilePic || b.personalInfo?.profilePic || null,
-        phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
-        email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
+        tenant: (b.personalInfo?.firstName ? `${b.personalInfo.firstName} ${b.personalInfo.lastName}` : null) || b.tenantId?.fullName || 'Unknown',
+        profilePic: b.personalInfo?.profilePic || b.tenantId?.profilePic || null,
+        phone: b.personalInfo?.mobileNumber || b.tenantId?.phone || 'N/A',
+        email: b.personalInfo?.email || b.tenantId?.email || 'N/A',
         property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
         propertyType: b.propertyId?.propertyType || 'N/A',
         bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),

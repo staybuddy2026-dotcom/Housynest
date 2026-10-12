@@ -500,7 +500,7 @@ const AdminPropertyViewModal = ({ property, onClose }) => {
                       </div>
                       <div>
                         <span className="text-slate-400 block text-[10px] uppercase font-bold">Available From</span>
-                        <span className="font-bold text-slate-800">{property.availableFromType === 'Immediate' ? 'Immediate' : (property.availableDate || 'N/A')}</span>
+                        <span className="font-bold text-slate-800">{(property.availableFromType === 'Immediate' || property.availableFromType === 'Immediately') ? 'Immediately' : (property.availableDate || 'N/A')}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 block text-[10px] uppercase font-bold">Max Occupants</span>

@@ -270,7 +270,7 @@ const OwnerRentTracking = () => {
   const mappedTenants = bookings.filter(b => {
     return b.status === 'Confirmed' || b.status === 'Reserved' || b.status === 'Active' || b.status === 'Moved Out';
   }).map(b => {
-    const tenantName = b.tenantId?.fullName || (b.personalInfo?.firstName ? b.personalInfo.firstName + ' ' + (b.personalInfo.lastName || '') : 'Unknown');
+    const tenantName = (b.personalInfo?.firstName ? `${b.personalInfo.firstName} ${b.personalInfo.lastName || ''}`.trim() : null) || b.tenantId?.fullName || 'Unknown';
     const propertyName = b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property';
 
     // Find all invoices for this booking
@@ -313,10 +313,14 @@ const OwnerRentTracking = () => {
     const typeNonAC = `${baseType}_NonAC`;
 
     if (b.propertyId?.propertyType === 'PG' && b.propertyId?.pgPricing) {
-      if (b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
-        rentAmt = Number(String(b.propertyId.pgPricing[typeNonAC].rentPerBed).replace(/\D/g, ''));
-      } else if (b.propertyId.pgPricing[typeAC]?.rentPerBed) {
+      const isBookingAC = sharing.includes('(AC)');
+      if (isBookingAC && b.propertyId.pgPricing[typeAC]?.rentPerBed) {
         rentAmt = Number(String(b.propertyId.pgPricing[typeAC].rentPerBed).replace(/\D/g, ''));
+      } else if (!isBookingAC && b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
+        rentAmt = Number(String(b.propertyId.pgPricing[typeNonAC].rentPerBed).replace(/\D/g, ''));
+      } else {
+        const pricing = b.propertyId.pgPricing[typeNonAC] || b.propertyId.pgPricing[typeAC];
+        if (pricing) rentAmt = Number(String(pricing.rentPerBed).replace(/\D/g, ''));
       }
     } else if (b.propertyId) {
       rentAmt = Number(String(b.propertyId.monthlyRent || '').replace(/\D/g, '') || 0);
@@ -329,7 +333,13 @@ const OwnerRentTracking = () => {
 
     return {
       _id: activeInvoice ? activeInvoice._id : b._id,
-      tenantId: b.tenantId || { fullName: tenantName, phone: b.personalInfo?.mobileNumber, email: b.personalInfo?.email },
+      tenantId: { 
+        ...(b.tenantId || {}),
+        fullName: tenantName, 
+        phone: b.personalInfo?.mobileNumber || b.tenantId?.phone, 
+        email: b.personalInfo?.email || b.tenantId?.email,
+        whatsappNumber: b.personalInfo?.whatsappNumber || b.tenantId?.whatsappNumber || b.personalInfo?.mobileNumber || b.tenantId?.phone
+      },
       propertyId: b.propertyId,
       bookingId: b,
       rentAmt,

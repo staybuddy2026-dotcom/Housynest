@@ -50,7 +50,7 @@ const OwnerTenants = () => {
           const activeTenants = bookings
             .filter(b => b.status === 'Confirmed' || b.status === 'Reserved' || b.status === 'Active' || b.status === 'Moved Out')
             .map((b) => {
-              const name = b.tenantId?.fullName || (b.personalInfo?.firstName ? b.personalInfo.firstName + ' ' + (b.personalInfo.lastName || '') : 'Unknown');
+              const name = (b.personalInfo?.firstName ? `${b.personalInfo.firstName} ${b.personalInfo.lastName || ''}`.trim() : null) || b.tenantId?.fullName || 'Unknown';
               const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
 
               const rentInfo = (() => {
@@ -76,16 +76,16 @@ const OwnerTenants = () => {
                     const pricing = b.propertyId.pgPricing?.[typeStr];
                     if (pricing) {
                       return {
-                        rent: Number(pricing.rentPerBed?.replace(/\D/g, '') || 0),
-                        deposit: Number(pricing.depositPerBed?.replace(/\D/g, '') || 0),
+                        rent: Number(String(pricing.rentPerBed || '').replace(/\D/g, '') || 0),
+                        deposit: Number(String(pricing.depositPerBed || '').replace(/\D/g, '') || 0),
                         maintenance: 0
                       };
                     }
                   }
                   return {
-                    rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
-                    deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0),
-                    maintenance: Number(b.propertyId?.maintenanceCharges?.replace(/\D/g, '') || 0)
+                    rent: Number(String(b.propertyId?.monthlyRent || '').replace(/\D/g, '') || 0),
+                    deposit: Number(String(b.propertyId?.securityAmount || '').replace(/\D/g, '') || 0),
+                    maintenance: Number(String(b.propertyId?.maintenanceCharges || '').replace(/\D/g, '') || 0)
                   };
                 };
 
@@ -134,14 +134,14 @@ const OwnerTenants = () => {
                   const pgPric = b.propertyId.pgPricing?.[typeStr];
                   if (pgPric) {
                     return {
-                      rent: Number(pgPric.rentPerBed?.replace(/\D/g, '') || 0),
-                      deposit: Number(pgPric.depositPerBed?.replace(/\D/g, '') || 0)
+                      rent: Number(String(pgPric.rentPerBed || '').replace(/\D/g, '') || 0),
+                      deposit: Number(String(pgPric.depositPerBed || '').replace(/\D/g, '') || 0)
                     };
                   }
                 }
                 return {
-                  rent: Number(b.propertyId?.monthlyRent?.replace(/\D/g, '') || 0),
-                  deposit: Number(b.propertyId?.securityAmount?.replace(/\D/g, '') || 0)
+                  rent: Number(String(b.propertyId?.monthlyRent || '').replace(/\D/g, '') || 0),
+                  deposit: Number(String(b.propertyId?.securityAmount || '').replace(/\D/g, '') || 0)
                 };
               })();
 
@@ -149,9 +149,9 @@ const OwnerTenants = () => {
                 id: `TN-${b._id.substring(b._id.length - 4).toUpperCase()}`,
                 name: name,
                 initials: initials,
-                profilePic: b.tenantId?.profilePic || b.personalInfo?.profilePic || null,
-                email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
-                phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
+                profilePic: b.personalInfo?.profilePic || b.tenantId?.profilePic || null,
+                email: b.personalInfo?.email || b.tenantId?.email || 'N/A',
+                phone: b.personalInfo?.mobileNumber || b.tenantId?.phone || 'N/A',
                 property: b.propertyId?.pgName || b.propertyId?.societyName || b.propertyId?.propertyCategory || 'Property',
                 propertyType: b.propertyId?.propertyType || 'N/A',
                 room: b.roomDetails?.roomName || 'N/A',

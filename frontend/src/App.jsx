@@ -33,6 +33,7 @@ import OwnerTenants from './pages/dashboard/OwnerTenants';
 import OwnerMaintenance from './pages/dashboard/OwnerMaintenance';
 import TenantDashboardLayout from './layouts/TenantDashboardLayout';
 import TenantSavedProperties from './pages/dashboard/TenantSavedProperties';
+import TenantDashboard from './pages/dashboard/TenantDashboard';
 import TenantRequests from './pages/dashboard/TenantRequests';
 import TenantVisits from './pages/dashboard/TenantVisits';
 import TenantMessages from './pages/dashboard/TenantMessages';
@@ -304,7 +305,8 @@ const router = createBrowserRouter(
               <TenantDashboardLayout />
             </ProtectedRoute>
           }>
-            <Route path="dashboard" element={<TenantSavedProperties />} />
+            <Route path="dashboard" element={<TenantDashboard />} />
+            <Route path="saved-properties" element={<TenantSavedProperties />} />
             <Route path="visits" element={<TenantVisits />} />
             <Route path="requests" element={<TenantRequests />} />
             <Route path="maintenance" element={<TenantMaintenance />} />

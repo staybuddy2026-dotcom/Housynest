@@ -99,7 +99,7 @@ const TabPropertyDetails = ({ property }) => {
               </div>
               <div className="flex justify-between items-start gap-3">
                 <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mt-0.5">Available From</span>
-                <span className="text-[11px] sm:text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md text-right break-words mt-[-2px]">{property.availableFromType === 'Immediate' ? 'Immediate' : (property.availableDate || 'N/A')}</span>
+                <span className="text-[11px] sm:text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md text-right break-words mt-[-2px]">{(property.availableFromType === 'Immediate' || property.availableFromType === 'Immediately') ? 'Immediately' : (property.availableDate || 'N/A')}</span>
               </div>
             </div>
           </div>

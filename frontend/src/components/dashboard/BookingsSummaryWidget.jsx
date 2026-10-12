@@ -145,12 +145,15 @@ const BookingsSummaryWidget = () => {
 
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[13px] font-medium text-slate-500">Tomorrow due rent</span>
-          <span className="text-[14px] font-bold text-[#062F26]">₹ {tomorrowDue.toLocaleString()}</span>
+          <span className="text-[14px] font-bold text-[#062F26]">₹ {tomorrowDue.toLocaleString('en-IN')}</span>
         </div>
 
-        <div className="flex items-center gap-1 text-brand-teal text-[13px] font-bold">
-          <Icon icon="lucide:arrow-up" className="w-3.5 h-3.5 stroke-[3]" />
-          {loading ? '-' : `₹ ${totalRentPotential.toLocaleString()}`} (Total Rent Potential)
+        <div className="flex items-center justify-between mt-1.5 pt-2 border-t border-slate-100">
+          <span className="text-[13px] font-medium text-slate-500">Total Rent Potential</span>
+          <div className="flex items-center gap-1 text-brand-teal text-[14px] font-bold">
+            <Icon icon="lucide:trending-up" className="w-4 h-4 stroke-[2.5]" />
+            {loading ? '-' : `₹ ${totalRentPotential.toLocaleString('en-IN')}`}
+          </div>
         </div>
       </div>
     </div>

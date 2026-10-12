@@ -270,6 +270,7 @@ const Sidebar = ({ onClose, isMobile }) => {
 
   const tenantNavItems = [
     { name: 'Dashboard', icon: 'lucide:layout-dashboard', path: '/tenant/dashboard' },
+    { name: 'Saved Properties', icon: 'lucide:heart', path: '/tenant/saved-properties' },
     { name: 'My Bookings', icon: 'lucide:book-open-check', path: '/tenant/bookings' },
     { name: 'Contracts', icon: 'lucide:file-text', path: '/tenant/contracts', badge: counts.newTenantContracts > 0 ? counts.newTenantContracts : null },
     { name: 'Rent Payments', icon: 'lucide:credit-card', path: '/tenant/rent-payments' },

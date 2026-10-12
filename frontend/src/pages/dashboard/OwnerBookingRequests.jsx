@@ -25,7 +25,7 @@ const OwnerBookingRequests = () => {
         if (res.ok) {
           const data = await res.json();
           // Filter to only show requests (Pending Request, Rejected) and maybe recently Confirmed if needed.
-          // The tabs are 'All', 'Pending Approval', 'Approved', 'Rejected'
+          // The tabs are 'All', 'Pending Approval', 'Approved', 'Rejected', 'Closed'
           // We will map 'Pending Request' -> 'PENDING APPROVAL'
           // 'Confirmed' -> 'APPROVED'
           // 'Rejected' -> 'REJECTED'
@@ -76,7 +76,7 @@ const OwnerBookingRequests = () => {
 
   const getStatusMapping = (dbStatus) => {
     if (dbStatus === 'Pending Request') return 'PENDING APPROVAL';
-    if (dbStatus === 'Moved Out') return 'CLOSED';
+    if (dbStatus === 'Moved Out' || dbStatus === 'Closed') return 'CLOSED';
     if (dbStatus === 'Pending Payment' || dbStatus === 'Confirmed' || dbStatus === 'Reserved') return 'APPROVED';
     if (dbStatus === 'Rejected' || dbStatus === 'Cancelled') return 'REJECTED';
     return typeof dbStatus === 'string' ? dbStatus.toUpperCase() : dbStatus;
@@ -127,10 +127,13 @@ const OwnerBookingRequests = () => {
 
       if (b.propertyId?.propertyType === 'PG' && b.propertyId?.pgPricing) {
         let pricing = null;
-        if (b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
-          pricing = b.propertyId.pgPricing[typeNonAC];
-        } else if (b.propertyId.pgPricing[typeAC]?.rentPerBed) {
+        const isBookingAC = sharing.includes('(AC)');
+        if (isBookingAC && b.propertyId.pgPricing[typeAC]?.rentPerBed) {
           pricing = b.propertyId.pgPricing[typeAC];
+        } else if (!isBookingAC && b.propertyId.pgPricing[typeNonAC]?.rentPerBed) {
+          pricing = b.propertyId.pgPricing[typeNonAC];
+        } else {
+          pricing = b.propertyId.pgPricing[typeNonAC] || b.propertyId.pgPricing[typeAC];
         }
         if (pricing) {
           rentAmt = Number(String(pricing.rentPerBed || '').replace(/\\D/g, '') || 0);
@@ -155,10 +158,10 @@ const OwnerBookingRequests = () => {
         _id: b._id,
         id: b._id.substring(b._id.length - 8).toUpperCase(),
         date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' }),
-        customer: b.tenantId?.fullName || b.personalInfo?.firstName + ' ' + b.personalInfo?.lastName || 'Unknown',
-        profilePic: b.tenantId?.profilePic || b.personalInfo?.profilePic || null,
-        phone: b.tenantId?.phone || b.personalInfo?.mobileNumber || 'N/A',
-        email: b.tenantId?.email || b.personalInfo?.email || 'N/A',
+        customer: (b.personalInfo?.firstName ? `${b.personalInfo.firstName} ${b.personalInfo.lastName}` : null) || b.tenantId?.fullName || 'Unknown',
+        profilePic: b.personalInfo?.profilePic || b.tenantId?.profilePic || null,
+        phone: b.personalInfo?.mobileNumber || b.tenantId?.phone || 'N/A',
+        email: b.personalInfo?.email || b.tenantId?.email || 'N/A',
         property: b.propertyId?.societyName || b.propertyId?.pgName || b.propertyId?.propertyCategory || 'Property',
         propertyType: b.propertyId?.propertyType || 'N/A',
         bed: b.propertyId?.propertyType === 'Tenant' ? 'Entire Property' : (b.roomDetails?.roomName ? `${b.roomDetails.roomName} • ${b.roomDetails.bedName}` : 'N/A'),
@@ -177,7 +180,7 @@ const OwnerBookingRequests = () => {
       };
     });
 
-  const tabs = ['All', 'Pending Approval', 'Approved', 'Rejected'];
+  const tabs = ['All', 'Pending Approval', 'Approved', 'Rejected', 'Closed'];
 
   const statsBaseRequests = requests.filter(req => {
     const matchesSearch = req.customer.toLowerCase().includes(searchQuery.toLowerCase()) || req.phone.includes(searchQuery) || req.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -192,6 +195,7 @@ const OwnerBookingRequests = () => {
     if (activeTab === 'Pending Approval') matchesTabLogic = req.status === 'PENDING APPROVAL';
     else if (activeTab === 'Approved') matchesTabLogic = req.status === 'APPROVED' || req.status === 'ACTIVE';
     else if (activeTab === 'Rejected') matchesTabLogic = req.status === 'REJECTED';
+    else if (activeTab === 'Closed') matchesTabLogic = req.status === 'CLOSED';
 
     const matchesSearch = req.customer.toLowerCase().includes(searchQuery.toLowerCase()) || req.phone.includes(searchQuery) || req.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesProperty = propertyFilter === 'All Properties' || req.property === propertyFilter;
@@ -586,6 +590,29 @@ const OwnerBookingRequests = () => {
             >
               <div className="p-5 space-y-4">
 
+
+                {/* Financial Details */}
+                <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
+                  <h4 className="text-sm font-bold text-[#062F26] mb-4">Financial Details</h4>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                      <span className="text-sm font-medium text-slate-500">Monthly Rent</span>
+                      <span className="text-sm font-bold text-slate-800">{selectedRequest.rent}</span>
+                    </div>
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                      <span className="text-sm font-medium text-slate-500">Token Amount (40%)</span>
+                      <span className="text-sm font-bold text-slate-800">{selectedRequest.token}</span>
+                    </div>
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-50">
+                      <span className="text-sm font-medium text-slate-500">Amount Paid</span>
+                      <span className="text-sm font-bold text-emerald-600">₹ {selectedRequest.paid.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-slate-500">Amount Due</span>
+                      <span className="text-sm font-bold text-amber-600">₹ {selectedRequest.due.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Personal Information */}
                 <div className="bg-white rounded-xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100">
